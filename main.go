@@ -46,8 +46,7 @@ func main() {
 		fmt.Printf("No rows here. Why?"); os.Exit(1) }
 	var magic time.Time
 	res1.Scan(&magic)
-	// посмотреть, во что превратится timestamp
-	fmt.Printf("Expiry at %#v\n", magic);
+	fmt.Printf("Expiry at %s\n", magic.Format("2006-01-02 15:04 -0700"));
 
 	err = db.Close()
 	if err != nil {
