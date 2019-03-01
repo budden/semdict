@@ -15,7 +15,7 @@ import (
 //	"regexp"
 //	"strings"
 //	"time"
- "github.com/jmoiron/sqlx"
+	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq")
 
 func main() {
@@ -44,7 +44,7 @@ func main() {
 	genExpiryDate(db)
 
 	playWithPanic()
-	genNonce()
+	genNonce(16)
 	return }
 
  func openDb(url string) (db *sqlx.DB, err error, closer func()) {
@@ -78,20 +78,3 @@ func main() {
 		var magic time.Time
 		res1.Scan(&magic)
 		fmt.Printf("Expiry at %s\n", magic.Format("2006-01-02 15:04 -0700"))	}
-
-/* def gen_nonce(length):
-   """ Generates a random string of bytes, base64 encoded """
-   if length < 1:
-      return ''
-   string=base64.b64encode(os.urandom(length),altchars=b'-_')
-   b64len=4*floor(length,3)
-   if length%3 == 1:
-      b64len+=2
-   elif length%3 == 2:
-      b64len+=3
-   return string[0:b64len].decode() */
-
-
-func genNonce()	{
-
-}
