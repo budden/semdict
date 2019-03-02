@@ -18,15 +18,21 @@ func playWithDb() {
 	if err != nil { 
 		logicalPanic(fmt.Sprintf("Unable to connect to Postgresql, error is %#v", err)) }
 	defer dbCloser()
- var rows *sql.Rows 
-	rows, err = db.Query(`drop table if exists budden_a`)
-	if err != nil { logicalPanic(fmt.Sprintf("Unable to drop table budden_a, original error: %#v", err))	}
-	rows.Close()
-	rows, err = db.Query(`create table budden_a (name text)`)
+
+ justAQuery := func(query string) {
+  rows, err := db.Query(query)
+  if err != nil { logicalPanic(fmt.Sprintf("Query error, query: «%s», error: %#v",query, err))}
+  rows.Close()
+ }
+
+ justAQuery(`drop table if exists budden_a`)
+ justAQuery(`create table budden_a (name text)`)
+ justAQuery(`create unique index budden_a_name on budden_a (name)`)
+ 
 	m := map[string]interface{}{"name" : `",sql 'inject?`}
 	for i := 0; i < 2; i++ {
 		var res sql.Result
-		res, err1 := db.NamedExec(`insert into users values (:name)`,
+		res, err1 := db.NamedExec(`insert into budden_a values (:name)`,
 			m)
 	//xt := reflect.TypeOf(err1).Kind()
 		if err1 != nil {
@@ -39,8 +45,7 @@ func playWithDb() {
 			default: 
 				fmt.Printf("Error insertiing: %#v\n",err1) }
 		} else {
-			fmt.Printf("Inserted %#v\n",res)	}
-		}
+			fmt.Printf("Inserted %#v\n",res)	}}
 	
 	genExpiryDate(db)
  }
