@@ -7,10 +7,10 @@ import (
 	// "github.com/ztrue/tracerr";
  "math/big")
 
-func genNonce(length uint8) {
+func playWithNonce(length uint8) {
 	fmt.Println("FIXME: test that those numbers are sufficiently random!")
- for i:=0; i<50; i++ {
-  str := genNonceInner(length)
+ for i:=0; i<5; i++ {
+  str := genNonce(length)
   fmt.Println("Nonce1:",str) }}
  
 // Original Python function I simplified it a little
@@ -51,7 +51,7 @@ func playWithHashAndSalt() {
 
 // Generates a random string of bytes, base64 encoded
 // Inspired by the discussion in the https://github.com/joestump/python-oauth2/issues/9#
-func genNonceInner(length uint8)	string {
+func genNonce(length uint8)	string {
 	nonceBytes := randomBytes(length)
 	nonceString := string(nonceBytes)
  res := base64.RawURLEncoding.EncodeToString([]byte(nonceString))

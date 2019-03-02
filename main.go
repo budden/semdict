@@ -14,7 +14,7 @@ import (
 func main() {
 	playWithDb()
 	playWithPanic()
-	genNonce(16)
+	playWithNonce(16)
 	playWithHashAndSalt()
 	return }
 
