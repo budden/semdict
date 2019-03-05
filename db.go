@@ -7,28 +7,28 @@ import (
 //	"regexp"
 //	"strings"
 //	"time"
- "database/sql"
+	"database/sql"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq")
 
 func playWithDb() {
- url := "postgresql://localhost:5432"
+	url := "postgresql://localhost:5432"
 
 	db, err, dbCloser := openDb(url)	
 	if err != nil { 
 		logicalPanic(fmt.Sprintf("Unable to connect to Postgresql, error is %#v", err)) }
 	defer dbCloser()
 
- justAQuery := func(query string) {
-  rows, err := db.Query(query)
-  if err != nil { logicalPanic(fmt.Sprintf("Query error, query: «%s», error: %#v",query, err))}
-  rows.Close()
- }
+	justAQuery := func(query string) {
+		rows, err := db.Query(query)
+		if err != nil { logicalPanic(fmt.Sprintf("Query error, query: «%s», error: %#v",query, err))}
+		rows.Close()
+	}
 
- justAQuery(`drop table if exists budden_a`)
- justAQuery(`create table budden_a (name text)`)
- justAQuery(`create unique index budden_a_name on budden_a (name)`)
- 
+	justAQuery(`drop table if exists budden_a`)
+	justAQuery(`create table budden_a (name text)`)
+	justAQuery(`create unique index budden_a_name on budden_a (name)`)
+	
 	m := map[string]interface{}{"name" : `",sql 'inject?`}
 	for i := 0; i < 2; i++ {
 		var res sql.Result
@@ -48,7 +48,7 @@ func playWithDb() {
 			fmt.Printf("Inserted %#v\n",res)	}}
 	
 	genExpiryDate(db)
- }
+	}
 
 	func openDb(url string) (db *sqlx.DB, err error, closer func()) {
 		db, err = sqlx.Open("postgres", url)
