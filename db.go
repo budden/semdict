@@ -60,8 +60,16 @@ func playWithDb() {
 	genExpiryDate(db)
 }
 
+const maxOpenConns=4
+const maxIdleConns=4
+const connMaxLifetime= 10 * time.Second
+
 func openDb(url string) (db *sqlx.DB, closer func(), err error) {
 	db, err = sqlx.Open("postgres", url)
+	// http://go-database-sql.org/connection-pool.html
+	db.SetMaxOpenConns(maxOpenConns)
+	db.SetMaxIdleConns(maxIdleConns)
+	db.SetConnMaxLifetime(connMaxLifetime)
 	closer = func() {
 		err := db.Close()
 		if err != nil {
