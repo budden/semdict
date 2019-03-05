@@ -14,7 +14,7 @@ import (
 func playWithDb() {
  url := "postgresql://localhost:5432"
 
-	db, err, dbCloser := openDb(url)	
+	db, dbCloser, err := openDb(url)	
 	if err != nil { 
 		logicalPanic(fmt.Sprintf("Unable to connect to Postgresql, error is %#v", err)) }
 	defer dbCloser()
@@ -47,7 +47,7 @@ func playWithDb() {
 			fmt.Printf("Inserted %#v\n",res)	}}
 	genExpiryDate(db) }
 
-	func openDb(url string) (db *sqlx.DB, err error, closer func()) {
+	func openDb(url string) (db *sqlx.DB, closer func(), err error) {
 		db, err = sqlx.Open("postgres", url)
 		closer = func() {
 			err := db.Close()

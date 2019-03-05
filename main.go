@@ -11,7 +11,7 @@ package main
 import (
 	"fmt" )
 
-const ActuallySendEmailP = false
+const actuallySendEmailP = false
 
 func main() {
 	playWithDb()
@@ -21,7 +21,7 @@ func main() {
 	/// Uncomment next line to create secret-data.config.json.example
 	//saveSecretConfigDataExample()
 	loadSecretConfigData()
-	if (ActuallySendEmailP) {
+	if (actuallySendEmailP) {
 		playWithEmail() 
 	} else { 
 		fmt.Println("Bypassing sending E-mail due to ActuallySendEmailP == false") }
