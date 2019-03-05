@@ -50,7 +50,7 @@ func playWithDb() {
 	genExpiryDate(db)
  }
 
- func openDb(url string) (db *sqlx.DB, err error, closer func()) {
+	func openDb(url string) (db *sqlx.DB, err error, closer func()) {
 		db, err = sqlx.Open("postgres", url)
 		closer = func() {
 			err := db.Close()
