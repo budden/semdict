@@ -50,9 +50,9 @@ func loadSecretConfigData() (err error) {
 	if err != nil {
 		fmt.Printf("Unable to read config %s\n", fn)
 		return	}
-		dec := json.NewDecoder(strings.NewReader(string(bytes)))
-		dec.DisallowUnknownFields() 
-		err = dec.Decode(sds)
+	dec := json.NewDecoder(strings.NewReader(string(bytes)))
+	dec.DisallowUnknownFields() 
+	err = dec.Decode(sds)
 	if err != nil {
 		fmt.Printf("Error reading config file %s: %#v\n", fn, err)
 		return	}
