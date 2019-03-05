@@ -11,11 +11,20 @@ package main
 import (
 	"fmt" )
 
+const ActuallySendEmailP = false
+
 func main() {
 	playWithDb()
 	playWithPanic()
 	playWithNonce(16)
 	playWithHashAndSalt()
+	/// Uncomment next line to create secret-data.config.json.example
+	//saveSecretConfigDataExample()
+	loadSecretConfigData()
+	if (ActuallySendEmailP) {
+		playWithEmail() 
+	} else { 
+		fmt.Println("Bypassing sending E-mail due to ActuallySendEmailP == false") }
 	return }
 
 
