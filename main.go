@@ -28,6 +28,7 @@ func main() {
 	} else {
 		fmt.Println("Bypassing sending E-mail due to ActuallySendEmailP == false")
 	}
+	playWithServer()
 	return
 }
 
