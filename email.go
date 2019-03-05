@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/go-mail/mail"
 )
 
 func playWithEmail() {
-   scd := &SecretConfigData
+	scd := &SecretConfigData
 	m := mail.NewMessage()
 	m.SetHeader("From", scd.SenderEMail)
 	m.SetHeader("To", scd.RecieverEMail)
