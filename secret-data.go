@@ -1,11 +1,9 @@
 package main
 
 import (
-	"strings"
-	"fmt"
+	"strings"; "fmt"; "os"
 	"encoding/json"
 	"io/ioutil"
-	"os"
 	// "github.com/flynn/json5"
 )
 
@@ -15,20 +13,16 @@ type SecretConfigDataStruct struct {
 	SMTPServer    string
 	SMTPUser      string
 	SMTPPassword  string
-	SenderEMail   string
-}
+	SenderEMail   string }
 
 var SecretConfigData SecretConfigDataStruct
 
 func (sds *SecretConfigDataStruct) SaveToFile(filename string) (err error) {
 	var text []byte
 	text, err = json.MarshalIndent(sds,""," ")
-	if err != nil {
-		return
-	}
+	if err != nil { return	}	
 	err = ioutil.WriteFile(filename, text, 0600)
-	return
-}
+	return }
 
 const ConfigFileName = "secret-data.config.json"
 
@@ -42,8 +36,7 @@ func saveSecretConfigDataExample() {
 		SMTPUser:      "Кирилл",
 		SMTPPassword:  "bla-bla-bla"}
 	err := sds.SaveToFile(ConfigFileName + ".example")
-	if err != nil {
-		panic(err)	}}
+	if err != nil {	panic(err)	}}
 
 func loadSecretConfigData() (err error) {
 	sds := &SecretConfigData
@@ -65,4 +58,3 @@ func loadSecretConfigData() (err error) {
 		return	}
 	fmt.Printf("playWithSecretConfigData returned %#v\n", sds)
 	return }
-
