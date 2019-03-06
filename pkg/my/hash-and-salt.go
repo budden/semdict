@@ -1,4 +1,4 @@
-package main
+package my
 
 import (
 	"crypto/rand"
@@ -6,19 +6,12 @@ import (
 	"encoding/base64"
 	"fmt"
 
+	"github.com/budden/a/pkg/unsorted"
 	"golang.org/x/crypto/pbkdf2"
 
 	// "github.com/ztrue/tracerr";
 	"math/big"
 )
-
-func playWithNonce(length uint8) {
-	fmt.Println("FIXME: test that those numbers are sufficiently random!")
-	for i := 0; i < 5; i++ {
-		str := genNonce(length)
-		fmt.Println("Nonce1:", str)
-	}
-}
 
 // Original Python function I simplified it a little
 /* def gen_nonce(length):
@@ -33,14 +26,9 @@ elif length%3 == 2:
  b64len+=3
 return string[0:b64len].decode() */
 
-// Panic which should crash current goroutine only
-func logicalPanic(message string) {
-	panic(message)
-}
-
 func randomBytes(length uint8) []byte {
 	if length == 0 {
-		logicalPanic("Random array of length 0 is not random!")
+		unsorted.LogicalPanic("Random array of length 0 is not random!")
 	}
 	maxx := big.NewInt(256)
 	maxx = maxx.Exp(maxx, big.NewInt(int64(length)), nil)
@@ -49,22 +37,14 @@ func randomBytes(length uint8) []byte {
 	if err != nil {
 		msg := fmt.Sprintf(
 			"Unable to generate random bytes, error = %v", err)
-		logicalPanic(msg)
+		unsorted.LogicalPanic(msg)
 	}
 	return randomInt.Bytes()
 }
 
-func playWithHashAndSalt() {
-	for i := 0; i < 2; i++ {
-		password := "kvack"
-		hash, salt := hashAndSaltPassword(password)
-		fmt.Printf("playWithHashAndSalt: hash=%s, salt=%s\n", hash, salt)
-	}
-}
-
-// Generates a random string of bytes, base64 encoded
+// GenNonce Generates a random string of bytes, base64 encoded
 // Inspired by the discussion in the https://github.com/joestump/python-oauth2/issues/9#
-func genNonce(length uint8) string {
+func GenNonce(length uint8) string {
 	nonceBytes := randomBytes(length)
 	nonceString := string(nonceBytes)
 	res := base64.RawURLEncoding.EncodeToString([]byte(nonceString))
@@ -73,9 +53,9 @@ func genNonce(length uint8) string {
 
 const saltBytes = 16
 
+// HashAndSaltPassword generates a dynamic salt, hash and return both
 // https://habr.com/ru/post/145648/
-// Generate a dynamic salt, hash and return both
-func hashAndSaltPassword(password string) (saltBase64, dkBase64 string) {
+func HashAndSaltPassword(password string) (saltBase64, dkBase64 string) {
 	salt := randomBytes(saltBytes)
 	dk := pbkdf2.Key([]byte(password), salt, 4096, 32, sha1.New)
 	saltBase64 = base64.RawURLEncoding.EncodeToString(salt)

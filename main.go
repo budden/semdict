@@ -2,8 +2,11 @@ package main
 
 import (
 	"os"
+
+	"github.com/budden/a/pkg/app"
 )
 
 func main() {
-	run(os.Args)
+	app.Play(os.Args)
+	// app.Run(os.Args)
 }

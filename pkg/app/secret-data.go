@@ -1,4 +1,4 @@
-package main
+package app
 
 import (
 	"encoding/json"
@@ -6,25 +6,12 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+
+	"github.com/budden/a/pkg/shared"
 	// "github.com/flynn/json5"
 )
 
-// SecretConfigDataStruct specifies the contents of secret-data.config.json
-// That file contains the data which is secret and site-specific so it can't be stored to git
-type SecretConfigDataStruct struct {
-	Comment       string
-	RecieverEMail string
-	SMTPServer    string
-	SMTPUser      string
-	SMTPPassword  string
-	SenderEMail   string
-}
-
-// SecretConfigData is a configuration loaded from the secret-data-config.json
-var SecretConfigData SecretConfigDataStruct
-
-// SaveToFile is only used to create a sample config file
-func (sds *SecretConfigDataStruct) SaveToFile(filename string) (err error) {
+func saveSecretDataConfigTToFile(sds *shared.SecretConfigDataT, filename string) (err error) {
 	var text []byte
 	text, err = json.MarshalIndent(sds, "", " ")
 	if err != nil {
@@ -39,21 +26,22 @@ const ConfigFileName = "secret-data.config.json"
 
 // for development
 func saveSecretConfigDataExample() {
-	sds := SecretConfigDataStruct{
+	sds := shared.SecretConfigDataT{
 		Comment:       "Example config file. Copy this one to the secret-data.config.json and edit",
 		SenderEMail:   "den@example.net",
 		RecieverEMail: "world@example.net",
 		SMTPServer:    "smtp.example.net",
 		SMTPUser:      "Кирилл",
 		SMTPPassword:  "bla-bla-bla"}
-	err := sds.SaveToFile(ConfigFileName + ".example")
+	err := saveSecretDataConfigTToFile(&sds, ConfigFileName+".example")
 	if err != nil {
 		panic(err)
 	}
 }
 
+// loadSecretConfigData reads the config file and inititalizes a SecretConfigData global
 func loadSecretConfigData() (err error) {
-	sds := &SecretConfigData
+	sds := &shared.SecretConfigData
 	fn := ConfigFileName
 	if _, err = os.Stat(fn); os.IsNotExist(err) {
 		fmt.Printf("No config file %s found. Create one by copying from %s.example\n",

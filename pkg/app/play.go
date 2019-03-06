@@ -1,4 +1,4 @@
-package main
+package app
 
 // To run this one you need that current user is able to connect
 // to pgsql via postgres://localhost:5432
@@ -11,11 +11,14 @@ package main
 
 import (
 	"fmt"
+
+	"github.com/budden/a/pkg/my"
 )
 
 const actuallySendEmailP = false
 
-func run(commandLineArgs []string) {
+// Play runs a set of exercises/demos
+func Play(commandLineArgs []string) {
 	playWithDb()
 	playWithPanic()
 	playWithNonce(16)
@@ -24,12 +27,27 @@ func run(commandLineArgs []string) {
 	//saveSecretConfigDataExample()
 	loadSecretConfigData()
 	if actuallySendEmailP {
-		playWithEmail()
+		my.PlayWithEmail()
 	} else {
 		fmt.Println("Bypassing sending E-mail due to ActuallySendEmailP == false")
 	}
 	playWithServer()
-	return
+}
+
+func playWithNonce(length uint8) {
+	fmt.Println("FIXME: test that those numbers are sufficiently random!")
+	for i := 0; i < 5; i++ {
+		str := my.GenNonce(length)
+		fmt.Println("Nonce1:", str)
+	}
+}
+
+func playWithHashAndSalt() {
+	for i := 0; i < 2; i++ {
+		password := "kvack"
+		hash, salt := my.HashAndSaltPassword(password)
+		fmt.Printf("playWithHashAndSalt: hash=%s, salt=%s\n", hash, salt)
+	}
 }
 
 func playWithPanic() {

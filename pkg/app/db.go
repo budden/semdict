@@ -1,9 +1,10 @@
-package main
+package app
 
 import (
 	"fmt"
 	"os"
 	"time"
+
 	//	neturl "net/url"
 	//	"reflect"
 	//	"regexp"
@@ -11,6 +12,7 @@ import (
 	//	"time"
 	"database/sql"
 
+	"github.com/budden/a/pkg/unsorted"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 )
@@ -20,14 +22,14 @@ func playWithDb() {
 
 	db, dbCloser, err := openDb(url)
 	if err != nil {
-		logicalPanic(fmt.Sprintf("Unable to connect to Postgresql, error is %#v", err))
+		unsorted.LogicalPanic(fmt.Sprintf("Unable to connect to Postgresql, error is %#v", err))
 	}
 	defer dbCloser()
 
 	justAQuery := func(query string) {
 		rows, err := db.Query(query)
 		if err != nil {
-			logicalPanic(fmt.Sprintf("Query error, query: «%s», error: %#v", query, err))
+			unsorted.LogicalPanic(fmt.Sprintf("Query error, query: «%s», error: %#v", query, err))
 		}
 		rows.Close()
 	}
@@ -60,9 +62,9 @@ func playWithDb() {
 	genExpiryDate(db)
 }
 
-const maxOpenConns=4
-const maxIdleConns=4
-const connMaxLifetime= 10 * time.Second
+const maxOpenConns = 4
+const maxIdleConns = 4
+const connMaxLifetime = 10 * time.Second
 
 func openDb(url string) (db *sqlx.DB, closer func(), err error) {
 	db, err = sqlx.Open("postgres", url)
