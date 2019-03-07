@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/budden/a/pkg/query"
+	"github.com/budden/a/pkg/shared"
 	"golang.org/x/net/netutil"
 )
 
@@ -30,6 +31,10 @@ func playWithServer() {
 	http.HandleFunc("/", homePageHandler)
 	http.HandleFunc("/searchform", query.SearchFormPageHandler)
 	http.HandleFunc("/searchresult", query.SearchFormPageHandler)
+	// /articleview/SLUG
+	http.HandleFunc(shared.ArticleViewDirPath, query.ArticleViewDirHandler)
+	// /articleedit/SLUG
+	http.HandleFunc(shared.ArticleEditDirPath, query.ArticleEditDirHandler)
 
 	s := &http.Server{
 		Addr:           port,

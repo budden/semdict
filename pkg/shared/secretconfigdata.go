@@ -1,4 +1,3 @@
-// Package shared contains things moved down due to circular dependencies
 package shared
 
 // SecretConfigDataT specifies the fields of secret-data.config.json
