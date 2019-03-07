@@ -7,11 +7,16 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/budden/a/pkg/query"
 	"golang.org/x/net/netutil"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
+func homePageHandler(w http.ResponseWriter, r *http.Request) {
+	if tail := r.URL.Path[1:]; tail != "" {
+		http.Error(w, "Sorry 2, page not found", http.StatusNotFound)
+		return
+	}
+	fmt.Fprintf(w, "Welcome to semantic dictionary!")
 }
 
 const connectionLimit = 500
@@ -21,7 +26,11 @@ const connectionLimit = 500
 func playWithServer() {
 	port := ":8085"
 	log.Printf("Starting server on %s - kill app to stop\n", port)
-	http.HandleFunc("/", handler)
+
+	http.HandleFunc("/", homePageHandler)
+	http.HandleFunc("/searchform", query.SearchFormPageHandler)
+	http.HandleFunc("/searchresult", query.SearchFormPageHandler)
+
 	s := &http.Server{
 		Addr:           port,
 		Handler:        nil,
