@@ -5,17 +5,12 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"strings"
-
-	"github.com/budden/a/pkg/shared"
 )
 
 // ArticleViewDirHandler is a handler for an article view directory
 func ArticleViewDirHandler(w http.ResponseWriter, r *http.Request) {
 	// note https://github.com/golang/go/issues/24366#issuecomment-372764978
-	// Its a bad idea to make this duplicating. Another options are StripPrefix,
-	// changing a signature of handler to accept a prefix,
-	SLUG := strings.TrimPrefix(r.URL.Path, shared.ArticleViewDirPath)
+	SLUG := r.URL.Path
 	data := GeneralTemplateParams{
 		Message: SLUG}
 	fileName := "templates/general.html"

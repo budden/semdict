@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/budden/a/pkg/query"
-	"github.com/budden/a/pkg/shared"
 	"golang.org/x/net/netutil"
 )
 
@@ -22,6 +21,12 @@ func homePageHandler(w http.ResponseWriter, r *http.Request) {
 
 const connectionLimit = 500
 
+func handleDirStrippingPrefix(dir string, handlerFunc http.HandlerFunc) {
+	http.Handle(dir,
+		http.StripPrefix(dir,
+			http.HandlerFunc(handlerFunc)))
+}
+
 // https://golang.hotexamples.com/examples/golang.org.x.net.netutil/-/LimitListener/golang-limitlistener-function-examples.html
 // https://habr.com/ru/post/197468/
 func playWithServer() {
@@ -31,10 +36,9 @@ func playWithServer() {
 	http.HandleFunc("/", homePageHandler)
 	http.HandleFunc("/searchform", query.SearchFormPageHandler)
 	http.HandleFunc("/searchresult", query.SearchFormPageHandler)
-	// /articleview/SLUG
-	http.HandleFunc(shared.ArticleViewDirPath, query.ArticleViewDirHandler)
-	// /articleedit/SLUG
-	http.HandleFunc(shared.ArticleEditDirPath, query.ArticleEditDirHandler)
+	handleDirStrippingPrefix("/articleview/", query.ArticleViewDirHandler)
+	handleDirStrippingPrefix("/articleedit/", query.ArticleEditDirHandler)
+	// "/articlepost/"
 
 	s := &http.Server{
 		Addr:           port,
