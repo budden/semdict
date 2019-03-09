@@ -5,13 +5,15 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+
+	"github.com/budden/a/pkg/shared"
 )
 
 // ArticleViewDirHandler is a handler for an article view directory
 func ArticleViewDirHandler(w http.ResponseWriter, r *http.Request) {
 	// note https://github.com/golang/go/issues/24366#issuecomment-372764978
 	SLUG := r.URL.Path
-	data := GeneralTemplateParams{
+	data := shared.GeneralTemplateParams{
 		Message: SLUG}
 	fileName := "templates/general.html"
 	tmpl, err := template.ParseFiles(fileName)

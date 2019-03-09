@@ -7,6 +7,7 @@ import (
 	"time"
 
 	//"github.com/budden/a/pkg/query"
+	"github.com/budden/a/pkg/query"
 	"github.com/budden/a/pkg/shared"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/net/netutil"
@@ -33,12 +34,12 @@ func playWithServer() {
 	router := gin.Default()
 	router.LoadHTMLGlob("templates/*")
 	router.GET("/", homePageHandler)
+	router.GET("/searchform", query.SearchFormPageHandler)
+	router.GET("/searchresult", query.SearchResultPageHandler)
 
-	/* http.HandleFunc("/", homePageHandler)
-	http.HandleFunc("/searchform", query.SearchFormPageHandler)
-	http.HandleFunc("/searchresult", query.SearchFormPageHandler)
-	handleDirStrippingPrefix("/articleview/", query.ArticleViewDirHandler)
-	handleDirStrippingPrefix("/articleedit/", query.ArticleEditDirHandler) */
+	/*
+		handleDirStrippingPrefix("/articleview/", query.ArticleViewDirHandler)
+		handleDirStrippingPrefix("/articleedit/", query.ArticleEditDirHandler) */
 	// "/articlepost/"
 
 	//router.Run()
