@@ -7,16 +7,13 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-)
 
-// GeneralTemplateParams are params for templates/general.html
-type GeneralTemplateParams struct {
-	Message string
-}
+	"github.com/budden/a/pkg/shared"
+)
 
 // SearchFormPageHandler is a handler for a search page
 func SearchFormPageHandler(w http.ResponseWriter, r *http.Request) {
-	data := GeneralTemplateParams{
+	data := shared.GeneralTemplateParams{
 		Message: "Search form"}
 	fileName := "templates/general.html"
 	tmpl, err := template.ParseFiles(fileName)

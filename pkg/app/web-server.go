@@ -1,22 +1,19 @@
 package app
 
 import (
-	"fmt"
 	"log"
 	"net"
 	"net/http"
 	"time"
 
-	"github.com/budden/a/pkg/query"
+	//"github.com/budden/a/pkg/query"
+	"github.com/budden/a/pkg/shared"
+	"github.com/gin-gonic/gin"
 	"golang.org/x/net/netutil"
 )
 
-func homePageHandler(w http.ResponseWriter, r *http.Request) {
-	if tail := r.URL.Path[1:]; tail != "" {
-		http.Error(w, "Sorry 2, page not found", http.StatusNotFound)
-		return
-	}
-	fmt.Fprintf(w, "Welcome to semantic dictionary!")
+func homePageHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "general.html", shared.GeneralTemplateParams{Message: "Hello from gin"})
 }
 
 const connectionLimit = 500
@@ -33,16 +30,21 @@ func playWithServer() {
 	port := ":8085"
 	log.Printf("Starting server on %s - kill app to stop\n", port)
 
-	http.HandleFunc("/", homePageHandler)
+	router := gin.Default()
+	router.LoadHTMLGlob("templates/*")
+	router.GET("/", homePageHandler)
+
+	/* http.HandleFunc("/", homePageHandler)
 	http.HandleFunc("/searchform", query.SearchFormPageHandler)
 	http.HandleFunc("/searchresult", query.SearchFormPageHandler)
 	handleDirStrippingPrefix("/articleview/", query.ArticleViewDirHandler)
-	handleDirStrippingPrefix("/articleedit/", query.ArticleEditDirHandler)
+	handleDirStrippingPrefix("/articleedit/", query.ArticleEditDirHandler) */
 	// "/articlepost/"
 
+	//router.Run()
 	s := &http.Server{
 		Addr:           port,
-		Handler:        nil,
+		Handler:        router,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20}
