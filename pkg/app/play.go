@@ -12,7 +12,7 @@ package app
 import (
 	"fmt"
 
-	"github.com/budden/a/pkg/my"
+	"github.com/budden/a/pkg/user"
 )
 
 const actuallySendEmailP = false
@@ -27,7 +27,7 @@ func Play(commandLineArgs []string) {
 	//saveSecretConfigDataExample()
 	loadSecretConfigData()
 	if actuallySendEmailP {
-		my.PlayWithEmail()
+		user.PlayWithEmail()
 	} else {
 		fmt.Println("Bypassing sending E-mail due to ActuallySendEmailP == false")
 	}
@@ -37,7 +37,7 @@ func Play(commandLineArgs []string) {
 func playWithNonce(length uint8) {
 	fmt.Println("FIXME: test that those numbers are sufficiently random!")
 	for i := 0; i < 5; i++ {
-		str := my.GenNonce(length)
+		str := user.GenNonce(length)
 		fmt.Println("Nonce1:", str)
 	}
 }
@@ -45,7 +45,7 @@ func playWithNonce(length uint8) {
 func playWithHashAndSalt() {
 	for i := 0; i < 2; i++ {
 		password := "kvack"
-		hash, salt := my.HashAndSaltPassword(password)
+		hash, salt := user.HashAndSaltPassword(password)
 		fmt.Printf("playWithHashAndSalt: hash=%s, salt=%s\n", hash, salt)
 	}
 }
