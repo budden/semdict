@@ -28,7 +28,7 @@ CREATE TABLE registration_attempt (
  expiry timestamptz,
  registration_email text not null,
  nickname varchar(256) not null
-)
+);
 
 create unique index
  i_registration_attempt__registration_email
