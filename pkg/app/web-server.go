@@ -36,13 +36,12 @@ func playWithServer() {
 	router.GET("/", homePageHandler)
 	router.GET("/searchform", query.SearchFormPageHandler)
 	router.GET("/searchresult", query.SearchResultPageHandler)
+	router.GET("/articleview/:articleslug", query.ArticleViewDirHandler)
+	router.GET("/articleedit/:articleslug", query.ArticleEditDirHandler)
 
-	/*
-		handleDirStrippingPrefix("/articleview/", query.ArticleViewDirHandler)
-		handleDirStrippingPrefix("/articleedit/", query.ArticleEditDirHandler) */
 	// "/articlepost/"
 
-	//router.Run()
+	// https://habr.com/ru/post/197468/
 	s := &http.Server{
 		Addr:           port,
 		Handler:        router,
