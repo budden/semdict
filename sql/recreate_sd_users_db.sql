@@ -1,40 +1,40 @@
-DROP DATABASE IF EXISTS sd_users_db;
+DROP DATABASE IF EXISTS sdusers_db;
 
-CREATE DATABASE sd_users_db;
+CREATE DATABASE sdusers_db;
 
-\connect sd_users_db;
+\connect sdusers_db;
 
-CREATE SEQUENCE sequence_dict_user_id;
+CREATE SEQUENCE sequence_sduser_id;
 
-CREATE TABLE sd_user (
- id bigint DEFAULT nextval('public.sequence_dict_user_id') 
+CREATE TABLE sduser (
+ id bigint DEFAULT nextval('public.sequence_sduser_id') 
   NOT NULL primary key,
  nickname varchar(256) not null,
- registration_email text not null,
+ registrationemail text not null,
  hash text NOT NULL,
  salt text not null
 );
 
 create unique index 
- i_sd_user_registration_email 
- on sd_user(registration_email);
+ i_sduser_registrationemail 
+ on sduser(registrationemail);
 
 create unique index
  i_se_user_nickname
- on sd_user(nickname);
+ on sduser(nickname);
 
-CREATE TABLE registration_attempt (
+CREATE TABLE registrationattempt (
  id serial primary key,
  expiry timestamptz,
- registration_email text not null,
+ registrationemail text not null,
  nickname varchar(256) not null
 );
 
 create unique index
- i_registration_attempt__registration_email
- on registration_attempt(registration_email);
+ i_registrationattempt__registrationemail
+ on registrationattempt(registrationemail);
 
 create unique index
- i_registration_attempt__nickname
- on registration_attempt(nickname);
+ i_registrationattempt__nickname
+ on registrationattempt(nickname);
 
