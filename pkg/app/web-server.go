@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/budden/a/pkg/user"
+
 	//"github.com/budden/a/pkg/query"
 	"github.com/budden/a/pkg/query"
 	"github.com/budden/a/pkg/shared"
@@ -38,6 +40,9 @@ func playWithServer() {
 	router.GET("/searchresult", query.SearchResultPageHandler)
 	router.GET("/articleview/:articleslug", query.ArticleViewDirHandler)
 	router.GET("/articleedit/:articleslug", query.ArticleEditDirHandler)
+
+	router.GET("/registrationform", user.RegistrationFormPageHandler)
+	router.POST("/registrationformsubmit", user.RegistrationFormSubmitPostHandler)
 
 	// "/articlepost/"
 
