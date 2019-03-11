@@ -43,6 +43,7 @@ func playWithServer() {
 
 	router.GET("/registrationform", user.RegistrationFormPageHandler)
 	router.POST("/registrationformsubmit", user.RegistrationFormSubmitPostHandler)
+	router.GET("/registrationconfirmation/:confirmationid", user.RegistrationConfirmationPageHandler)
 
 	// "/articlepost/"
 

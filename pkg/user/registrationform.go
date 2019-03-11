@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"sync"
 
 	"github.com/jmoiron/sqlx"
 
@@ -14,11 +13,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
 )
-
-// Mutex we lock for any writes to sdusers_db to minimize parallelism at the db level
-var writeSDUsersMutex sync.Mutex
-
-// PlayWithEmail sends an email
 
 // RegistrationFormPageHandler renders a /registrationform page
 func RegistrationFormPageHandler(c *gin.Context) {
@@ -38,6 +32,22 @@ type RegistrationData struct {
 	ConfirmationID    string
 }
 
+// RegistrationFormSubmitPostHandler processes a registrationformsubmit form post request
+func RegistrationFormSubmitPostHandler(c *gin.Context) {
+	var rd RegistrationData
+	rd.Nickname = c.PostForm("nickname")
+	rd.Password = c.PostForm("password")
+	rd.Registrationemail = c.PostForm("registrationemail")
+	err := processRegistrationFormSubmitWithDb(&rd)
+	message := "Check your E-Mail for a confirmation code, which will be valid for 10 minutes"
+	if err != nil {
+		message = err.Error()
+	}
+	c.HTML(http.StatusOK,
+		"general.html",
+		shared.GeneralTemplateParams{Message: message})
+}
+
 var mapViolatedConstraintNameToMessage = map[string]string{
 	"i_registrationattempt__confirmationid":    "You're lucky to hit a very seldom random number clash. Please retry a registration",
 	"i_registrationattempt__registrationemail": "Someone is already trying to register with the same E-mail",
@@ -45,29 +55,26 @@ var mapViolatedConstraintNameToMessage = map[string]string{
 	"i_sduser_registrationemail":               "There is already a user with the same E-mail",
 	"i_sduser_nickname":                        "There is already a user with the same nickname"}
 
-// processRegistrationWithDb inserts a registration attempt into sdusers_db
+// processRegistrationFormSubmitWithDb inserts a registration attempt into sdusers_db
 // If some "normal" error happens, it is returned in err. err.String() can be
 // used to present an error to the user. In case of unexpected error, LogicalPanic is invoked
-func processRegistrationWithDb(rd *RegistrationData) (err error) {
+func processRegistrationFormSubmitWithDb(rd *RegistrationData) (err error) {
 
 	writeSDUsersMutex.Lock()
 	defer writeSDUsersMutex.Unlock()
 
-	url := shared.SecretConfigData.PostgresqlServerURL + "/sdusers_db"
-
-	db, dbCloser, err1 := database.OpenDb(url)
-	if err1 != nil {
-		unsorted.LogicalPanic(fmt.Sprintf("Unable to connect to Postgresql, error is %#v", err1))
-	}
+	db, dbCloser := openSDUsersDb()
 	defer dbCloser()
+
 	db.MustExec("select delete_expired_registrationattempts()")
 
 	var tx *sqlx.Tx
 	tx, err = db.Beginx()
-	defer func() { database.RollbackIfActive(tx) }()
 	if err != nil {
 		unsorted.LogicalPanic(fmt.Sprintf("Unable to start transaction, error is %#v", err))
 	}
+	defer func() { database.RollbackIfActive(tx) }()
+
 	tx.MustExec(`set transaction isolation level repeatable read`)
 
 	rd.Calculatedhash, rd.Calculatedsalt = HashAndSaltPassword(rd.Password)
@@ -84,10 +91,6 @@ func processRegistrationWithDb(rd *RegistrationData) (err error) {
 	return
 }
 
-// PostgresqlErrorCodeUniqueViolation is a unique_violation,
-// https://postgrespro.ru/docs/postgrespro/9.5/errcodes-appendix
-const PostgresqlErrorCodeUniqueViolation = "23505"
-
 func handleRegistrationAttemptInsertError(err error) error {
 	//xt := reflect.TypeOf(err1).Kind()
 	switch e := interface{}(err).(type) {
@@ -102,20 +105,4 @@ func handleRegistrationAttemptInsertError(err error) error {
 	}
 	unsorted.LogicalPanic(fmt.Sprintf("Unexpected error in the registrationformsubmit: %#v\n", err))
 	return err
-}
-
-// RegistrationFormSubmitPostHandler processes a registrationformsubmit form post request
-func RegistrationFormSubmitPostHandler(c *gin.Context) {
-	var rd RegistrationData
-	rd.Nickname = c.PostForm("nickname")
-	rd.Password = c.PostForm("password")
-	rd.Registrationemail = c.PostForm("registrationemail")
-	err := processRegistrationWithDb(&rd)
-	message := "Check your E-Mail for a confirmation code, which will be valid for 10 minutes"
-	if err != nil {
-		message = err.Error()
-	}
-	c.HTML(http.StatusOK,
-		"general.html",
-		shared.GeneralTemplateParams{Message: message})
 }

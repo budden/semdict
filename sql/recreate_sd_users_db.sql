@@ -67,7 +67,7 @@ returns void as $$
     expiration_boundary timestamptz;
   begin
     select current_timestamp - interval '10' minute into expiration_boundary;
-    raise info 'expiration_boundary = %', expiration_boundary;
+    -- raise info 'expiration_boundary = %', expiration_boundary;
     delete from registrationattempt where registrationtimestamp <= expiration_boundary;
   end
 $$ language plpgsql;
@@ -91,3 +91,24 @@ returns void as $$
     values (p_nickname, p_hash, p_salt, p_registrationemail, p_confirmationid);
  end;
 $$ language plpgsql;
+
+create or replace function process_registrationconfirmation(p_confirmationid text)
+returns void as $$
+  declare v_id bigint := null;
+  begin
+    insert into sduser (nickname, registrationemail, hash, salt, registrationtimestamp)
+     select nickname, registrationemail, hash, salt, registrationtimestamp from registrationattempt 
+     where confirmationid = p_confirmationid returning id into v_id;
+    if v_id is null THEN
+     -- there is no no_data condition_name, so we resort
+     -- to sqlstate
+     raise exception sqlstate '02000' using message = 'registrationattempt not found';
+    end if;
+    -- we have a deadlock threat here in combination with the process_registrationformsubmit
+    -- but we ensure at the application level that only one connection runs either of those procs
+    -- simultaneously (all operations are protected with the mutex), so we don't care.
+    -- But if we run those procs outside of our web app, deadlocks can occur in web app, so beware!
+    delete from registrationattempt where confirmationid = p_confirmationid;
+  end;
+$$ language plpgsql;
+
