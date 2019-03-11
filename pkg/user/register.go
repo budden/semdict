@@ -35,10 +35,11 @@ type RegistrationData struct {
 	Registrationemail string
 	Calculatedhash    string
 	Calculatedsalt    string
+	ConfirmationID    string
 }
 
-// Filled by init
 var mapViolatedConstraintNameToMessage = map[string]string{
+	"i_registrationattempt__confirmationid":    "You're lucky to hit a very seldom random number clash. Please retry a registration",
 	"i_registrationattempt__registrationemail": "Someone is already trying to register with the same E-mail",
 	"i_registrationattempt__nickname":          "Someone is already trying to register with the same Nickname",
 	"i_sduser_registrationemail":               "There is already a user with the same E-mail",
@@ -59,17 +60,20 @@ func processRegistrationWithDb(rd *RegistrationData) (err error) {
 		unsorted.LogicalPanic(fmt.Sprintf("Unable to connect to Postgresql, error is %#v", err1))
 	}
 	defer dbCloser()
-	var tx *sqlx.Tx
 	db.MustExec("select delete_expired_registrationattempts()")
+
+	var tx *sqlx.Tx
 	tx, err = db.Beginx()
 	defer func() { database.RollbackIfActive(tx) }()
 	if err != nil {
 		unsorted.LogicalPanic(fmt.Sprintf("Unable to start transaction, error is %#v", err))
 	}
-	rd.Calculatedhash, rd.Calculatedsalt = HashAndSaltPassword(rd.Password)
 	tx.MustExec(`set transaction isolation level repeatable read`)
+
+	rd.Calculatedhash, rd.Calculatedsalt = HashAndSaltPassword(rd.Password)
+	rd.ConfirmationID = GenNonce(20)
 	_, err = tx.NamedExec(
-		`select process_registrationformsubmit(:nickname, :calculatedhash, :calculatedsalt, :registrationemail)`,
+		`select process_registrationformsubmit(:nickname, :calculatedhash, :calculatedsalt, :registrationemail, :confirmationid)`,
 		rd)
 	if err == nil {
 		err = tx.Commit()
@@ -92,7 +96,7 @@ func handleRegistrationAttemptInsertError(err error) error {
 			}
 		}
 	}
-	unsorted.LogicalPanic(fmt.Sprintf("Error in the registrationformsubmit: %#v\n", err))
+	unsorted.LogicalPanic(fmt.Sprintf("Unexpected error in the registrationformsubmit: %#v\n", err))
 	return err
 }
 
