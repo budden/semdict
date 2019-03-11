@@ -84,11 +84,15 @@ func processRegistrationWithDb(rd *RegistrationData) (err error) {
 	return
 }
 
+// PostgresqlErrorCodeUniqueViolation is a unique_violation,
+// https://postgrespro.ru/docs/postgrespro/9.5/errcodes-appendix
+const PostgresqlErrorCodeUniqueViolation = "23505"
+
 func handleRegistrationAttemptInsertError(err error) error {
 	//xt := reflect.TypeOf(err1).Kind()
 	switch e := interface{}(err).(type) {
 	case *pq.Error:
-		if e.Code == "23505" {
+		if e.Code == PostgresqlErrorCodeUniqueViolation {
 			message, found := mapViolatedConstraintNameToMessage[e.Constraint]
 			if found {
 				err = errors.New(message)
