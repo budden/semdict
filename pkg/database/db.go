@@ -1,7 +1,9 @@
-package app
+// Package database contains things for db connection
+package database
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -12,15 +14,17 @@ import (
 	//	"time"
 	"database/sql"
 
+	"github.com/budden/a/pkg/shared"
 	"github.com/budden/a/pkg/unsorted"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 )
 
-func playWithDb() {
-	url := "postgresql://localhost:5432"
+// PlayWithDb is used to manually test db functionality
+func PlayWithDb() {
+	url := shared.SecretConfigData.PostgresqlServerURL
 
-	db, dbCloser, err := openDb(url)
+	db, dbCloser, err := OpenDb(url)
 	if err != nil {
 		unsorted.LogicalPanic(fmt.Sprintf("Unable to connect to Postgresql, error is %#v", err))
 	}
@@ -66,7 +70,25 @@ const maxOpenConns = 4
 const maxIdleConns = 4
 const connMaxLifetime = 10 * time.Second
 
-func openDb(url string) (db *sqlx.DB, closer func(), err error) {
+// RollbackIfActive rolls back transaction if it is still active.
+// Defer this one if you're opening any transaction
+// If failed to rollback, will panic. If already panicking, would ignore
+// rollback error silently.
+func RollbackIfActive(tx *sqlx.Tx) {
+	err := tx.Rollback()
+	if err == nil || err == sql.ErrTxDone {
+		return
+	}
+	preExistingPanic := recover()
+	if preExistingPanic == nil {
+		panic(err)
+	}
+	log.Printf("Failed to rollback transaction while panicking. Err is %#v", err)
+	panic(preExistingPanic)
+}
+
+// OpenDb obtains a connection to db. Connections are pooled, beware. Also please always defer a closer!
+func OpenDb(url string) (db *sqlx.DB, closer func(), err error) {
 	db, err = sqlx.Open("postgres", url)
 	// http://go-database-sql.org/connection-pool.html
 	db.SetMaxOpenConns(maxOpenConns)
@@ -83,7 +105,7 @@ func openDb(url string) (db *sqlx.DB, closer func(), err error) {
 }
 
 func genExpiryDate(db *sqlx.DB) {
-	res1, err2 := db.Query(`select current_timestamp + interval '1' day`)
+	res1, err2 := db.Query(`select current_timestamp + interval '10' minutes`)
 	if err2 != nil {
 		fmt.Printf("Wow!")
 		os.Exit(1)

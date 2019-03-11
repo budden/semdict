@@ -12,6 +12,7 @@ package app
 import (
 	"fmt"
 
+	"github.com/budden/a/pkg/database"
 	"github.com/budden/a/pkg/user"
 )
 
@@ -19,7 +20,7 @@ const actuallySendEmailP = false
 
 // Play runs a set of exercises/demos
 func Play(commandLineArgs []string) {
-	playWithDb()
+	database.PlayWithDb()
 	playWithPanic()
 	playWithNonce(16)
 	playWithHashAndSalt()

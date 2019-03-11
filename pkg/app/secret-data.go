@@ -27,12 +27,13 @@ const ConfigFileName = "secret-data.config.json"
 // for development
 func saveSecretConfigDataExample() {
 	sds := shared.SecretConfigDataT{
-		Comment:       "Example config file. Copy this one to the secret-data.config.json and edit",
-		SenderEMail:   "den@example.net",
-		RecieverEMail: "world@example.net",
-		SMTPServer:    "smtp.example.net",
-		SMTPUser:      "Кирилл",
-		SMTPPassword:  "bla-bla-bla"}
+		Comment:             "Example config file. Copy this one to the secret-data.config.json and edit",
+		SenderEMail:         "den@example.net",
+		RecieverEMail:       "world@example.net",
+		SMTPServer:          "smtp.example.net",
+		SMTPUser:            "Кирилл",
+		SMTPPassword:        "bla-bla-bla",
+		PostgresqlServerURL: "postgresql://localhost:5432"}
 	err := saveSecretDataConfigTToFile(&sds, ConfigFileName+".example")
 	if err != nil {
 		panic(err)
