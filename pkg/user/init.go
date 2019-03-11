@@ -1,9 +1,5 @@
 package user
 
-import (
-	"github.com/gin-gonic/gin"
-)
-
+// currently does nothing, but we keep it as an architectural idea
 func init() {
-	messageFormats = gin.H{}
 }

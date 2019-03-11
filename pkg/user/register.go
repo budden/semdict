@@ -1,8 +1,10 @@
 package user
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/jmoiron/sqlx"
 
@@ -12,6 +14,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
 )
+
+// Mutex we lock for any writes to sdusers_db to minimize parallelism at the db level
+var writeSDUsersMutex sync.Mutex
 
 // PlayWithEmail sends an email
 
@@ -32,13 +37,21 @@ type RegistrationData struct {
 	Calculatedsalt    string
 }
 
-// See init
-var messageFormats gin.H
+// Filled by init
+var mapViolatedConstraintNameToMessage = map[string]string{
+	"i_registrationattempt__registrationemail": "Someone is already trying to register with the same E-mail",
+	"i_registrationattempt__nickname":          "Someone is already trying to register with the same Nickname",
+	"i_sduser_registrationemail":               "There is already a user with the same E-mail",
+	"i_sduser_nickname":                        "There is already a user with the same nickname"}
 
 // processRegistrationWithDb inserts a registration attempt into sdusers_db
 // If some "normal" error happens, it is returned in err. err.String() can be
 // used to present an error to the user. In case of unexpected error, LogicalPanic is invoked
 func processRegistrationWithDb(rd *RegistrationData) (err error) {
+
+	writeSDUsersMutex.Lock()
+	defer writeSDUsersMutex.Unlock()
+
 	url := shared.SecretConfigData.PostgresqlServerURL + "/sdusers_db"
 
 	db, dbCloser, err1 := database.OpenDb(url)
@@ -47,6 +60,7 @@ func processRegistrationWithDb(rd *RegistrationData) (err error) {
 	}
 	defer dbCloser()
 	var tx *sqlx.Tx
+	db.MustExec("select delete_expired_registrationattempts()")
 	tx, err = db.Beginx()
 	defer func() { database.RollbackIfActive(tx) }()
 	if err != nil {
@@ -60,30 +74,34 @@ func processRegistrationWithDb(rd *RegistrationData) (err error) {
 	if err == nil {
 		err = tx.Commit()
 	}
-	//xt := reflect.TypeOf(err1).Kind()
 	if err != nil {
-		switch e := interface{}(err).(type) {
-		case *pq.Error:
-			if e.Code == "23505" {
-				fmt.Printf("Duplicate key in %s", e.Column)
-			} else {
-				unsorted.LogicalPanic(fmt.Sprintf("Error inserting: %#v\n", err))
-			}
-		default:
-			unsorted.LogicalPanic(fmt.Sprintf("Error insertiing: %#v\n", err))
-		}
-	} else {
-		fmt.Printf("Inserted %#v\n", 10050)
+		err = handleRegistrationAttemptInsertError(err)
 	}
 	return
+}
+
+func handleRegistrationAttemptInsertError(err error) error {
+	//xt := reflect.TypeOf(err1).Kind()
+	switch e := interface{}(err).(type) {
+	case *pq.Error:
+		if e.Code == "23505" {
+			message, found := mapViolatedConstraintNameToMessage[e.Constraint]
+			if found {
+				err = errors.New(message)
+				return err
+			}
+		}
+	}
+	unsorted.LogicalPanic(fmt.Sprintf("Error in the registrationformsubmit: %#v\n", err))
+	return err
 }
 
 // RegistrationFormSubmitPostHandler processes a registrationformsubmit form post request
 func RegistrationFormSubmitPostHandler(c *gin.Context) {
 	var rd RegistrationData
-	rd.Nickname = c.PostForm("Nickname")
-	rd.Password = c.PostForm("Password")
-	rd.Registrationemail = c.PostForm("Registrationemail")
+	rd.Nickname = c.PostForm("nickname")
+	rd.Password = c.PostForm("password")
+	rd.Registrationemail = c.PostForm("registrationemail")
 	err := processRegistrationWithDb(&rd)
 	message := "Check your E-Mail for a confirmation code, which will be valid for 10 minutes"
 	if err != nil {

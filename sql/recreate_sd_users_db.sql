@@ -12,7 +12,8 @@ CREATE TABLE sduser (
  nickname varchar(256) not null,
  registrationemail text not null,
  hash text NOT NULL,
- salt text not null
+ salt text not null,
+ registrationtimestamp timestamptz not null
 );
 
 -- https://stackoverflow.com/a/9808332/9469533 - it is considered safe to lowercase an E-mail
@@ -30,16 +31,38 @@ CREATE TABLE registrationattempt (
  registrationemail text not null,
  hash text NOT NULL,
  salt text not null,
- expiry timestamptz
+ registrationtimestamp timestamptz not null default current_timestamp
 );
+
+-- When a user is registrering with a both non-unique nickname and a non-unique E-mail, 
+-- it is unspecified which unique constraint fires first (or I don't know).
+-- It if fair to ask that nickname is checked first.
+-- Experiment shows that the index first created is also first checked
+-- But of course it is fragile (or, again, I don't know)
+create unique index
+ i_registrationattempt__nickname
+ on registrationattempt(lower(nickname));
 
 create unique index
  i_registrationattempt__registrationemail
  on registrationattempt(lower(registrationemail));
 
-create unique index
- i_registrationattempt__nickname
- on registrationattempt(lower(nickname));
+--- delete_expired_registrationattempts. 
+--- We could run it from the process_registrationformsubmit, but in this case
+--- a request to add a non-unique nickname would cause deletion and then rollback.
+--- So we run this one in a separated transaction. But we use single goroutine for all
+--- activity related to sd_users_db modifications, so calls to this one can't overlap
+--- with other writes to the entire db.
+create or replace function delete_expired_registrationattempts() 
+returns void as $$
+  declare 
+    expiration_boundary timestamptz;
+  begin
+    select current_timestamp - interval '10' minute into expiration_boundary;
+    raise info 'expiration_boundary = %', expiration_boundary;
+    delete from registrationattempt where registrationtimestamp <= expiration_boundary;
+  end
+$$ language plpgsql;
 
 --- nickname and password must be unique in the union of registrationattempt and sduser tables
 --- use repeatable read transaction and/or single threaded registration processor
@@ -47,12 +70,12 @@ create or replace function process_registrationformsubmit(p_nickname text, p_has
 returns void as $$
  BEGIN
   if exists (select 1 from sduser ra where lower(ra.nickname)=lower(p_nickname)) THEN
-   raise unique_violation using table = 'sduser', column = 'nickname', constraint = 'i_sduser_nickname';
+    raise unique_violation using table = 'sduser', column = 'nickname', constraint = 'i_sduser_nickname';
   end if;
   if exists (select 1 from sduser ra where lower(ra.registrationemail)=lower(p_registrationemail)) THEN
-   raise unique_violation using table = 'sduser', column = 'registrationemail', constraint = 'i_sduser_registrationemail';
+    raise unique_violation using table = 'sduser', column = 'registrationemail', constraint = 'i_sduser_registrationemail';
   end if;
   insert into registrationattempt(nickname, hash, salt, registrationemail) 
-   values (p_nickname, p_hash, p_salt, p_registrationemail);
+    values (p_nickname, p_hash, p_salt, p_registrationemail);
  end;
 $$ language plpgsql;
