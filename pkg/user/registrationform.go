@@ -31,7 +31,7 @@ type RegistrationData struct {
 	Registrationemail string
 	Calculatedhash    string
 	Calculatedsalt    string
-	ConfirmationID    string
+	ConfirmationKey   string
 }
 
 // RegistrationFormSubmitPostHandler processes a registrationformsubmit form post request
@@ -61,7 +61,7 @@ func doRegistrationFormSubmit(rd *RegistrationData) (err error) {
 
 func sendConfirmationEmail(rd *RegistrationData) (err error) {
 	confirmationLinkBase := "localhost:" + shared.WebServerPort + "/registrationconfirmation"
-	parameters := url.Values{"nickname": {rd.Nickname}, "confirmationid": {rd.ConfirmationID}}
+	parameters := url.Values{"nickname": {rd.Nickname}, "confirmationkey": {rd.ConfirmationKey}}
 	u, err1 := url.Parse(confirmationLinkBase)
 	if err1 != nil {
 		unsorted.LogicalPanic("Very bad: unable to parse base URL for a confirmation link")
@@ -79,11 +79,45 @@ func sendConfirmationEmail(rd *RegistrationData) (err error) {
 		"Welcome to semantic dictionary!",
 		body)
 
+	if err == nil {
+		noteRegistrationConfirmationEMailSentWithDb(rd)
+	}
+
+	return
+}
+
+func noteRegistrationConfirmationEMailSentWithDb(rd *RegistrationData) {
+
+	writeSDUsersMutex.Lock()
+	defer writeSDUsersMutex.Unlock()
+
+	db, dbCloser := openSDUsersDb()
+	defer dbCloser()
+
+	var err error
+	var tx *sqlx.Tx
+	tx, err = db.Beginx()
+	if err != nil {
+		unsorted.LogicalPanic(fmt.Sprintf("Unable to start transaction, error is %#v", err))
+	}
+	defer func() { database.RollbackIfActive(tx) }()
+
+	tx.MustExec(`set transaction isolation level repeatable read`)
+
+	_, err = tx.NamedExec(
+		`select note_registrationconfirmation_email_sent(:nickname, :confirmationkey)`,
+		rd)
+	if err == nil {
+		err = tx.Commit()
+	}
+	if err != nil {
+		unsorted.LogicalPanic(fmt.Sprintf("Error remembering that E-Mail was sent, error is %#v", err))
+	}
 	return
 }
 
 var mapViolatedConstraintNameToMessage = map[string]string{
-	"i_registrationattempt__confirmationid":    "You're lucky to hit a very seldom random number clash. Please retry a registration",
+	"i_registrationattempt__confirmationkey":   "You're lucky to hit a very seldom random number clash. Please retry a registration",
 	"i_registrationattempt__registrationemail": "Someone is already trying to register with the same E-mail",
 	"i_registrationattempt__nickname":          "Someone is already trying to register with the same Nickname",
 	"i_sduser_registrationemail":               "There is already a user with the same E-mail",
@@ -112,9 +146,9 @@ func processRegistrationFormSubmitWithDb(rd *RegistrationData) (err error) {
 	tx.MustExec(`set transaction isolation level repeatable read`)
 
 	rd.Calculatedhash, rd.Calculatedsalt = HashAndSaltPassword(rd.Password)
-	rd.ConfirmationID = GenNonce(20)
+	rd.ConfirmationKey = GenNonce(20)
 	_, err = tx.NamedExec(
-		`select process_registrationformsubmit(:nickname, :calculatedhash, :calculatedsalt, :registrationemail, :confirmationid)`,
+		`select add_registrationattempt(:nickname, :calculatedhash, :calculatedsalt, :registrationemail, :confirmationkey)`,
 		rd)
 	if err == nil {
 		err = tx.Commit()

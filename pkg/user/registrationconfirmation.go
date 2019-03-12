@@ -17,18 +17,18 @@ func RegistrationConfirmationPageHandler(c *gin.Context) {
 	query := c.Request.URL.Query()
 	message := "Registration confirmed. Now you can proceed to the <a href=/>Login page</a>"
 	status := http.StatusOK
-	confirmationids, ok1 := query["confirmationid"]
+	confirmationkeys, ok1 := query["confirmationkey"]
 	nicknames, ok2 := query["nickname"]
 
 	if !ok1 || !ok2 ||
-		len(confirmationids) == 0 ||
+		len(confirmationkeys) == 0 ||
 		len(nicknames) == 0 {
 		status = http.StatusInternalServerError
 		message = "Bad registration confirmation URL"
 	} else {
 		var rd RegistrationData
 		rd.Nickname = nicknames[0]
-		rd.ConfirmationID = confirmationids[0]
+		rd.ConfirmationKey = confirmationkeys[0]
 		err := processRegistrationConfirmationWithDb(&rd)
 		if err != nil {
 			status = http.StatusInternalServerError
@@ -57,7 +57,7 @@ func processRegistrationConfirmationWithDb(rd *RegistrationData) (err error) {
 	tx.MustExec(`set transaction isolation level repeatable read`)
 
 	_, err = tx.NamedExec(
-		`select process_registrationconfirmation(:confirmationid, :nickname)`,
+		`select process_registrationconfirmation(:confirmationkey, :nickname)`,
 		rd)
 	if err == nil {
 		err = tx.Commit()

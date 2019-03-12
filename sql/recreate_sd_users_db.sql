@@ -6,6 +6,13 @@ CREATE DATABASE sdusers_db;
 
 CREATE SEQUENCE sequence_sduser_id;
 
+CREATE TYPE registrationattempt_status AS ENUM ('new', 'e-mail sent');
+
+create table themutex (id int);
+comment on table themutex is 
+  'This table is locked in each operation on sdsusers_db that involves writing to avoid deadlocks';
+insert into themutex (id) values (0);
+
 CREATE TABLE sduser (
  id bigint DEFAULT nextval('public.sequence_sduser_id') 
   NOT NULL primary key,
@@ -31,12 +38,13 @@ CREATE TABLE registrationattempt (
  registrationemail text not null,
  hash text NOT NULL,
  salt text not null,
- confirmationid text not null,
- registrationtimestamp timestamptz not null default current_timestamp
+ confirmationkey text not null,
+ registrationtimestamp timestamptz not null default current_timestamp,
+ status registrationattempt_status default 'new'
 );
 
 comment on table registrationattempt is 'registrationattempt gets a new record at each valid registration attempt. We keep registration attemps separated from users table for the case of registration flooding attack';
-comment on column registrationattempt.confirmationid is 'confirmationid is random and as such it can be non-unique. In this case we ask user to re-register';
+comment on column registrationattempt.confirmationkey is 'confirmationkey is random and as such it can be non-unique. In this case we ask user to re-register';
 
 -- When a user is registrering with a both non-unique nickname and a non-unique E-mail, 
 -- it is unspecified which unique constraint fires first (or I don't know).
@@ -52,7 +60,12 @@ create unique index
  on registrationattempt(lower(registrationemail));
 
 --- delete_expired_registrationattempts. 
---- We could run it from the process_registrationformsubmit, but in this case
+--- We have a unique indices on a registrationemail and nickname. 
+--- So we MUST delete all expired registrationattempts before adding new one 
+--- with the same nickname. Cases to consider are:
+--- i) old registrationattempt expired
+--- ii) sending email for the old one failed
+--- We could run it from the add_registrationattempt, but in this case
 --- a request to add a non-unique nickname would cause deletion and then rollback.
 --- So we run this one in a separated transaction. But we use single goroutine for all
 --- activity related to sd_users_db modifications, so calls to this one can't overlap
@@ -62,6 +75,7 @@ returns void as $$
   declare 
     expiration_boundary timestamptz;
   begin
+    lock table themutex;
     select current_timestamp - interval '10' minute into expiration_boundary;
     -- raise info 'expiration_boundary = %', expiration_boundary;
     delete from registrationattempt where registrationtimestamp <= expiration_boundary;
@@ -70,37 +84,54 @@ $$ language plpgsql;
 
 --- nickname and password must be unique in the union of registrationattempt and sduser tables
 --- use repeatable read transaction and/or single threaded registration processor
-create or replace function process_registrationformsubmit(p_nickname text
+create or replace function add_registrationattempt(p_nickname text
   ,p_hash text
   ,p_salt text
   ,p_registrationemail text
-  ,p_confirmationid text)
+  ,p_confirmationkey text)
 returns void as $$
  BEGIN
+  lock table themutex;
+
+  --- if a previous attempt failed at the stage of sending e-mail, status will be 'new'
+  delete from registrationattempt 
+  where registrationemail = p_registrationemail and nickname = p_nickname and status = 'new';
+
   if exists (select 1 from sduser ra where lower(ra.nickname)=lower(p_nickname)) THEN
     raise unique_violation using table = 'sduser', column = 'nickname', constraint = 'i_sduser_nickname';
   end if;
   if exists (select 1 from sduser ra where lower(ra.registrationemail)=lower(p_registrationemail)) THEN
     raise unique_violation using table = 'sduser', column = 'registrationemail', constraint = 'i_sduser_registrationemail';
   end if;
-  insert into registrationattempt(nickname, hash, salt, registrationemail, confirmationid) 
-    values (p_nickname, p_hash, p_salt, p_registrationemail, p_confirmationid);
+  insert into registrationattempt(nickname, hash, salt, registrationemail, confirmationkey) 
+    values (p_nickname, p_hash, p_salt, p_registrationemail, p_confirmationkey);
  end;
 $$ language plpgsql;
 
-create or replace function process_registrationconfirmation(p_confirmationid text, p_nickname text)
+create or replace function note_registrationconfirmation_email_sent(p_nickname text, p_confirmationkey text)
+returns void as $$
+  BEGIN
+  lock table themutex;
+  update registrationattempt set status='e-mail sent' WHERE
+  nickname = p_nickname and confirmationkey = p_confirmationkey;
+  end;
+$$ language plpgsql;
+
+create or replace function process_registrationconfirmation(p_confirmationkey text, p_nickname text)
 returns void as $$
   declare v_id bigint := null;
   begin
+    lock table themutex;
     insert into sduser (nickname, registrationemail, hash, salt, registrationtimestamp)
      select nickname, registrationemail, hash, salt, registrationtimestamp from registrationattempt 
-     where confirmationid = p_confirmationid and nickname = p_nickname returning id into v_id;
+     where confirmationkey = p_confirmationkey and nickname = p_nickname 
+     and status='e-mail sent' returning id into v_id;
     if v_id is null THEN
      -- there is no no_data condition_name, so we resort
      -- to sqlstate
      raise exception sqlstate '02000' using message = 'registrationattempt not found';
     end if;
-    -- we have a deadlock threat here in combination with the process_registrationformsubmit
+    -- we have a deadlock threat here in combination with the add_registrationattempt
     -- but we ensure at the application level that only one connection runs either of those procs
     -- simultaneously (all operations are protected with the mutex), so we don't care.
     -- But if we run those procs outside of our web app, deadlocks can occur in web app, so beware!
