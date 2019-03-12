@@ -3,7 +3,9 @@ package user
 import (
 	"errors"
 	"fmt"
+	"html"
 	"net/http"
+	"net/url"
 
 	"github.com/jmoiron/sqlx"
 
@@ -38,7 +40,7 @@ func RegistrationFormSubmitPostHandler(c *gin.Context) {
 	rd.Nickname = c.PostForm("nickname")
 	rd.Password = c.PostForm("password")
 	rd.Registrationemail = c.PostForm("registrationemail")
-	err := processRegistrationFormSubmitWithDb(&rd)
+	err := doRegistrationFormSubmit(&rd)
 	message := "Check your E-Mail for a confirmation code, which will be valid for 10 minutes"
 	if err != nil {
 		message = err.Error()
@@ -46,6 +48,38 @@ func RegistrationFormSubmitPostHandler(c *gin.Context) {
 	c.HTML(http.StatusOK,
 		"general.html",
 		shared.GeneralTemplateParams{Message: message})
+}
+
+func doRegistrationFormSubmit(rd *RegistrationData) (err error) {
+	err = processRegistrationFormSubmitWithDb(rd)
+	if err != nil {
+		return
+	}
+	err = sendConfirmationEmail(rd)
+	return
+}
+
+func sendConfirmationEmail(rd *RegistrationData) (err error) {
+	confirmationLinkBase := "localhost:" + shared.WebServerPort + "/registrationconfirmation"
+	parameters := url.Values{"nickname": {rd.Nickname}, "confirmationid": {rd.ConfirmationID}}
+	u, err1 := url.Parse(confirmationLinkBase)
+	if err1 != nil {
+		unsorted.LogicalPanic("Very bad: unable to parse base URL for a confirmation link")
+	}
+	u.RawQuery = parameters.Encode()
+	confirmationLink := u.String()
+	body := fmt.Sprintf(
+		"Hello, %s!\nTo activate your account, please follow an <a href=%s>activation link</a>",
+		// FIXME should Nickname need html escaping?
+		html.EscapeString(rd.Nickname),
+		confirmationLink)
+
+	err = SendEmail(
+		rd.Registrationemail,
+		"Welcome to semantic dictionary!",
+		body)
+
+	return
 }
 
 var mapViolatedConstraintNameToMessage = map[string]string{

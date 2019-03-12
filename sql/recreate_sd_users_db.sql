@@ -51,10 +51,6 @@ create unique index
  i_registrationattempt__registrationemail
  on registrationattempt(lower(registrationemail));
 
-create unique index
- i_registrationattempt__confirmationid
- on registrationattempt(confirmationid);
-
 --- delete_expired_registrationattempts. 
 --- We could run it from the process_registrationformsubmit, but in this case
 --- a request to add a non-unique nickname would cause deletion and then rollback.
@@ -92,13 +88,13 @@ returns void as $$
  end;
 $$ language plpgsql;
 
-create or replace function process_registrationconfirmation(p_confirmationid text)
+create or replace function process_registrationconfirmation(p_confirmationid text, p_nickname text)
 returns void as $$
   declare v_id bigint := null;
   begin
     insert into sduser (nickname, registrationemail, hash, salt, registrationtimestamp)
      select nickname, registrationemail, hash, salt, registrationtimestamp from registrationattempt 
-     where confirmationid = p_confirmationid returning id into v_id;
+     where confirmationid = p_confirmationid and nickname = p_nickname returning id into v_id;
     if v_id is null THEN
      -- there is no no_data condition_name, so we resort
      -- to sqlstate
@@ -108,7 +104,7 @@ returns void as $$
     -- but we ensure at the application level that only one connection runs either of those procs
     -- simultaneously (all operations are protected with the mutex), so we don't care.
     -- But if we run those procs outside of our web app, deadlocks can occur in web app, so beware!
-    delete from registrationattempt where confirmationid = p_confirmationid;
+    delete from registrationattempt where id = v_id;
   end;
 $$ language plpgsql;
 

@@ -14,20 +14,33 @@ import (
 
 // RegistrationConfirmationPageHandler processes a registration confirmation
 func RegistrationConfirmationPageHandler(c *gin.Context) {
-	confirmationID := c.Param("confirmationid")
-	err := processRegistrationConfirmationWithDb(confirmationID)
+	query := c.Request.URL.Query()
 	message := "Registration confirmed. Now you can proceed to the <a href=/>Login page</a>"
 	status := http.StatusOK
-	if err != nil {
+	confirmationids, ok1 := query["confirmationid"]
+	nicknames, ok2 := query["nickname"]
+
+	if !ok1 || !ok2 ||
+		len(confirmationids) == 0 ||
+		len(nicknames) == 0 {
 		status = http.StatusInternalServerError
-		message = err.Error()
+		message = "Bad registration confirmation URL"
+	} else {
+		var rd RegistrationData
+		rd.Nickname = nicknames[0]
+		rd.ConfirmationID = confirmationids[0]
+		err := processRegistrationConfirmationWithDb(&rd)
+		if err != nil {
+			status = http.StatusInternalServerError
+			message = err.Error()
+		}
 	}
 	c.HTML(status,
 		"general.html",
 		shared.GeneralTemplateParams{Message: message})
 }
 
-func processRegistrationConfirmationWithDb(confirmationID string) (err error) {
+func processRegistrationConfirmationWithDb(rd *RegistrationData) (err error) {
 
 	writeSDUsersMutex.Lock()
 	defer writeSDUsersMutex.Unlock()
@@ -44,8 +57,8 @@ func processRegistrationConfirmationWithDb(confirmationID string) (err error) {
 	tx.MustExec(`set transaction isolation level repeatable read`)
 
 	_, err = tx.NamedExec(
-		`select process_registrationconfirmation(:confirmationid)`,
-		confirmationID)
+		`select process_registrationconfirmation(:confirmationid, :nickname)`,
+		rd)
 	if err == nil {
 		err = tx.Commit()
 	}

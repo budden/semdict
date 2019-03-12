@@ -30,7 +30,7 @@ func handleDirStrippingPrefix(dir string, handlerFunc http.HandlerFunc) {
 // https://golang.hotexamples.com/examples/golang.org.x.net.netutil/-/LimitListener/golang-limitlistener-function-examples.html
 // https://habr.com/ru/post/197468/
 func playWithServer() {
-	port := ":8085"
+	port := ":" + shared.WebServerPort
 	log.Printf("Starting server on %s - kill app to stop\n", port)
 
 	router := gin.Default()
@@ -43,7 +43,7 @@ func playWithServer() {
 
 	router.GET("/registrationform", user.RegistrationFormPageHandler)
 	router.POST("/registrationformsubmit", user.RegistrationFormSubmitPostHandler)
-	router.GET("/registrationconfirmation/:confirmationid", user.RegistrationConfirmationPageHandler)
+	router.GET("/registrationconfirmation", user.RegistrationConfirmationPageHandler)
 
 	// "/articlepost/"
 
