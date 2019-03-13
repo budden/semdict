@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/budden/a/pkg/shared"
+	"github.com/budden/a/pkg/unsorted"
 	// "github.com/flynn/json5"
 )
 
@@ -35,9 +36,7 @@ func saveSecretConfigDataExample() {
 		SMTPPassword:        "bla-bla-bla",
 		PostgresqlServerURL: "postgresql://localhost:5432"}
 	err := saveSecretDataConfigTToFile(&sds, ConfigFileName+".example")
-	if err != nil {
-		panic(err)
-	}
+	unsorted.GlobalPanicIf(err, "Failed to save secret config data example")
 }
 
 // loadSecretConfigData reads the config file and inititalizes a SecretConfigData global

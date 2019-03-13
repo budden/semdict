@@ -1,7 +1,6 @@
 package user
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/budden/a/pkg/database"
@@ -28,13 +27,9 @@ func WithSDUsersDbTransaction(body func(tx *sqlx.Tx) (err error)) (err error) {
 	writeSDUsersMutex.Lock()
 	defer writeSDUsersMutex.Unlock()
 
-	database.OpenSDUsersDb()
-
 	var tx *sqlx.Tx
 	tx, err = database.SDUsersDb.Beginx()
-	if err != nil {
-		unsorted.LogicalPanic(fmt.Sprintf("Unable to start transaction, error is %#v", err))
-	}
+	unsorted.LogicalPanicIf(err, "Unable to start transaction")
 	defer func() { database.RollbackIfActive(tx) }()
 	tx.MustExec(`set transaction isolation level repeatable read`)
 

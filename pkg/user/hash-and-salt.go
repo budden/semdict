@@ -5,8 +5,8 @@ import (
 	"crypto/sha1"
 	"encoding/base64"
 	"fmt"
+	"log"
 
-	"github.com/budden/a/pkg/unsorted"
 	"golang.org/x/crypto/pbkdf2"
 
 	// "github.com/ztrue/tracerr";
@@ -28,7 +28,7 @@ return string[0:b64len].decode() */
 
 func randomBytes(length uint8) []byte {
 	if length == 0 {
-		unsorted.LogicalPanic("Random array of length 0 is not random!")
+		log.Fatal("Random array of length 0 is not random!")
 	}
 	maxx := big.NewInt(256)
 	maxx = maxx.Exp(maxx, big.NewInt(int64(length)), nil)
@@ -37,7 +37,7 @@ func randomBytes(length uint8) []byte {
 	if err != nil {
 		msg := fmt.Sprintf(
 			"Unable to generate random bytes, error = %v", err)
-		unsorted.LogicalPanic(msg)
+		log.Fatal(msg)
 	}
 	return randomInt.Bytes()
 }

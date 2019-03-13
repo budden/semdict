@@ -67,7 +67,7 @@ func sendConfirmationEmail(rd *RegistrationData) (err error) {
 	parameters := url.Values{"nickname": {rd.Nickname}, "confirmationkey": {rd.ConfirmationKey}}
 	u, err1 := url.Parse(confirmationLinkBase)
 	if err1 != nil {
-		unsorted.LogicalPanic("Very bad: unable to parse base URL for a confirmation link")
+		log.Fatal("Very bad: unable to parse base URL for a confirmation link")
 	}
 	u.RawQuery = parameters.Encode()
 	confirmationLink := u.String()
@@ -112,7 +112,7 @@ var mapViolatedConstraintNameToMessage = map[string]string{
 
 // processRegistrationFormSubmitWithDb inserts a registration attempt into sdusers_db
 // If some "normal" error happens, it is returned in err. err.String() can be
-// used to present an error to the user. In case of unexpected error, LogicalPanic is invoked
+// used to present an error to the user. In case of unexpected error, LogicalPanicIf is invoked
 func processRegistrationFormSubmitWithDb(rd *RegistrationData) (err error) {
 
 	err = WithSDUsersDbTransaction(func(tx *sqlx.Tx) (err error) {
@@ -152,6 +152,6 @@ func handleRegistrationAttemptInsertError(err error) error {
 			}
 		}
 	}
-	unsorted.LogicalPanic(fmt.Sprintf("Unexpected error in the registrationformsubmit: %#v\n", err))
+	unsorted.LogicalPanicIf(err, "Unexpected error in the registrationformsubmit\n")
 	return err
 }

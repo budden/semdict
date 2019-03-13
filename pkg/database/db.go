@@ -27,12 +27,7 @@ var SDUsersDb *sqlx.DB
 // OpenSDUsersDb opens sdusers_db
 func OpenSDUsersDb() (db *sqlx.DB) {
 	url := shared.SecretConfigData.PostgresqlServerURL + "/sdusers_db"
-
-	var err error
-	SDUsersDb, err = OpenDb(url, "sdusers_db")
-	if err != nil {
-		unsorted.LogicalPanic(fmt.Sprintf("Unable to connect to Postgresql, error is %#v", err))
-	}
+	SDUsersDb = OpenDb(url, "sdusers_db")
 	return
 }
 
@@ -40,9 +35,7 @@ func OpenSDUsersDb() (db *sqlx.DB) {
 func PlayWithDb() {
 	justAQuery := func(query string) {
 		rows, err := SDUsersDb.Query(query)
-		if err != nil {
-			unsorted.LogicalPanic(fmt.Sprintf("Query error, query: «%s», error: %#v", query, err))
-		}
+		unsorted.LogicalPanicIf(err, "Query error, query: «%s», error: %#v", query, err)
 		rows.Close()
 	}
 
@@ -98,23 +91,20 @@ func RollbackIfActive(tx *sqlx.Tx) {
 	}
 	preExistingPanic := recover()
 	if preExistingPanic == nil {
-		panic(err)
+		unsorted.LogicalPanicIf(err, "Failed to rollback transaction")
 	}
 	log.Printf("Failed to rollback transaction while panicking. Err is %#v", err)
-	panic(preExistingPanic)
+	unsorted.LogicalPanicIf(preExistingPanic, "Failed to rollback tranaction while panicking")
 }
 
 // OpenDb obtains a connection to db. Connections are pooled, beware.
 // logFriendlyName is for the case when url contains passwords
-func OpenDb(url, logFriendlyName string) (db *sqlx.DB, err error) {
+func OpenDb(url, logFriendlyName string) (db *sqlx.DB) {
+	var err error
 	db, err = sqlx.Open("postgres", url)
-	if err != nil {
-		panic(err)
-	}
+	unsorted.GlobalPanicIf(err, "Failed to open «%s» database", logFriendlyName)
 	err = db.Ping()
-	if err != nil {
-		panic(err)
-	}
+	unsorted.GlobalPanicIf(err, "Failed to ping «%s» database", logFriendlyName)
 	// http://go-database-sql.org/connection-pool.html
 	db.SetMaxOpenConns(maxOpenConns)
 	db.SetMaxIdleConns(maxIdleConns)
