@@ -7,6 +7,7 @@ import (
 
 	"github.com/budden/a/pkg/shared"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 )
 
 // RegistrationConfirmationPageHandler processes a registration confirmation
@@ -29,7 +30,8 @@ func RegistrationConfirmationPageHandler(c *gin.Context) {
 		err := processRegistrationConfirmationWithDb(&rd)
 		if err != nil {
 			status = http.StatusInternalServerError
-			message = err.Error()
+			message = "Failed to process a registration confirmation"
+			err = errors.WithMessage(err, message)
 		}
 	}
 	c.HTML(status,
