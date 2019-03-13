@@ -70,6 +70,15 @@ const maxOpenConns = 4
 const maxIdleConns = 4
 const connMaxLifetime = 10 * time.Second
 
+// CommitIfActive commits a transaction if it is still active.
+func CommitIfActive(tx *sqlx.Tx) (err error) {
+	err = tx.Commit()
+	if err == sql.ErrTxDone {
+		err = nil
+	}
+	return
+}
+
 // RollbackIfActive rolls back transaction if it is still active.
 // Defer this one if you're opening any transaction
 // If failed to rollback, will panic. If already panicking, would ignore

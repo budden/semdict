@@ -29,3 +29,30 @@ func openSDUsersDb() (db *sqlx.DB, dbCloser func()) {
 	}
 	return
 }
+
+// WithSDUsersDbTransaction opens a transaction in the sdusers_db, then runs body
+// Then, if there is no error, and transaction is still active, commit transaction and returns commit's error
+// If there was an error or panic while executing body, tries to rollback the tran transaction. If rollback fails,
+// and there were no panic, panics. If rollback failed and there was panic, writes a message that rollback failed and
+// continues to panic
+func WithSDUsersDbTransaction(body func(tx *sqlx.Tx) (err error)) (err error) {
+	writeSDUsersMutex.Lock()
+	defer writeSDUsersMutex.Unlock()
+
+	db, dbCloser := openSDUsersDb()
+	defer dbCloser()
+
+	var tx *sqlx.Tx
+	tx, err = db.Beginx()
+	if err != nil {
+		unsorted.LogicalPanic(fmt.Sprintf("Unable to start transaction, error is %#v", err))
+	}
+	defer func() { database.RollbackIfActive(tx) }()
+	tx.MustExec(`set transaction isolation level repeatable read`)
+
+	err = body(tx)
+	if err == nil {
+		err = database.CommitIfActive(tx)
+	}
+	return
+}

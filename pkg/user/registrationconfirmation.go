@@ -1,14 +1,11 @@
 package user
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/jmoiron/sqlx"
 
-	"github.com/budden/a/pkg/database"
 	"github.com/budden/a/pkg/shared"
-	"github.com/budden/a/pkg/unsorted"
 	"github.com/gin-gonic/gin"
 )
 
@@ -41,29 +38,11 @@ func RegistrationConfirmationPageHandler(c *gin.Context) {
 }
 
 func processRegistrationConfirmationWithDb(rd *RegistrationData) (err error) {
-
-	writeSDUsersMutex.Lock()
-	defer writeSDUsersMutex.Unlock()
-	db, dbCloser := openSDUsersDb()
-	defer dbCloser()
-
-	var tx *sqlx.Tx
-	tx, err = db.Beginx()
-	if err != nil {
-		unsorted.LogicalPanic(fmt.Sprintf("Unable to start transaction, error is %#v", err))
-	}
-	defer func() { database.RollbackIfActive(tx) }()
-
-	tx.MustExec(`set transaction isolation level repeatable read`)
-
-	_, err = tx.NamedExec(
-		`select process_registrationconfirmation(:confirmationkey, :nickname)`,
-		rd)
-	if err == nil {
-		err = tx.Commit()
-	}
-	//if err != nil {
-	//	err = handleRegistrationAttemptInsertError(err)
-	//}
+	err = WithSDUsersDbTransaction(func(tx *sqlx.Tx) (err error) {
+		_, err = tx.NamedExec(
+			`select process_registrationconfirmation(:confirmationkey, :nickname)`,
+			rd)
+		return
+	})
 	return
 }

@@ -4,12 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"html"
+	"log"
 	"net/http"
 	"net/url"
 
 	"github.com/jmoiron/sqlx"
 
-	"github.com/budden/a/pkg/database"
 	"github.com/budden/a/pkg/shared"
 	"github.com/budden/a/pkg/unsorted"
 	"github.com/gin-gonic/gin"
@@ -41,11 +41,14 @@ func RegistrationFormSubmitPostHandler(c *gin.Context) {
 	rd.Password = c.PostForm("password")
 	rd.Registrationemail = c.PostForm("registrationemail")
 	err := doRegistrationFormSubmit(&rd)
+	status := http.StatusOK
 	message := "Check your E-Mail for a confirmation code, which will be valid for 10 minutes"
 	if err != nil {
-		message = err.Error()
+		log.Println("Error sending confirmation E-mail: ", err)
+		status = http.StatusInternalServerError
+		message = "Error sending confirmation E-mail. Retry registration after 10 minutes or ask for assistance"
 	}
-	c.HTML(http.StatusOK,
+	c.HTML(status,
 		"general.html",
 		shared.GeneralTemplateParams{Message: message})
 }
@@ -80,38 +83,22 @@ func sendConfirmationEmail(rd *RegistrationData) (err error) {
 		body)
 
 	if err == nil {
-		noteRegistrationConfirmationEMailSentWithDb(rd)
+		err = noteRegistrationConfirmationEMailSentWithDb(rd)
 	}
 
 	return
 }
 
-func noteRegistrationConfirmationEMailSentWithDb(rd *RegistrationData) {
-
-	writeSDUsersMutex.Lock()
-	defer writeSDUsersMutex.Unlock()
-
-	db, dbCloser := openSDUsersDb()
-	defer dbCloser()
-
-	var err error
-	var tx *sqlx.Tx
-	tx, err = db.Beginx()
+func noteRegistrationConfirmationEMailSentWithDb(rd *RegistrationData) (err error) {
+	err = WithSDUsersDbTransaction(func(tx *sqlx.Tx) (err error) {
+		_, err = tx.NamedExec(
+			`select note_registrationconfirmation_email_sent(:nickname, :confirmationkey)`,
+			rd)
+		return
+	})
 	if err != nil {
-		unsorted.LogicalPanic(fmt.Sprintf("Unable to start transaction, error is %#v", err))
-	}
-	defer func() { database.RollbackIfActive(tx) }()
-
-	tx.MustExec(`set transaction isolation level repeatable read`)
-
-	_, err = tx.NamedExec(
-		`select note_registrationconfirmation_email_sent(:nickname, :confirmationkey)`,
-		rd)
-	if err == nil {
-		err = tx.Commit()
-	}
-	if err != nil {
-		unsorted.LogicalPanic(fmt.Sprintf("Error remembering that E-Mail was sent, error is %#v", err))
+		message := fmt.Sprintf("Error remembering that E-Mail was sent, error is %#v", err)
+		err = errors.New(message)
 	}
 	return
 }
@@ -128,34 +115,28 @@ var mapViolatedConstraintNameToMessage = map[string]string{
 // used to present an error to the user. In case of unexpected error, LogicalPanic is invoked
 func processRegistrationFormSubmitWithDb(rd *RegistrationData) (err error) {
 
-	writeSDUsersMutex.Lock()
-	defer writeSDUsersMutex.Unlock()
-
-	db, dbCloser := openSDUsersDb()
-	defer dbCloser()
-
-	db.MustExec("select delete_expired_registrationattempts()")
-
-	var tx *sqlx.Tx
-	tx, err = db.Beginx()
-	if err != nil {
-		unsorted.LogicalPanic(fmt.Sprintf("Unable to start transaction, error is %#v", err))
-	}
-	defer func() { database.RollbackIfActive(tx) }()
-
-	tx.MustExec(`set transaction isolation level repeatable read`)
-
-	rd.Calculatedhash, rd.Calculatedsalt = HashAndSaltPassword(rd.Password)
-	rd.ConfirmationKey = GenNonce(20)
-	_, err = tx.NamedExec(
-		`select add_registrationattempt(:nickname, :calculatedhash, :calculatedsalt, :registrationemail, :confirmationkey)`,
-		rd)
-	if err == nil {
+	err = WithSDUsersDbTransaction(func(tx *sqlx.Tx) (err error) {
+		tx.MustExec("select delete_expired_registrationattempts()")
 		err = tx.Commit()
-	}
+		return
+	})
 	if err != nil {
-		err = handleRegistrationAttemptInsertError(err)
+		return
 	}
+	err = WithSDUsersDbTransaction(func(tx *sqlx.Tx) (err error) {
+		rd.Calculatedhash, rd.Calculatedsalt = HashAndSaltPassword(rd.Password)
+		rd.ConfirmationKey = GenNonce(20)
+		_, err = tx.NamedExec(
+			`select add_registrationattempt(:nickname, :calculatedhash, :calculatedsalt, :registrationemail, :confirmationkey)`,
+			rd)
+		if err == nil {
+			err = tx.Commit()
+		}
+		if err != nil {
+			err = handleRegistrationAttemptInsertError(err)
+		}
+		return
+	})
 	return
 }
 
