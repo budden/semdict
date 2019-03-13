@@ -14,24 +14,32 @@ import (
 	//	"time"
 	"database/sql"
 
+	"github.com/budden/a/pkg/gracefulshutdown"
 	"github.com/budden/a/pkg/shared"
 	"github.com/budden/a/pkg/unsorted"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 )
 
-// PlayWithDb is used to manually test db functionality
-func PlayWithDb() {
-	url := shared.SecretConfigData.PostgresqlServerURL
+// SDUsersDb contains, after the call to OpenSDUsersDb, a connection to sdusers_db
+var SDUsersDb *sqlx.DB
 
-	db, dbCloser, err := OpenDb(url)
+// OpenSDUsersDb opens sdusers_db
+func OpenSDUsersDb() (db *sqlx.DB) {
+	url := shared.SecretConfigData.PostgresqlServerURL + "/sdusers_db"
+
+	var err error
+	SDUsersDb, err = OpenDb(url, "sdusers_db")
 	if err != nil {
 		unsorted.LogicalPanic(fmt.Sprintf("Unable to connect to Postgresql, error is %#v", err))
 	}
-	defer dbCloser()
+	return
+}
 
+// PlayWithDb is used to manually test db functionality
+func PlayWithDb() {
 	justAQuery := func(query string) {
-		rows, err := db.Query(query)
+		rows, err := SDUsersDb.Query(query)
 		if err != nil {
 			unsorted.LogicalPanic(fmt.Sprintf("Query error, query: «%s», error: %#v", query, err))
 		}
@@ -45,7 +53,7 @@ func PlayWithDb() {
 	m := map[string]interface{}{"name": `",sql 'inject?`}
 	for i := 0; i < 2; i++ {
 		var res sql.Result
-		res, err1 := db.NamedExec(`insert into budden_a values (:name)`,
+		res, err1 := SDUsersDb.NamedExec(`insert into budden_a values (:name)`,
 			m)
 		//xt := reflect.TypeOf(err1).Kind()
 		if err1 != nil {
@@ -63,7 +71,7 @@ func PlayWithDb() {
 			fmt.Printf("Inserted %#v\n", res)
 		}
 	}
-	genExpiryDate(db)
+	genExpiryDate(SDUsersDb)
 }
 
 const maxOpenConns = 4
@@ -96,20 +104,34 @@ func RollbackIfActive(tx *sqlx.Tx) {
 	panic(preExistingPanic)
 }
 
-// OpenDb obtains a connection to db. Connections are pooled, beware. Also please always defer a closer!
-func OpenDb(url string) (db *sqlx.DB, closer func(), err error) {
+// OpenDb obtains a connection to db. Connections are pooled, beware.
+// logFriendlyName is for the case when url contains passwords
+func OpenDb(url, logFriendlyName string) (db *sqlx.DB, err error) {
 	db, err = sqlx.Open("postgres", url)
+	if err != nil {
+		panic(err)
+	}
+	err = db.Ping()
+	if err != nil {
+		panic(err)
+	}
 	// http://go-database-sql.org/connection-pool.html
 	db.SetMaxOpenConns(maxOpenConns)
 	db.SetMaxIdleConns(maxIdleConns)
 	db.SetConnMaxLifetime(connMaxLifetime)
-	closer = func() {
+	closer := func() {
+		// FIXME db.Close can take an indefinite time. We should run closer in the goroutine and
+		// wait for it in the graceful shutdown cleanup job.
+		// have gracefulshutdown.Timeout
 		err := db.Close()
 		if err != nil {
-			fmt.Printf("Error closing db: %v\n", err)
-			// Not exiting because this function is called from the defer
+			// we don't know if stdout is writable, but we're in goroutine already
+			log.Printf("Error closing database «%s»: %#v\n", logFriendlyName, err)
+		} else {
+			log.Printf("Gracefully shut down database «%s»\n", logFriendlyName)
 		}
 	}
+	gracefulshutdown.Actions = append(gracefulshutdown.Actions, closer)
 	return
 }
 

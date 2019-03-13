@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/budden/a/pkg/database"
-	"github.com/budden/a/pkg/shared"
 	"github.com/budden/a/pkg/unsorted"
 	"github.com/jmoiron/sqlx"
 )
@@ -20,16 +19,6 @@ const PostgresqlErrorCodeUniqueViolation = "23505"
 // PostgresqlErrorCodeNoData = no_data warning
 const PostgresqlErrorCodeNoData = "02000"
 
-func openSDUsersDb() (db *sqlx.DB, dbCloser func()) {
-	url := shared.SecretConfigData.PostgresqlServerURL + "/sdusers_db"
-	var err error
-	db, dbCloser, err = database.OpenDb(url)
-	if err != nil {
-		unsorted.LogicalPanic(fmt.Sprintf("Unable to connect to Postgresql, error is %#v", err))
-	}
-	return
-}
-
 // WithSDUsersDbTransaction opens a transaction in the sdusers_db, then runs body
 // Then, if there is no error, and transaction is still active, commit transaction and returns commit's error
 // If there was an error or panic while executing body, tries to rollback the tran transaction. If rollback fails,
@@ -39,11 +28,10 @@ func WithSDUsersDbTransaction(body func(tx *sqlx.Tx) (err error)) (err error) {
 	writeSDUsersMutex.Lock()
 	defer writeSDUsersMutex.Unlock()
 
-	db, dbCloser := openSDUsersDb()
-	defer dbCloser()
+	database.OpenSDUsersDb()
 
 	var tx *sqlx.Tx
-	tx, err = db.Beginx()
+	tx, err = database.SDUsersDb.Beginx()
 	if err != nil {
 		unsorted.LogicalPanic(fmt.Sprintf("Unable to start transaction, error is %#v", err))
 	}

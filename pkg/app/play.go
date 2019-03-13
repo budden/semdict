@@ -13,25 +13,22 @@ import (
 	"fmt"
 
 	"github.com/budden/a/pkg/database"
+	"github.com/budden/a/pkg/gracefulshutdown"
 	"github.com/budden/a/pkg/user"
 )
 
-const actuallySendEmailP = false
-
 // Play runs a set of exercises/demos
 func Play(commandLineArgs []string) {
+	gracefulshutdown.RunSignalListener()
+	/// Uncomment next line to create secret-data.config.json.example
+	//saveSecretConfigDataExample()
+	loadSecretConfigData()
+	database.OpenSDUsersDb()
 	database.PlayWithDb()
 	playWithPanic()
 	playWithNonce(16)
 	playWithHashAndSalt()
-	/// Uncomment next line to create secret-data.config.json.example
-	//saveSecretConfigDataExample()
-	loadSecretConfigData()
-	if actuallySendEmailP {
-		user.PlayWithEmail()
-	} else {
-		fmt.Println("Bypassing sending E-mail due to ActuallySendEmailP == false")
-	}
+	user.PlayWithEmail()
 	playWithServer()
 }
 
