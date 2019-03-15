@@ -14,9 +14,9 @@ import (
 	//	"time"
 	"database/sql"
 
+	"github.com/budden/a/pkg/apperror"
 	"github.com/budden/a/pkg/gracefulshutdown"
 	"github.com/budden/a/pkg/shared"
-	"github.com/budden/a/pkg/unsorted"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 )
@@ -35,7 +35,7 @@ func OpenSDUsersDb() (db *sqlx.DB) {
 func PlayWithDb() {
 	justAQuery := func(query string) {
 		rows, err := SDUsersDb.Query(query)
-		unsorted.LogicalPanicIf(err, "Query error, query: «%s», error: %#v", query, err)
+		apperror.LogicalPanicIf(err, "Query error, query: «%s», error: %#v", query, err)
 		rows.Close()
 	}
 
@@ -91,10 +91,10 @@ func RollbackIfActive(tx *sqlx.Tx) {
 	}
 	preExistingPanic := recover()
 	if preExistingPanic == nil {
-		unsorted.LogicalPanicIf(err, "Failed to rollback transaction")
+		apperror.LogicalPanicIf(err, "Failed to rollback transaction")
 	}
 	log.Printf("Failed to rollback transaction while panicking. Err is %#v", err)
-	unsorted.LogicalPanicIf(preExistingPanic, "Failed to rollback tranaction while panicking")
+	apperror.LogicalPanicIf(preExistingPanic, "Failed to rollback tranaction while panicking")
 }
 
 // OpenDb obtains a connection to db. Connections are pooled, beware.
@@ -102,9 +102,9 @@ func RollbackIfActive(tx *sqlx.Tx) {
 func OpenDb(url, logFriendlyName string) (db *sqlx.DB) {
 	var err error
 	db, err = sqlx.Open("postgres", url)
-	unsorted.GlobalPanicIf(err, "Failed to open «%s» database", logFriendlyName)
+	apperror.GlobalPanicIf(err, "Failed to open «%s» database", logFriendlyName)
 	err = db.Ping()
-	unsorted.GlobalPanicIf(err, "Failed to ping «%s» database", logFriendlyName)
+	apperror.GlobalPanicIf(err, "Failed to ping «%s» database", logFriendlyName)
 	// http://go-database-sql.org/connection-pool.html
 	db.SetMaxOpenConns(maxOpenConns)
 	db.SetMaxIdleConns(maxIdleConns)

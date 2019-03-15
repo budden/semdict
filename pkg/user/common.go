@@ -3,8 +3,8 @@ package user
 import (
 	"sync"
 
+	"github.com/budden/a/pkg/apperror"
 	"github.com/budden/a/pkg/database"
-	"github.com/budden/a/pkg/unsorted"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -29,10 +29,10 @@ func WithSDUsersDbTransaction(body func(tx *sqlx.Tx) (err error)) (err error) {
 
 	var tx *sqlx.Tx
 	tx, err = database.SDUsersDb.Beginx()
-	unsorted.ExitAppIf(err, "Unable to start transaction")
+	apperror.ExitAppIf(err, "Unable to start transaction")
 	defer func() { database.RollbackIfActive(tx) }()
 	_, err = tx.Exec(`set transaction isolation level repeatable read`)
-	unsorted.ExitAppIf(err, "Unable to start transaction")
+	apperror.ExitAppIf(err, "Unable to start transaction")
 
 	err = body(tx)
 	if err == nil {

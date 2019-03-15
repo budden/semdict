@@ -1,30 +1,31 @@
-package unsorted
+package apperror
 
 import (
 	"fmt"
 	"log"
 	"net/http"
+	"runtime/debug"
 
 	"github.com/budden/a/pkg/shared"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )
 
-// BlessedErr is an application level error which
+// AppErr is an application level error which
 // should not crash the application
-type BlessedErr struct {
+type AppErr struct {
 	Message string
 }
 
-// NewBlessedErrf returns a new BlessedErr with a message
-func NewBlessedErrf(format string, args ...interface{}) *BlessedErr {
+// NewAppErrf returns a new AppErr with a message
+func NewAppErrf(format string, args ...interface{}) *AppErr {
 	message := fmt.Sprintf(format, args...)
-	result := BlessedErr{Message: message}
+	result := AppErr{Message: message}
 	return &result
 }
 
-func (be *BlessedErr) Error() string {
-	return fmt.Sprintf("BlessedErr: %s", be.Message)
+func (be *AppErr) Error() string {
+	return fmt.Sprintf("AppErr: %s", be.Message)
 }
 
 // Exception500 means that something relatively bad happened,
@@ -32,19 +33,6 @@ func (be *BlessedErr) Error() string {
 type Exception500 struct {
 	Message string
 }
-
-// Exception200 means we want to reply with a simple text message
-type Exception200 struct {
-	Message string
-}
-
-// ExceptionRequestDone is used to a non-local control transfer
-// when request was handled in depth of a call tree
-type ExceptionRequestDone struct {
-}
-
-// RequestDone is an instance of ExceptionRequestDone
-var RequestDone = ExceptionRequestDone{}
 
 // HandlePanicInRequestHandler returns a middleware
 // that, for our known "good" panics recovers and
@@ -59,17 +47,6 @@ func HandlePanicInRequestHandler() gin.HandlerFunc {
 						c.HTML(http.StatusInternalServerError,
 							"general.html",
 							shared.GeneralTemplateParams{Message: et.Message})
-						return
-					}
-				case *Exception200:
-					{
-						c.HTML(http.StatusOK,
-							"general.html",
-							shared.GeneralTemplateParams{Message: et.Message})
-						return
-					}
-				case *ExceptionRequestDone:
-					{
 						return
 					}
 				default:
@@ -114,6 +91,7 @@ func coerceToError(x interface{}) (e error) {
 func ExitAppIf(err error, format string, args ...interface{}) {
 	if err != nil {
 		log.Printf(format, args...)
+		debug.PrintStack()
 		log.Fatal(err)
 	}
 }
