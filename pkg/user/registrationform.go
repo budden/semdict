@@ -40,26 +40,16 @@ func RegistrationFormSubmitPostHandler(c *gin.Context) {
 	rd.Nickname = c.PostForm("nickname")
 	rd.Password = c.PostForm("password")
 	rd.Registrationemail = c.PostForm("registrationemail")
-	err := doRegistrationFormSubmit(&rd)
+	doRegistrationFormSubmit(&rd)
 	status := http.StatusOK
 	message := "Check your E-Mail for a confirmation code, which will be valid for 10 minutes"
-	if err != nil {
-		log.Println("Error sending confirmation E-mail: ", err)
-		status = http.StatusInternalServerError
-		message = "Error sending confirmation E-mail. Retry registration after 10 minutes or ask for assistance"
-	}
 	c.HTML(status,
 		"general.html",
 		shared.GeneralTemplateParams{Message: message})
 }
 
-func doRegistrationFormSubmit(rd *RegistrationData) (err error) {
-	err = processRegistrationFormSubmitWithDb(rd)
-	if err != nil {
-		return
-	}
-	err = sendConfirmationEmail(rd)
-	return
+func doRegistrationFormSubmit(rd *RegistrationData) {
+	processRegistrationFormSubmitWithDb(rd)
 }
 
 func sendConfirmationEmail(rd *RegistrationData) (err error) {
@@ -110,19 +100,24 @@ var mapViolatedConstraintNameToMessage = map[string]string{
 	"i_sduser_registrationemail":               "There is already a user with the same E-mail",
 	"i_sduser_nickname":                        "There is already a user with the same nickname"}
 
+func deleteExpiredRegistrationAttempts(tx *sqlx.Tx) error {
+	_, err1 := tx.Exec("select delete_expired_registrationattempts()")
+	unsorted.Panic500If(err1,
+		"Failed to register. Please try again later or contact us for assistance")
+	err1 = tx.Commit()
+	unsorted.ExitAppIf(err1,
+		"Failed to commit after delete_expired_registrationattempts, error = %#v",
+		err1)
+	return nil
+}
+
 // processRegistrationFormSubmitWithDb inserts a registration attempt into sdusers_db
-// If some "normal" error happens, it is returned in err. err.String() can be
-// used to present an error to the user. In case of unexpected error, LogicalPanicIf is invoked
+// If some "normal" error happens like non-unique nickname, it is returned in dberror.
 func processRegistrationFormSubmitWithDb(rd *RegistrationData) (err error) {
 
-	err = WithSDUsersDbTransaction(func(tx *sqlx.Tx) (err error) {
-		tx.MustExec("select delete_expired_registrationattempts()")
-		err = tx.Commit()
-		return
-	})
-	if err != nil {
-		return
-	}
+	err = WithSDUsersDbTransaction(deleteExpiredRegistrationAttempts)
+	unsorted.ExitAppIf(err, "Failed around delete_expired_registrationattempts, %#v", err)
+
 	err = WithSDUsersDbTransaction(func(tx *sqlx.Tx) (err error) {
 		rd.Calculatedhash, rd.Calculatedsalt = HashAndSaltPassword(rd.Password)
 		rd.ConfirmationKey = GenNonce(20)
@@ -140,18 +135,16 @@ func processRegistrationFormSubmitWithDb(rd *RegistrationData) (err error) {
 	return
 }
 
-func handleRegistrationAttemptInsertError(err error) error {
+func handleRegistrationAttemptInsertError(err error) *unsorted.BlessedErr {
 	//xt := reflect.TypeOf(err1).Kind()
-	switch e := interface{}(err).(type) {
-	case *pq.Error:
+	if e, ok := err.(pq.Error); ok {
 		if e.Code == PostgresqlErrorCodeUniqueViolation {
 			message, found := mapViolatedConstraintNameToMessage[e.Constraint]
 			if found {
-				err = errors.New(message)
-				return err
+				return unsorted.NewBlessedErrf(message)
 			}
 		}
 	}
-	unsorted.LogicalPanicIf(err, "Unexpected error in the registrationformsubmit\n")
-	return err
+	unsorted.ExitAppIf(err, "Unexpected error in the registrationformsubmit, %#v\n", err)
+	panic("Never reached")
 }

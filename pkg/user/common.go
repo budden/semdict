@@ -29,9 +29,10 @@ func WithSDUsersDbTransaction(body func(tx *sqlx.Tx) (err error)) (err error) {
 
 	var tx *sqlx.Tx
 	tx, err = database.SDUsersDb.Beginx()
-	unsorted.LogicalPanicIf(err, "Unable to start transaction")
+	unsorted.ExitAppIf(err, "Unable to start transaction")
 	defer func() { database.RollbackIfActive(tx) }()
-	tx.MustExec(`set transaction isolation level repeatable read`)
+	_, err = tx.Exec(`set transaction isolation level repeatable read`)
+	unsorted.ExitAppIf(err, "Unable to start transaction")
 
 	err = body(tx)
 	if err == nil {

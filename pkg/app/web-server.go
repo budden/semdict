@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/budden/a/pkg/unsorted"
 	"github.com/budden/a/pkg/user"
 
 	//"github.com/budden/a/pkg/query"
@@ -34,7 +35,7 @@ func playWithServer() {
 	log.Printf("Starting server on %s - kill app to stop\n", port)
 
 	engine := gin.New()
-	engine.Use(gin.Logger(), gin.Recovery())
+	engine.Use(gin.Logger(), unsorted.HandlePanicInRequestHandler() /*, gin.Recovery()*/)
 	engine.LoadHTMLGlob("templates/*")
 	engine.GET("/", homePageHandler)
 	engine.GET("/searchform", query.SearchFormPageHandler)
