@@ -33,24 +33,25 @@ func playWithServer() {
 	port := ":" + shared.WebServerPort
 	log.Printf("Starting server on %s - kill app to stop\n", port)
 
-	router := gin.Default()
-	router.LoadHTMLGlob("templates/*")
-	router.GET("/", homePageHandler)
-	router.GET("/searchform", query.SearchFormPageHandler)
-	router.GET("/searchresult", query.SearchResultPageHandler)
-	router.GET("/articleview/:articleslug", query.ArticleViewDirHandler)
-	router.GET("/articleedit/:articleslug", query.ArticleEditDirHandler)
+	engine := gin.New()
+	engine.Use(gin.Logger(), gin.Recovery())
+	engine.LoadHTMLGlob("templates/*")
+	engine.GET("/", homePageHandler)
+	engine.GET("/searchform", query.SearchFormPageHandler)
+	engine.GET("/searchresult", query.SearchResultPageHandler)
+	engine.GET("/articleview/:articleslug", query.ArticleViewDirHandler)
+	engine.GET("/articleedit/:articleslug", query.ArticleEditDirHandler)
 
-	router.GET("/registrationform", user.RegistrationFormPageHandler)
-	router.POST("/registrationformsubmit", user.RegistrationFormSubmitPostHandler)
-	router.GET("/registrationconfirmation", user.RegistrationConfirmationPageHandler)
+	engine.GET("/registrationform", user.RegistrationFormPageHandler)
+	engine.POST("/registrationformsubmit", user.RegistrationFormSubmitPostHandler)
+	engine.GET("/registrationconfirmation", user.RegistrationConfirmationPageHandler)
 
 	// "/articlepost/"
 
 	// https://habr.com/ru/post/197468/
 	s := &http.Server{
 		Addr:           port,
-		Handler:        router,
+		Handler:        engine,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20}
