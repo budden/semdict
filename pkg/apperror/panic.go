@@ -130,3 +130,7 @@ func GlobalPanicIf(subject interface{}, format string, args ...interface{}) {
 		panic(err)
 	}
 }
+
+// ErrDummy can be used as a first argument to DoSomethingIf(err,...) if there is
+// no real error at hand
+var ErrDummy = errors.New("Dummy error")

@@ -1,7 +1,6 @@
 package gracefulshutdown
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -40,22 +39,43 @@ func RunSignalListener() {
 
 func signalListener() {
 	<-*Sigs
-	fmt.Println("Signal!")
 	log.Println("Signal!")
+	// there are two timeout guards, and both cause the app to exit.
+	// First one is started before starting cleanup actions and causes
+	// exit with ExitCodeGracefulShutdownTimeout
+	// Second one is started after all cleanup actions. We could use waitgroup,
+	// but no need here as both guards call exit (hopefully exit is thread safe)
 	if Timeout != 0 {
-		go timeoutGuard()
+		go timeoutGuard(ExitCodeGracefulShutdownTimeout)
 	}
 	cleanupAllTheThings()
-	os.Exit(0)
+	time.Sleep(Timeout)
+	timeoutGuard(1)
 }
 
-func timeoutGuard() {
+func timeoutGuard(exitCode int) {
 	time.Sleep(Timeout)
-	os.Exit(ExitCodeGracefulShutdownTimeout)
+	os.Exit(exitCode)
 }
 
 func cleanupAllTheThings() {
 	for _, fn := range Actions {
 		fn()
 	}
+}
+
+// Implement os.Signal
+type artificialSignal struct {
+	Mark int
+}
+
+func (as *artificialSignal) String() string { return "" }
+func (as *artificialSignal) Signal()        { return }
+
+// InitiateGracefulShutdown starts the shutdown process and returns without delay
+// Intended to be called by the user's code (including request handlers), in contrast with
+// signal-based shutdown initiated from the outer world
+func InitiateGracefulShutdown() {
+	as := artificialSignal{}
+	*Sigs <- &as
 }

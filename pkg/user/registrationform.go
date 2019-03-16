@@ -1,6 +1,7 @@
 package user
 
 import (
+	"errors"
 	"fmt"
 	"html"
 	"log"
@@ -110,6 +111,7 @@ var mapViolatedConstraintNameToMessage = map[string]string{
 
 func deleteExpiredRegistrationAttempts(tx *sqlx.Tx) error {
 	_, err1 := tx.Exec("select delete_expired_registrationattempts()")
+	err1 = errors.New("abc")
 	apperror.Panic500If(err1,
 		"Failed to register. Please try again later or contact us for assistance")
 	err1 = tx.Commit()

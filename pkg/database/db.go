@@ -109,10 +109,7 @@ func OpenDb(url, logFriendlyName string) (db *sqlx.DB) {
 	db.SetMaxOpenConns(maxOpenConns)
 	db.SetMaxIdleConns(maxIdleConns)
 	db.SetConnMaxLifetime(connMaxLifetime)
-	closer := func() {
-		// FIXME db.Close can take an indefinite time. We should run closer in the goroutine and
-		// wait for it in the graceful shutdown cleanup job.
-		// have gracefulshutdown.Timeout
+	closer1 := func() {
 		err := db.Close()
 		if err != nil {
 			// we don't know if stdout is writable, but we're in goroutine already
@@ -121,6 +118,7 @@ func OpenDb(url, logFriendlyName string) (db *sqlx.DB) {
 			log.Printf("Gracefully shut down database «%s»\n", logFriendlyName)
 		}
 	}
+	closer := func() { go closer1() }
 	gracefulshutdown.Actions = append(gracefulshutdown.Actions, closer)
 	return
 }
