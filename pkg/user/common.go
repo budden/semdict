@@ -22,23 +22,25 @@ const PostgresqlErrorCodeNoData = "02000"
 // If there was an error or panic while executing body, tries to rollback the tran transaction. If rollback fails,
 // and there were no panic, panics. If rollback failed and there was panic, writes a message that rollback failed and
 // continues to panic
-func WithSDUsersDbTransaction(body func(tx *sqlx.Tx) (err error)) (err error) {
+func WithSDUsersDbTransaction(body func(tx *database.TransactionType) (err error)) (err error) {
+	conn := database.SDUsersDb
+
 	writeSDUsersMutex.Lock()
 	defer writeSDUsersMutex.Unlock()
 
-	db := database.SDUsersDb
 	var tx *sqlx.Tx
-	database.CheckDbAlive(db)
-	tx, err = db.Beginx()
-	database.FatalDatabaseErrorIf(err, db, "Unable to start transaction")
-	defer func() { database.RollbackIfActive(tx) }()
-	database.CheckDbAlive(db)
+	database.CheckDbAlive(conn)
+	tx, err = conn.Db.Beginx()
+	trans := database.TransactionType{Conn: conn, Tx: tx}
+	database.FatalDatabaseErrorIf(err, conn, "Unable to start transaction")
+	defer func() { database.RollbackIfActive(&trans) }()
+	database.CheckDbAlive(conn)
 	_, err = tx.Exec(`set transaction isolation level repeatable read`)
-	database.FatalDatabaseErrorIf(err, db, "Unable to set transaction isolation level")
-	err = body(tx)
+	database.FatalDatabaseErrorIf(err, conn, "Unable to set transaction isolation level")
+	err = body(&trans)
 	if err == nil {
-		database.CheckDbAlive(db)
-		err = database.CommitIfActive(tx)
+		database.CheckDbAlive(conn)
+		err = database.CommitIfActive(&trans)
 	}
 	return
 }

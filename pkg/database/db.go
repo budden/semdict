@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime/debug"
+	"sync"
 	"time"
 
 	//	neturl "net/url"
@@ -15,26 +17,50 @@ import (
 	"database/sql"
 
 	"github.com/budden/a/pkg/apperror"
-	"github.com/budden/a/pkg/shutdown"
 	"github.com/budden/a/pkg/shared"
+	"github.com/budden/a/pkg/shutdown"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 )
 
+// ConnectionType encapsulates connection with
+// some other minor things like a broken state of a connection pool.
+// There should only one ConnectionType instance for any DB instance
+type ConnectionType struct {
+	Db *sqlx.DB
+
+	// If we serialize writes to this db, we
+	// hold the mutex while being in the transaction (FIXME - do that only in write transaction)
+	Mutex *sync.Mutex
+
+	IsDead bool
+}
+
+// TransactionType is a transaction and reference to
+// ConnectionType, which we need due to inability to get db from
+// transaction.
+type TransactionType struct {
+	Conn *ConnectionType
+	Tx   *sqlx.Tx
+}
+
 // SDUsersDb contains, after the call to OpenSDUsersDb, a connection to sdusers_db
-var SDUsersDb *sqlx.DB
+var SDUsersDb *ConnectionType
 
 // OpenSDUsersDb opens sdusers_db
-func OpenSDUsersDb() (db *sqlx.DB) {
+func OpenSDUsersDb() {
+	if SDUsersDb != nil {
+		log.Fatal("An attempt to re-open SDUsers database")
+	}
 	url := shared.SecretConfigData.PostgresqlServerURL + "/sdusers_db"
-	SDUsersDb = OpenDb(url, "sdusers_db")
+	SDUsersDb = OpenDb(url, "sdusers_db", true)
 	return
 }
 
 // PlayWithDb is used to manually test db functionality
 func PlayWithDb() {
 	justAQuery := func(query string) {
-		rows, err := SDUsersDb.Query(query)
+		rows, err := SDUsersDb.Db.Query(query)
 		apperror.LogicalPanicIf(err, "Query error, query: «%s», error: %#v", query, err)
 		rows.Close()
 	}
@@ -46,7 +72,7 @@ func PlayWithDb() {
 	m := map[string]interface{}{"name": `",sql 'inject?`}
 	for i := 0; i < 2; i++ {
 		var res sql.Result
-		res, err1 := SDUsersDb.NamedExec(`insert into budden_a values (:name)`,
+		res, err1 := SDUsersDb.Db.NamedExec(`insert into budden_a values (:name)`,
 			m)
 		//xt := reflect.TypeOf(err1).Kind()
 		if err1 != nil {
@@ -64,7 +90,7 @@ func PlayWithDb() {
 			fmt.Printf("Inserted %#v\n", res)
 		}
 	}
-	genExpiryDate(SDUsersDb)
+	genExpiryDate(SDUsersDb.Db)
 }
 
 const maxOpenConns = 4
@@ -72,8 +98,8 @@ const maxIdleConns = 4
 const connMaxLifetime = 10 * time.Second
 
 // CommitIfActive commits a transaction if it is still active.
-func CommitIfActive(tx *sqlx.Tx) (err error) {
-	err = tx.Commit()
+func CommitIfActive(trans *TransactionType) (err error) {
+	err = trans.Tx.Commit()
 	if err == sql.ErrTxDone {
 		err = nil
 	}
@@ -82,25 +108,33 @@ func CommitIfActive(tx *sqlx.Tx) (err error) {
 
 // RollbackIfActive rolls back transaction if it is still active.
 // Defer this one if you're opening any transaction
-// If failed to rollback, will panic. If already panicking, would ignore
-// rollback error silently.
-func RollbackIfActive(tx *sqlx.Tx) {
-	err := tx.Rollback()
+// If failed to rollback, will shutdown the application gracefully
+// If already panicking with a non-application error (something unexpected happened),
+// will continue to do the same, just logging the failure to rollback.
+func RollbackIfActive(trans *TransactionType) {
+	err := trans.Tx.Rollback()
 	if err == nil || err == sql.ErrTxDone {
 		return
 	}
 	preExistingPanic := recover()
 	if preExistingPanic == nil {
-		apperror.LogicalPanicIf(err, "Failed to rollback transaction")
+		FatalDatabaseErrorIf(apperror.ErrDummy, trans.Conn, "Failed to rollback transaction")
+	} else if ae, ok := preExistingPanic.(apperror.Exception500); ok {
+		FatalDatabaseErrorIf(apperror.ErrDummy,
+			trans.Conn,
+			"Failed to rollback transaction with Exception500 pending: %#v",
+			ae)
+	} else {
+		debug.PrintStack()
+		log.Fatalf("Failed to rollback transaction while panicking with %#v", preExistingPanic)
 	}
-	log.Printf("Failed to rollback transaction while panicking. Err is %#v", err)
-	apperror.LogicalPanicIf(preExistingPanic, "Failed to rollback tranaction while panicking")
 }
 
 // OpenDb obtains a connection to db. Connections are pooled, beware.
 // logFriendlyName is for the case when url contains passwords
-func OpenDb(url, logFriendlyName string) (db *sqlx.DB) {
+func OpenDb(url, logFriendlyName string, withMutex bool) *ConnectionType {
 	var err error
+	var db *sqlx.DB
 	db, err = sqlx.Open("postgres", url)
 	apperror.GlobalPanicIf(err, "Failed to open «%s» database", logFriendlyName)
 	err = db.Ping()
@@ -119,8 +153,14 @@ func OpenDb(url, logFriendlyName string) (db *sqlx.DB) {
 		}
 	}
 	closer := func() { go closer1() }
+	var mtx *sync.Mutex
+	if withMutex {
+		var mtx2 sync.Mutex
+		mtx = &mtx2
+	}
 	shutdown.Actions = append(shutdown.Actions, closer)
-	return
+	result := ConnectionType{Db: db, Mutex: mtx}
+	return &result
 }
 
 func genExpiryDate(db *sqlx.DB) {

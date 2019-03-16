@@ -3,8 +3,7 @@ package user
 import (
 	"net/http"
 
-	"github.com/jmoiron/sqlx"
-
+	"github.com/budden/a/pkg/database"
 	"github.com/budden/a/pkg/shared"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -40,8 +39,8 @@ func RegistrationConfirmationPageHandler(c *gin.Context) {
 }
 
 func processRegistrationConfirmationWithDb(rd *RegistrationData) (err error) {
-	err = WithSDUsersDbTransaction(func(tx *sqlx.Tx) (err error) {
-		_, err = tx.NamedExec(
+	err = WithSDUsersDbTransaction(func(trans *database.TransactionType) (err error) {
+		_, err = trans.Tx.NamedExec(
 			`select process_registrationconfirmation(:confirmationkey, :nickname)`,
 			rd)
 		return

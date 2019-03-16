@@ -14,8 +14,20 @@ import (
 )
 
 // AppErr is an application level error which
-// should not crash the application
+// should not crash the application. It implements
+// error interface and should be used as a return value.
+// For panic, use Exception500
 type AppErr struct {
+	Message string
+}
+
+// Exception500 means that something relatively bad happened,
+// and we want to return 500 error code.
+// But the issue is local for current event handler, and
+// our program is still operational. Use Exception500 as an argument to
+// panic. For error return value, consider AppErr
+type Exception500 struct {
+	// Message is sent to the client
 	Message string
 }
 
@@ -28,12 +40,6 @@ func NewAppErrf(format string, args ...interface{}) *AppErr {
 
 func (be *AppErr) Error() string {
 	return fmt.Sprintf("AppErr: %s", be.Message)
-}
-
-// Exception500 means that something relatively bad happened,
-// but our program is still operational
-type Exception500 struct {
-	Message string
 }
 
 // HandlePanicInRequestHandler returns a middleware
@@ -87,15 +93,6 @@ func coerceToError(x interface{}) (e error) {
 		e = ewc
 	}
 	return
-}
-
-// ExitAppIf is called when something really bad happened
-func ExitAppIf(err error, format string, args ...interface{}) {
-	if err != nil {
-		log.Printf(format, args...)
-		debug.PrintStack()
-		log.Fatal(err)
-	}
 }
 
 // GracefullyExitAppIf can be used if error is considered not so horrible

@@ -10,7 +10,6 @@ import (
 
 	"github.com/budden/a/pkg/database"
 	"github.com/budden/a/pkg/shutdown"
-	"github.com/jmoiron/sqlx"
 
 	"github.com/budden/a/pkg/apperror"
 	"github.com/budden/a/pkg/user"
@@ -77,8 +76,8 @@ func playWithServer() {
 	shutdown.Actions = append(shutdown.Actions, closer)
 }
 
-func actualFatalDatabaseErrorHandler(err error, db *sqlx.DB, format string, args ...interface{}) {
-	database.SetConnectionDead(db)
+func actualFatalDatabaseErrorHandler(err error, c *database.ConnectionType, format string, args ...interface{}) {
+	database.SetConnectionDead(c)
 	log.Printf("Fatal error: "+format, args...)
 	debug.PrintStack()
 	shutdown.InitiateGracefulShutdown()

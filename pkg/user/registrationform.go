@@ -8,8 +8,6 @@ import (
 
 	"github.com/budden/a/pkg/database"
 
-	"github.com/jmoiron/sqlx"
-
 	"github.com/budden/a/pkg/apperror"
 	"github.com/budden/a/pkg/shared"
 	"github.com/gin-gonic/gin"
@@ -91,15 +89,14 @@ func sendConfirmationEmail(rd *RegistrationData) {
 }
 
 func noteRegistrationConfirmationEMailSentWithDb(rd *RegistrationData) {
-	db := database.SDUsersDb
-	err := WithSDUsersDbTransaction(func(tx *sqlx.Tx) (err1 error) {
-		database.CheckDbAlive(db)
-		_, err1 = tx.NamedExec(
+	err := WithSDUsersDbTransaction(func(trans *database.TransactionType) (err1 error) {
+		database.CheckDbAlive(trans.Conn)
+		_, err1 = trans.Tx.NamedExec(
 			`select note_registrationconfirmation_email_sent(:nickname, :confirmationkey)`,
 			rd)
 		return
 	})
-	database.FatalDatabaseErrorIf(err, db, "Error remembering that E-Mail was sent, error is %#v", err)
+	database.FatalDatabaseErrorIf(err, database.SDUsersDb, "Error remembering that E-Mail was sent, error is %#v", err)
 	return
 }
 
@@ -110,16 +107,17 @@ var mapViolatedConstraintNameToMessage = map[string]string{
 	"i_sduser_registrationemail":               "There is already a user with the same E-mail",
 	"i_sduser_nickname":                        "There is already a user with the same nickname"}
 
-func deleteExpiredRegistrationAttempts(tx *sqlx.Tx) error {
-	db := database.SDUsersDb
-	database.CheckDbAlive(db)
+func deleteExpiredRegistrationAttempts(trans *database.TransactionType) error {
+	conn := trans.Conn
+	tx := trans.Tx
+	database.CheckDbAlive(conn)
 	_, err1 := tx.Exec("select delete_expired_registrationattempts()")
 	// it's not a fatal error (rare case!)
 	apperror.Panic500If(err1,
 		"Failed to register. Please try again later or contact us for assistance")
-	database.CheckDbAlive(db)
+	database.CheckDbAlive(conn)
 	err1 = tx.Commit()
-	database.FatalDatabaseErrorIf(err1, db,
+	database.FatalDatabaseErrorIf(err1, conn,
 		"Failed to commit after delete_expired_registrationattempts, error = %#v",
 		err1)
 	return nil
@@ -136,16 +134,16 @@ func processRegistrationFormSubmitWithDb(rd *RegistrationData) *apperror.AppErr 
 		"Failed around delete_expired_registrationattempts, %#v",
 		err)
 
-	err = WithSDUsersDbTransaction(func(tx *sqlx.Tx) (err error) {
+	err = WithSDUsersDbTransaction(func(trans *database.TransactionType) (err error) {
 		rd.Calculatedhash, rd.Calculatedsalt = HashAndSaltPassword(rd.Password)
 		rd.ConfirmationKey = GenNonce(20)
-		database.CheckDbAlive(db)
-		_, err = tx.NamedExec(
+		database.CheckDbAlive(trans.Conn)
+		_, err = trans.Tx.NamedExec(
 			`select add_registrationattempt(:nickname, :calculatedhash, :calculatedsalt, :registrationemail, :confirmationkey)`,
 			rd)
 		if err == nil {
-			database.CheckDbAlive(db)
-			err = tx.Commit()
+			database.CheckDbAlive(trans.Conn)
+			err = trans.Tx.Commit()
 		}
 		return
 	})
