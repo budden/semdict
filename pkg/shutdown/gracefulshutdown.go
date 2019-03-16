@@ -1,4 +1,4 @@
-package gracefulshutdown
+package shutdown
 
 import (
 	"log"

@@ -13,13 +13,13 @@ import (
 	"fmt"
 
 	"github.com/budden/a/pkg/database"
-	"github.com/budden/a/pkg/gracefulshutdown"
+	"github.com/budden/a/pkg/shutdown"
 	"github.com/budden/a/pkg/user"
 )
 
 // Play runs a set of exercises/demos
 func Play(commandLineArgs []string) {
-	gracefulshutdown.RunSignalListener()
+	shutdown.RunSignalListener()
 	/// Uncomment next line to create secret-data.config.json.example
 	//saveSecretConfigDataExample()
 	loadSecretConfigData()

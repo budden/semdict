@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"runtime/debug"
 
-	"github.com/budden/a/pkg/gracefulshutdown"
+	"github.com/budden/a/pkg/shutdown"
 
 	"github.com/budden/a/pkg/shared"
 	"github.com/gin-gonic/gin"
@@ -104,7 +104,7 @@ func GracefullyExitAppIf(err error, format string, args ...interface{}) {
 	if err != nil {
 		log.Printf(format, args...)
 		debug.PrintStack()
-		gracefulshutdown.InitiateGracefulShutdown()
+		shutdown.InitiateGracefulShutdown()
 	}
 }
 

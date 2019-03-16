@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/budden/a/pkg/database"
-	"github.com/budden/a/pkg/gracefulshutdown"
+	"github.com/budden/a/pkg/shutdown"
 	"github.com/jmoiron/sqlx"
 
 	"github.com/budden/a/pkg/apperror"
@@ -74,13 +74,13 @@ func playWithServer() {
 
 	closer1 := func() { ThisHTTPServer.Shutdown(context.TODO()) }
 	closer := func() { go closer1() }
-	gracefulshutdown.Actions = append(gracefulshutdown.Actions, closer)
+	shutdown.Actions = append(shutdown.Actions, closer)
 }
 
 func actualFatalDatabaseErrorHandler(err error, db *sqlx.DB, format string, args ...interface{}) {
 	database.SetConnectionDead(db)
 	log.Printf("Fatal error: "+format, args...)
 	debug.PrintStack()
-	gracefulshutdown.InitiateGracefulShutdown()
+	shutdown.InitiateGracefulShutdown()
 	apperror.Panic500If(apperror.ErrDummy, "Internal error")
 }
