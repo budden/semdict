@@ -30,6 +30,7 @@ type RegistrationData struct {
 	Calculatedhash    string
 	Calculatedsalt    string
 	ConfirmationKey   string
+	UserID            int64
 }
 
 // RegistrationFormSubmitPostHandler processes a registrationformsubmit form post request
@@ -88,6 +89,7 @@ func sendConfirmationEmail(rd *RegistrationData) {
 	return
 }
 
+// rd.UserID is filled
 func noteRegistrationConfirmationEMailSentWithDb(rd *RegistrationData) {
 	err := WithSDUsersDbTransaction(func(trans *database.TransactionType) (err1 error) {
 		database.CheckDbAlive(trans.Conn)

@@ -118,7 +118,7 @@ returns void as $$
 $$ language plpgsql;
 
 create or replace function process_registrationconfirmation(p_confirmationkey text, p_nickname text)
-returns void as $$
+returns setof integer as $$
   declare v_id bigint := null;
   begin
     lock table themutex;
@@ -135,7 +135,8 @@ returns void as $$
     -- but we ensure at the application level that only one connection runs either of those procs
     -- simultaneously (all operations are protected with the mutex), so we don't care.
     -- But if we run those procs outside of our web app, deadlocks can occur in web app, so beware!
-    delete from registrationattempt where id = v_id;
-  end;
+    delete from registrationattempt where confirmationkey = p_confirmationkey and nickname = p_nickname;
+    return next v_id;
+    end;
 $$ language plpgsql;
 

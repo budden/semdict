@@ -1,12 +1,15 @@
 package user
 
 import (
+	"fmt"
 	"net/http"
+
+	"github.com/budden/a/pkg/apperror"
+	"github.com/jmoiron/sqlx"
 
 	"github.com/budden/a/pkg/database"
 	"github.com/budden/a/pkg/shared"
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 )
 
 // RegistrationConfirmationPageHandler processes a registration confirmation
@@ -20,30 +23,35 @@ func RegistrationConfirmationPageHandler(c *gin.Context) {
 	if !ok1 || !ok2 ||
 		len(confirmationkeys) == 0 ||
 		len(nicknames) == 0 {
-		status = http.StatusInternalServerError
-		message = "Bad registration confirmation URL"
-	} else {
-		var rd RegistrationData
-		rd.Nickname = nicknames[0]
-		rd.ConfirmationKey = confirmationkeys[0]
-		err := processRegistrationConfirmationWithDb(&rd)
-		if err != nil {
-			status = http.StatusInternalServerError
-			message = "Failed to process a registration confirmation"
-			err = errors.WithMessage(err, message)
-		}
+		apperror.Panic500If(apperror.ErrDummy, "Bad registration confirmation URL")
 	}
+	var rd RegistrationData
+	rd.Nickname = nicknames[0]
+	rd.ConfirmationKey = confirmationkeys[0]
+	processRegistrationConfirmationWithSDUsersDbStage1(&rd)
 	c.HTML(status,
 		"general.html",
 		shared.GeneralTemplateParams{Message: message})
+	// processRegistrationConfirmationWithSDDb(&rd)
 }
 
-func processRegistrationConfirmationWithDb(rd *RegistrationData) (err error) {
-	err = WithSDUsersDbTransaction(func(trans *database.TransactionType) (err error) {
-		_, err = trans.Tx.NamedExec(
-			`select process_registrationconfirmation(:confirmationkey, :nickname)`,
+func processRegistrationConfirmationWithSDUsersDbStage1(rd *RegistrationData) {
+	err := WithSDUsersDbTransaction(func(trans *database.TransactionType) (err1 error) {
+		database.CheckDbAlive(trans.Conn)
+		var reply *sqlx.Rows
+		reply, err1 = trans.Tx.NamedQuery(
+			`select * from process_registrationconfirmation(:confirmationkey, :nickname)`,
 			rd)
+		apperror.Panic500If(err1, "Failed to confirm registration, sorry")
+		for reply.Next() {
+			err1 = reply.Scan(&rd.UserID)
+			fmt.Printf("UserID = %v\n", rd.UserID)
+			database.FatalDatabaseErrorIf(err1, database.SDUsersDb, "Error obtaining id of a new user, err = %#v", err1)
+		}
+		// hence err1 == nil
 		return
 	})
+	// if we have error here, it is an error in commit, so is fatal
+	database.FatalDatabaseErrorIf(err, database.SDUsersDb, "Failed around registrationconfirmation, error is %#v", err)
 	return
 }

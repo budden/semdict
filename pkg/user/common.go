@@ -19,9 +19,8 @@ const PostgresqlErrorCodeNoData = "02000"
 
 // WithSDUsersDbTransaction opens a transaction in the sdusers_db, then runs body
 // Then, if there is no error, and transaction is still active, commit transaction and returns commit's error
-// If there was an error or panic while executing body, tries to rollback the tran transaction. If rollback fails,
-// and there were no panic, panics. If rollback failed and there was panic, writes a message that rollback failed and
-// continues to panic
+// If there was an error or panic while executing body, tries to rollback the tran transaction,
+// see database.RollbackIfActive
 func WithSDUsersDbTransaction(body func(tx *database.TransactionType) (err error)) (err error) {
 	conn := database.SDUsersDb
 
