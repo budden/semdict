@@ -83,12 +83,5 @@ func fatalDatabaseErrorHandler(err error, db *sqlx.DB, format string, args ...in
 	apperror.Panic500If(apperror.ErrDummy, "Internal error")
 }
 
-// CheckDbAlive is to be called in page handlers before every db interaction
-func CheckDbAlive(db *sqlx.DB) {
-	if database.IsConnectionDead(db) {
-		apperror.Panic500If(apperror.ErrDummy, "Internal error")
-	}
-}
-
 // with this database and have to shut down. If this happens, we first declare that database as dead.
 // Next, we initiate a "graceful shutdown". Last, we arrange to return status 500 to the client.
