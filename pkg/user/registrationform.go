@@ -1,12 +1,12 @@
 package user
 
 import (
-	"errors"
 	"fmt"
 	"html"
-	"log"
 	"net/http"
 	"net/url"
+
+	"github.com/budden/a/pkg/database"
 
 	"github.com/jmoiron/sqlx"
 
@@ -66,7 +66,7 @@ func sendConfirmationEmail(rd *RegistrationData) {
 	confirmationLinkBase := "localhost:" + shared.WebServerPort + "/registrationconfirmation"
 	parameters := url.Values{"nickname": {rd.Nickname}, "confirmationkey": {rd.ConfirmationKey}}
 	u, err := url.Parse(confirmationLinkBase)
-	apperror.ExitAppIf(err, "Unable to parse base URL for a confirmation link")
+	apperror.GracefullyExitAppIf(err, "Unable to parse base URL for a confirmation link")
 	u.RawQuery = parameters.Encode()
 	confirmationLink := u.String()
 	body := fmt.Sprintf(
@@ -81,7 +81,6 @@ func sendConfirmationEmail(rd *RegistrationData) {
 		body)
 
 	if err != nil {
-		log.Println(err)
 		// We assume that failure to send an E-mail can be due to temporary
 		// network issues
 		apperror.Panic500If(err, "Failed to send a confirmation E-mail")
@@ -92,13 +91,15 @@ func sendConfirmationEmail(rd *RegistrationData) {
 }
 
 func noteRegistrationConfirmationEMailSentWithDb(rd *RegistrationData) {
+	db := database.SDUsersDb
 	err := WithSDUsersDbTransaction(func(tx *sqlx.Tx) (err1 error) {
+		database.CheckDbAlive(db)
 		_, err1 = tx.NamedExec(
 			`select note_registrationconfirmation_email_sent(:nickname, :confirmationkey)`,
 			rd)
 		return
 	})
-	apperror.ExitAppIf(err, "Error remembering that E-Mail was sent, error is %#v", err)
+	database.FatalDatabaseErrorIf(err, db, "Error remembering that E-Mail was sent, error is %#v", err)
 	return
 }
 
@@ -110,12 +111,15 @@ var mapViolatedConstraintNameToMessage = map[string]string{
 	"i_sduser_nickname":                        "There is already a user with the same nickname"}
 
 func deleteExpiredRegistrationAttempts(tx *sqlx.Tx) error {
+	db := database.SDUsersDb
+	database.CheckDbAlive(db)
 	_, err1 := tx.Exec("select delete_expired_registrationattempts()")
-	err1 = errors.New("abc")
+	// it's not a fatal error (rare case!)
 	apperror.Panic500If(err1,
 		"Failed to register. Please try again later or contact us for assistance")
+	database.CheckDbAlive(db)
 	err1 = tx.Commit()
-	apperror.ExitAppIf(err1,
+	database.FatalDatabaseErrorIf(err1, db,
 		"Failed to commit after delete_expired_registrationattempts, error = %#v",
 		err1)
 	return nil
@@ -125,16 +129,22 @@ func deleteExpiredRegistrationAttempts(tx *sqlx.Tx) error {
 // If some "normal" error happens like non-unique nickname, it is returned in dberror.
 func processRegistrationFormSubmitWithDb(rd *RegistrationData) *apperror.AppErr {
 
+	db := database.SDUsersDb
 	err := WithSDUsersDbTransaction(deleteExpiredRegistrationAttempts)
-	apperror.ExitAppIf(err, "Failed around delete_expired_registrationattempts, %#v", err)
+	database.FatalDatabaseErrorIf(err,
+		db,
+		"Failed around delete_expired_registrationattempts, %#v",
+		err)
 
 	err = WithSDUsersDbTransaction(func(tx *sqlx.Tx) (err error) {
 		rd.Calculatedhash, rd.Calculatedsalt = HashAndSaltPassword(rd.Password)
 		rd.ConfirmationKey = GenNonce(20)
+		database.CheckDbAlive(db)
 		_, err = tx.NamedExec(
 			`select add_registrationattempt(:nickname, :calculatedhash, :calculatedsalt, :registrationemail, :confirmationkey)`,
 			rd)
 		if err == nil {
+			database.CheckDbAlive(db)
 			err = tx.Commit()
 		}
 		return
@@ -152,6 +162,6 @@ func handleRegistrationAttemptInsertError(err error) *apperror.AppErr {
 			}
 		}
 	}
-	apperror.ExitAppIf(err, "Unexpected error in the registrationformsubmit, %#v\n", err)
+	database.FatalDatabaseErrorIf(err, database.SDUsersDb, "Unexpected error in the registrationformsubmit, %#v\n", err)
 	return nil
 }

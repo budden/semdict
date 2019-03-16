@@ -115,7 +115,7 @@ func OpenDb(url, logFriendlyName string) (db *sqlx.DB) {
 			// we don't know if stdout is writable, but we're in goroutine already
 			log.Printf("Error closing database «%s»: %#v\n", logFriendlyName, err)
 		} else {
-			log.Printf("Gracefully shut down database «%s»\n", logFriendlyName)
+			log.Printf("Closed database «%s»\n", logFriendlyName)
 		}
 	}
 	closer := func() { go closer1() }

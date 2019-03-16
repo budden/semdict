@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"runtime/debug"
 	"time"
 
 	"github.com/budden/a/pkg/database"
@@ -14,7 +15,6 @@ import (
 	"github.com/budden/a/pkg/apperror"
 	"github.com/budden/a/pkg/user"
 
-	//"github.com/budden/a/pkg/query"
 	"github.com/budden/a/pkg/query"
 	"github.com/budden/a/pkg/shared"
 	"github.com/gin-gonic/gin"
@@ -77,11 +77,10 @@ func playWithServer() {
 	gracefulshutdown.Actions = append(gracefulshutdown.Actions, closer)
 }
 
-func fatalDatabaseErrorHandler(err error, db *sqlx.DB, format string, args ...interface{}) {
+func actualFatalDatabaseErrorHandler(err error, db *sqlx.DB, format string, args ...interface{}) {
 	database.SetConnectionDead(db)
+	log.Printf("Fatal error: "+format, args...)
+	debug.PrintStack()
 	gracefulshutdown.InitiateGracefulShutdown()
 	apperror.Panic500If(apperror.ErrDummy, "Internal error")
 }
-
-// with this database and have to shut down. If this happens, we first declare that database as dead.
-// Next, we initiate a "graceful shutdown". Last, we arrange to return status 500 to the client.

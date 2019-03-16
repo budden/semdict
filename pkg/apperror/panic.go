@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"runtime/debug"
 
+	"github.com/budden/a/pkg/gracefulshutdown"
+
 	"github.com/budden/a/pkg/shared"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -93,6 +95,16 @@ func ExitAppIf(err error, format string, args ...interface{}) {
 		log.Printf(format, args...)
 		debug.PrintStack()
 		log.Fatal(err)
+	}
+}
+
+// GracefullyExitAppIf can be used if error is considered not so horrible
+// and we can afford to shutdown the server gracefully.
+func GracefullyExitAppIf(err error, format string, args ...interface{}) {
+	if err != nil {
+		log.Printf(format, args...)
+		debug.PrintStack()
+		gracefulshutdown.InitiateGracefulShutdown()
 	}
 }
 

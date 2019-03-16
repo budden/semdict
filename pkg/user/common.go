@@ -3,7 +3,6 @@ package user
 import (
 	"sync"
 
-	"github.com/budden/a/pkg/apperror"
 	"github.com/budden/a/pkg/database"
 	"github.com/jmoiron/sqlx"
 )
@@ -27,15 +26,18 @@ func WithSDUsersDbTransaction(body func(tx *sqlx.Tx) (err error)) (err error) {
 	writeSDUsersMutex.Lock()
 	defer writeSDUsersMutex.Unlock()
 
+	db := database.SDUsersDb
 	var tx *sqlx.Tx
-	tx, err = database.SDUsersDb.Beginx()
-	apperror.ExitAppIf(err, "Unable to start transaction")
+	database.CheckDbAlive(db)
+	tx, err = db.Beginx()
+	database.FatalDatabaseErrorIf(err, db, "Unable to start transaction")
 	defer func() { database.RollbackIfActive(tx) }()
+	database.CheckDbAlive(db)
 	_, err = tx.Exec(`set transaction isolation level repeatable read`)
-	apperror.ExitAppIf(err, "Unable to start transaction")
-
+	database.FatalDatabaseErrorIf(err, db, "Unable to set transaction isolation level")
 	err = body(tx)
 	if err == nil {
+		database.CheckDbAlive(db)
 		err = database.CommitIfActive(tx)
 	}
 	return

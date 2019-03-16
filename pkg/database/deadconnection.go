@@ -8,7 +8,7 @@ import (
 )
 
 // DeadConnections is only published for introspection. Don't write here!
-var DeadConnections map[*sqlx.DB]bool
+var DeadConnections = map[*sqlx.DB]bool{}
 var deadConnectionsMutex sync.Mutex
 
 // SetConnectionDead is used to announce that db connection is broken. We do that when something
@@ -38,12 +38,13 @@ func initialFatalDatabaseErrorHandler(err error, db *sqlx.DB, format string, arg
 // FatalDatabaseErrorHandler is used by FatalDatabaseError function
 var FatalDatabaseErrorHandler FatalDatabaseErrorHandlerType = initialFatalDatabaseErrorHandler
 
-// FatalDatabaseError function is called from request handler to inform that we can't any more work
+// FatalDatabaseErrorIf function is called from request handler to inform that we can't any more work
 // with this database and have to shut down. If this happens, we first declare that database as dead.
 // Next, we initiate a "graceful shutdown". Last, we arrange to return status 500 to the client.
 // But this module knows nothing about http, so we only have a stub here. Actual handler is stored
-// in the FatalDatabaseErrorHandler variable and is set up later
-func FatalDatabaseError(err error, db *sqlx.DB, format string, args ...interface{}) {
+// in the FatalDatabaseErrorHandler variable and is set up later to app.actualFatalDatabaseErrorHandler
+// FatalDataBaseErrorIf is believed to be thread safe
+func FatalDatabaseErrorIf(err error, db *sqlx.DB, format string, args ...interface{}) {
 	if err == nil {
 		return
 	}
