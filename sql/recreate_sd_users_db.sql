@@ -140,3 +140,38 @@ returns setof integer as $$
     end;
 $$ language plpgsql;
 
+create table tlanguage (
+  id serial primary KEY,
+  slug varchar(128) not null unique,
+  commentary text
+);
+
+create table tdialect (
+  id serial primary KEY,
+  languageid int not null references tlanguage,
+  slug varchar(256) not NULL,
+  comment text 
+);
+
+comment on table tdialect is 'tdialect is a sublanguage or a source of translation';
+
+create table tsense (
+  id serial primary KEY,
+  dialectid int not null references tdialect,
+  phrase text not null,
+  word varchar(512) not null
+);
+
+comment on table tsense is 'tsense stored a record for a specific sense of a word. 
+There can be multiple records for the same word';
+comment on column tsense.phrase is 'Phrase in the dialect that describes the sense of the word';
+comment on column tsense.word is 'Word or word combination in the dialect denoting the sense';
+
+insert into tlanguage (slug)
+ values ('en');
+
+insert into tdialect (languageid,slug,comment) 
+  VALUES
+  ((select id from tlanguage where slug='en'),'-','General English language (no dialect)');
+
+create view marker_of_script_success as select 1;
