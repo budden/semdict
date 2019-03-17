@@ -42,7 +42,9 @@ func playWithServer() {
 	log.Printf("Starting server on %s - kill app to stop\n", port)
 
 	engine := gin.New()
-	engine.Use(gin.Logger(), apperror.HandlePanicInRequestHandler() /*, gin.Recovery()*/)
+
+	engine.Use(gin.Logger(), user.SetUserStatus(), apperror.HandlePanicInRequestHandler())
+
 	engine.LoadHTMLGlob("templates/*")
 	engine.GET("/", homePageHandler)
 	engine.GET("/searchform", query.SearchFormPageHandler)
@@ -53,6 +55,32 @@ func playWithServer() {
 	engine.GET("/registrationform", user.RegistrationFormPageHandler)
 	engine.POST("/registrationformsubmit", user.RegistrationFormSubmitPostHandler)
 	engine.GET("/registrationconfirmation", user.RegistrationConfirmationPageHandler)
+
+	/* // Group user related routes together
+	userRoutes := router.Group("/u")
+	{
+		// Handle the GET requests at /u/login
+		// Show the login page
+		// Ensure that the user is not logged in by using the middleware
+		userRoutes.GET("/login", ensureNotLoggedIn(), showLoginPage)
+
+		// Handle POST requests at /u/login
+		// Ensure that the user is not logged in by using the middleware
+		userRoutes.POST("/login", ensureNotLoggedIn(), performLogin)
+
+		// Handle GET requests at /u/logout
+		// Ensure that the user is logged in by using the middleware
+		userRoutes.GET("/logout", ensureLoggedIn(), logout)
+
+		// Handle the GET requests at /u/register
+		// Show the registration page
+		// Ensure that the user is not logged in by using the middleware
+		userRoutes.GET("/register", ensureNotLoggedIn(), showRegistrationPage)
+
+		// Handle POST requests at /u/register
+		// Ensure that the user is not logged in by using the middleware
+		userRoutes.POST("/register", ensureNotLoggedIn(), register)
+	}*/
 
 	// "/articlepost/"
 

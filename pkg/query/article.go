@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/budden/semdict/pkg/shared"
+	"github.com/budden/semdict/pkg/user"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,4 +24,5 @@ func ArticleViewDirHandler(c *gin.Context) {
 
 // ArticleEditDirHandler is a handler to open edit page
 func ArticleEditDirHandler(c *gin.Context) {
+	user.EnsureLoggedIn(c)
 }

@@ -13,6 +13,7 @@ import (
 
 // RegistrationConfirmationPageHandler processes a registration confirmation
 func RegistrationConfirmationPageHandler(c *gin.Context) {
+	EnsureNotLoggedIn(c)
 	var rd RegistrationData
 	// fill nickname and confirmationkey
 	extractNicknameAndConfirmationKeyFromRequest(c, &rd)

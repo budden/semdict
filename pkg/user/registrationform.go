@@ -16,6 +16,7 @@ import (
 
 // RegistrationFormPageHandler renders a /registrationform page
 func RegistrationFormPageHandler(c *gin.Context) {
+	EnsureNotLoggedIn(c)
 	c.HTML(http.StatusOK,
 		"registrationform.html",
 		shared.GeneralTemplateParams{Message: "Search Form"})
@@ -35,6 +36,7 @@ type RegistrationData struct {
 
 // RegistrationFormSubmitPostHandler processes a registrationformsubmit form post request
 func RegistrationFormSubmitPostHandler(c *gin.Context) {
+	EnsureNotLoggedIn(c)
 	var rd RegistrationData
 	rd.Nickname = c.PostForm("nickname")
 	rd.Password = c.PostForm("password")
