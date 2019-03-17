@@ -17,15 +17,19 @@ const PostgresqlErrorCodeUniqueViolation = "23505"
 // PostgresqlErrorCodeNoData = no_data warning
 const PostgresqlErrorCodeNoData = "02000"
 
-// WithSDUsersDbTransaction opens a transaction in the sdusers_db, then runs body
+// WithTransaction opens a transaction in the sdusers_db, then runs body
 // Then, if there is no error, and transaction is still active, commit transaction and returns commit's error
 // If there was an error or panic while executing body, tries to rollback the tran transaction,
 // see database.RollbackIfActive
-func WithSDUsersDbTransaction(body func(tx *database.TransactionType) (err error)) (err error) {
-	conn := database.SDUsersDb
+func WithTransaction(
+	conn *database.ConnectionType,
+	body func(tx *database.TransactionType) (err error)) (err error) {
 
-	writeSDUsersMutex.Lock()
-	defer writeSDUsersMutex.Unlock()
+	mutex := conn.Mutex
+	if mutex != nil {
+		mutex.Lock()
+		defer mutex.Unlock()
+	}
 
 	var tx *sqlx.Tx
 	database.CheckDbAlive(conn)

@@ -47,6 +47,9 @@ type TransactionType struct {
 // SDUsersDb contains, after the call to OpenSDUsersDb, a connection to sdusers_db
 var SDUsersDb *ConnectionType
 
+// SDDb contains, after the call to OpenSDDb, a connection to sd_db
+var SDDb *ConnectionType
+
 // OpenSDUsersDb opens sdusers_db
 func OpenSDUsersDb() {
 	if SDUsersDb != nil {
@@ -54,6 +57,16 @@ func OpenSDUsersDb() {
 	}
 	url := shared.SecretConfigData.PostgresqlServerURL + "/sdusers_db"
 	SDUsersDb = OpenDb(url, "sdusers_db", true)
+	return
+}
+
+// OpenSDDb opens sd_db
+func OpenSDDb() {
+	if SDDb != nil {
+		log.Fatal("An attempt to re-open SD database")
+	}
+	url := shared.SecretConfigData.PostgresqlServerURL + "/sd_db"
+	SDDb = OpenDb(url, "sd_db", false)
 	return
 }
 
@@ -136,9 +149,9 @@ func OpenDb(url, logFriendlyName string, withMutex bool) *ConnectionType {
 	var err error
 	var db *sqlx.DB
 	db, err = sqlx.Open("postgres", url)
-	apperror.GlobalPanicIf(err, "Failed to open «%s» database", logFriendlyName)
+	apperror.ExitAppIf(err, 6, "Failed to open «%s» database", logFriendlyName)
 	err = db.Ping()
-	apperror.GlobalPanicIf(err, "Failed to ping «%s» database", logFriendlyName)
+	apperror.ExitAppIf(err, 7, "Failed to ping «%s» database", logFriendlyName)
 	// http://go-database-sql.org/connection-pool.html
 	db.SetMaxOpenConns(maxOpenConns)
 	db.SetMaxIdleConns(maxIdleConns)

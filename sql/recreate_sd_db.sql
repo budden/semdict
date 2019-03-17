@@ -7,10 +7,9 @@ CREATE DATABASE sd_db;
 CREATE SEQUENCE sequence_sduser2_id;
 
 CREATE TABLE sduser2 (
- id bigint NOT NULL primary key,
+ id integer NOT NULL primary key,
  nickname varchar(256) not null,
  registertimestamp timestamptz not null default current_timestamp
- -- status int not null default 0 -- we don't know how to represent enums in psql yet
 );
 
 comment on table sduser2 is 'sduser2 is a user of an application. We also have sduser table in sdusers_db where password is stored, hence the suffix 2. We want to make a dump of this db publically available so we only include id and nickname here.';

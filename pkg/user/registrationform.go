@@ -91,13 +91,15 @@ func sendConfirmationEmail(rd *RegistrationData) {
 
 // rd.UserID is filled
 func noteRegistrationConfirmationEMailSentWithDb(rd *RegistrationData) {
-	err := WithSDUsersDbTransaction(func(trans *database.TransactionType) (err1 error) {
-		database.CheckDbAlive(trans.Conn)
-		_, err1 = trans.Tx.NamedExec(
-			`select note_registrationconfirmation_email_sent(:nickname, :confirmationkey)`,
-			rd)
-		return
-	})
+	err := WithTransaction(
+		database.SDUsersDb,
+		func(trans *database.TransactionType) (err1 error) {
+			database.CheckDbAlive(trans.Conn)
+			_, err1 = trans.Tx.NamedExec(
+				`select note_registrationconfirmation_email_sent(:nickname, :confirmationkey)`,
+				rd)
+			return
+		})
 	database.FatalDatabaseErrorIf(err, database.SDUsersDb, "Error remembering that E-Mail was sent, error is %#v", err)
 	return
 }
@@ -130,25 +132,27 @@ func deleteExpiredRegistrationAttempts(trans *database.TransactionType) error {
 func processRegistrationFormSubmitWithDb(rd *RegistrationData) *apperror.AppErr {
 
 	db := database.SDUsersDb
-	err := WithSDUsersDbTransaction(deleteExpiredRegistrationAttempts)
+	err := WithTransaction(database.SDUsersDb, deleteExpiredRegistrationAttempts)
 	database.FatalDatabaseErrorIf(err,
 		db,
 		"Failed around delete_expired_registrationattempts, %#v",
 		err)
 
-	err = WithSDUsersDbTransaction(func(trans *database.TransactionType) (err error) {
-		rd.Calculatedhash, rd.Calculatedsalt = HashAndSaltPassword(rd.Password)
-		rd.ConfirmationKey = GenNonce(20)
-		database.CheckDbAlive(trans.Conn)
-		_, err = trans.Tx.NamedExec(
-			`select add_registrationattempt(:nickname, :calculatedhash, :calculatedsalt, :registrationemail, :confirmationkey)`,
-			rd)
-		if err == nil {
+	err = WithTransaction(
+		database.SDUsersDb,
+		func(trans *database.TransactionType) (err error) {
+			rd.Calculatedhash, rd.Calculatedsalt = HashAndSaltPassword(rd.Password)
+			rd.ConfirmationKey = GenNonce(20)
 			database.CheckDbAlive(trans.Conn)
-			err = trans.Tx.Commit()
-		}
-		return
-	})
+			_, err = trans.Tx.NamedExec(
+				`select add_registrationattempt(:nickname, :calculatedhash, :calculatedsalt, :registrationemail, :confirmationkey)`,
+				rd)
+			if err == nil {
+				database.CheckDbAlive(trans.Conn)
+				err = trans.Tx.Commit()
+			}
+			return
+		})
 	return handleRegistrationAttemptInsertError(err)
 }
 

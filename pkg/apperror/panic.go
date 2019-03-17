@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"runtime/debug"
 
 	"github.com/budden/a/pkg/shutdown"
@@ -105,6 +106,15 @@ func GracefullyExitAppIf(err error, format string, args ...interface{}) {
 	}
 }
 
+// ExitAppIf closes the app abruptly
+func ExitAppIf(err error, exitCode int, format string, args ...interface{}) {
+	if err != nil {
+		log.Printf(format, args...)
+		debug.PrintStack()
+		os.Exit(exitCode)
+	}
+}
+
 // Panic500If should be called inside an http request handler, cancel handling, unwind the stack
 // and return 500 status with the formatted message
 func Panic500If(err error, format string, args ...interface{}) {
@@ -125,15 +135,6 @@ func Panic500If(err error, format string, args ...interface{}) {
 
 // LogicalPanicIf should run in a web query handler and unwind current goroutine only
 func LogicalPanicIf(subject interface{}, format string, args ...interface{}) {
-	if subject != nil {
-		err := errors.WithMessagef(coerceToError(subject), format, args...)
-		panic(err)
-	}
-}
-
-// GlobalPanicIf is intended to run in a goroutine other than
-// web query handler and crash the application
-func GlobalPanicIf(subject interface{}, format string, args ...interface{}) {
 	if subject != nil {
 		err := errors.WithMessagef(coerceToError(subject), format, args...)
 		panic(err)

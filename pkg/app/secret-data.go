@@ -36,7 +36,7 @@ func saveSecretConfigDataExample() {
 		SMTPPassword:        "bla-bla-bla",
 		PostgresqlServerURL: "postgresql://localhost:5432"}
 	err := saveSecretDataConfigTToFile(&sds, ConfigFileName+".example")
-	apperror.GlobalPanicIf(err, "Failed to save secret config data example")
+	apperror.ExitAppIf(err, 5, "Failed to save secret config data example")
 }
 
 // loadSecretConfigData reads the config file and inititalizes a SecretConfigData global
