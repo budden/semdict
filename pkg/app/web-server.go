@@ -49,7 +49,7 @@ func playWithServer() {
 	engine.GET("/", homePageHandler)
 	engine.GET("/searchform", query.SearchFormPageHandler)
 	engine.GET("/searchresult", query.SearchResultPageHandler)
-	engine.GET("/articleview/:articleslug", query.ArticleViewDirHandler)
+	engine.GET("/articleview/:word", query.ArticleViewDirHandler)
 	engine.GET("/articleedit/:articleslug", query.ArticleEditDirHandler)
 
 	engine.GET("/registrationform", user.RegistrationFormPageHandler)
@@ -59,6 +59,8 @@ func playWithServer() {
 	engine.GET("/loginform", user.LoginFormPageHandler)
 	engine.POST("/loginformsubmit", user.PerformLogin)
 	engine.GET("/logout", user.Logout)
+
+	engine.POST("/postarticle", query.PostArticleDataPageHandler)
 
 	// "/articlepost/"
 

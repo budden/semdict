@@ -174,4 +174,8 @@ insert into tdialect (languageid,slug,comment)
   VALUES
   ((select id from tlanguage where slug='en'),'-','General English language (no dialect)');
 
+insert into tsense (dialectid, phrase, word)
+  VALUES
+  (1,'Programming language by Google created in 2000s','golang');
+
 create view marker_of_script_success as select 1;
