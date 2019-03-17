@@ -56,31 +56,9 @@ func playWithServer() {
 	engine.POST("/registrationformsubmit", user.RegistrationFormSubmitPostHandler)
 	engine.GET("/registrationconfirmation", user.RegistrationConfirmationPageHandler)
 
-	/* // Group user related routes together
-	userRoutes := router.Group("/u")
-	{
-		// Handle the GET requests at /u/login
-		// Show the login page
-		// Ensure that the user is not logged in by using the middleware
-		userRoutes.GET("/login", ensureNotLoggedIn(), showLoginPage)
-
-		// Handle POST requests at /u/login
-		// Ensure that the user is not logged in by using the middleware
-		userRoutes.POST("/login", ensureNotLoggedIn(), performLogin)
-
-		// Handle GET requests at /u/logout
-		// Ensure that the user is logged in by using the middleware
-		userRoutes.GET("/logout", ensureLoggedIn(), logout)
-
-		// Handle the GET requests at /u/register
-		// Show the registration page
-		// Ensure that the user is not logged in by using the middleware
-		userRoutes.GET("/register", ensureNotLoggedIn(), showRegistrationPage)
-
-		// Handle POST requests at /u/register
-		// Ensure that the user is not logged in by using the middleware
-		userRoutes.POST("/register", ensureNotLoggedIn(), register)
-	}*/
+	engine.GET("/loginform", user.LoginFormPageHandler)
+	engine.POST("/loginformsubmit", user.PerformLogin)
+	engine.GET("/logout", user.Logout)
 
 	// "/articlepost/"
 

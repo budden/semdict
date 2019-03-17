@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<!-- See https://semaphoreci.com/community/tutorials/test-driven-development-of-go-web-applications-with-gin -->
+
+<!--Embed the header.html template at this location-->
+{{ template "header.html" .}}
+
+<body>
+ <form class="form" action="/loginformsubmit" method="POST">
+  <div class="form-group">
+   <label for="nickname">Nickname</label>
+   <input type="text" class="form-control" id="nickname" 
+   name="nickname" placeholder="Nickname" 
+   required>
+  </div>
+  <div class="form-group">
+   <label for="password">Password</label>
+   <!--  type="password"  -->
+   <input name="password" class="form-control" id="password"
+   placeholder="Password"
+   required>
+  </div>
+  <button type="submit" class="btn btn-primary">Register</button>
+ </form>
+</body>
+
+</html>

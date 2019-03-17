@@ -2,8 +2,10 @@ package user
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/budden/semdict/pkg/apperror"
+	"github.com/budden/semdict/pkg/shared"
 
 	"github.com/gin-gonic/gin"
 )
@@ -42,4 +44,51 @@ func setUserStatusFn(c *gin.Context) {
 	} else {
 		c.Set("is_logged_in", false)
 	}
+}
+
+// PerformLogin handles login route
+func PerformLogin(c *gin.Context) {
+	// We could check that user is not yet logged in, but we won't do
+	// Obtain the POSTed username and password values
+	username := c.PostForm("username")
+	password := c.PostForm("password")
+
+	// Check if the username/password combination is valid
+	if isUserValid(username, password) {
+		// If the username/password is valid set the token in a cookie
+		token := generateSessionToken()
+		c.SetCookie("token", token, 3600, "", "", false, true)
+
+		c.HTML(http.StatusOK, "general.html",
+			shared.GeneralTemplateParams{Message: "Welcome, a citizen!"})
+
+	} else {
+		c.HTML(http.StatusBadRequest, "general.html",
+			shared.GeneralTemplateParams{Message: "Go away, stranger!"})
+	}
+}
+
+func isUserValid(username, password string) bool {
+	return true
+}
+
+func generateSessionToken() string {
+	return "blablabla"
+}
+
+// Logout performs a logout
+func Logout(c *gin.Context) {
+	// Clear the cookie
+	c.SetCookie("token", "", -1, "", "", false, true)
+
+	// Redirect to the home page
+	c.Redirect(http.StatusTemporaryRedirect, "/")
+}
+
+// LoginFormPageHandler renders a /loginform page
+func LoginFormPageHandler(c *gin.Context) {
+	EnsureNotLoggedIn(c)
+	c.HTML(http.StatusOK,
+		"loginform.html",
+		shared.GeneralTemplateParams{Message: "Login"})
 }
