@@ -24,7 +24,6 @@ func Play(commandLineArgs []string) {
 	//saveSecretConfigDataExample()
 	loadSecretConfigData()
 	database.OpenSDUsersDb()
-	database.OpenSDDb()
 	// database.PlayWithDb()
 	playWithPanic()
 	playWithNonce(16)

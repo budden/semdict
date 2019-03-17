@@ -20,7 +20,6 @@ func RegistrationConfirmationPageHandler(c *gin.Context) {
 	processRegistrationConfirmationWithSDUsersDbStage1(&rd)
 	// promote the user to Sd Db. If we crash here, user will be able to login,
 	// (and unable to register again), but wil be missing from the main content db
-	promoteUserToSdDb(&rd)
 	c.HTML(http.StatusMovedPermanently,
 		"general.html",
 		shared.GeneralTemplateParams{Message: "Registration confirmed. Now you can proceed to the <a href=/>Login page</a>"})
@@ -61,24 +60,4 @@ func processRegistrationConfirmationWithSDUsersDbStage1(rd *RegistrationData) {
 	// if we have error here, it is an error in commit, so is fatal
 	database.FatalDatabaseErrorIf(err, database.SDUsersDb, "Failed around registrationconfirmation, error is %#v", err)
 	return
-}
-
-// Copy user from the sdusers_db to sd_db. We run it as a part of
-// registration process
-func promoteUserToSdDb(rd *RegistrationData) {
-	conn := database.SDDb
-	database.CheckDbAlive(conn)
-	_, err1 := conn.Db.NamedExec(
-		"insert into sduser2 (id, nickname) values (:userid, :nickname)",
-		rd)
-	// here we rely upon the reliability of connection pool and don't crash the app
-	apperror.Panic500If(err1, "Failed to add user to the dict database")
-	return
-
-	// Fault-tolerant approach would be to replicate the user
-	// asynchronously (w/o error reported to the user) at the registration confirmation
-	// as well as after the login, as well as after the user change
-	// special field's in the sdusers_db should be used to decide efficiently if
-	// we need to replicate
-
 }

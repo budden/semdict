@@ -47,9 +47,6 @@ type TransactionType struct {
 // SDUsersDb contains, after the call to OpenSDUsersDb, a connection to sdusers_db
 var SDUsersDb *ConnectionType
 
-// SDDb contains, after the call to OpenSDDb, a connection to sd_db
-var SDDb *ConnectionType
-
 // OpenSDUsersDb opens sdusers_db
 func OpenSDUsersDb() {
 	if SDUsersDb != nil {
@@ -57,16 +54,6 @@ func OpenSDUsersDb() {
 	}
 	url := shared.SecretConfigData.PostgresqlServerURL + "/sdusers_db"
 	SDUsersDb = OpenDb(url, "sdusers_db", true)
-	return
-}
-
-// OpenSDDb opens sd_db
-func OpenSDDb() {
-	if SDDb != nil {
-		log.Fatal("An attempt to re-open SD database")
-	}
-	url := shared.SecretConfigData.PostgresqlServerURL + "/sd_db"
-	SDDb = OpenDb(url, "sd_db", false)
 	return
 }
 
