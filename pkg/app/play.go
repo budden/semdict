@@ -12,9 +12,9 @@ package app
 import (
 	"fmt"
 
-	"github.com/budden/a/pkg/database"
-	"github.com/budden/a/pkg/shutdown"
-	"github.com/budden/a/pkg/user"
+	"github.com/budden/semdict/pkg/database"
+	"github.com/budden/semdict/pkg/shutdown"
+	"github.com/budden/semdict/pkg/user"
 )
 
 // Play runs a set of exercises/demos

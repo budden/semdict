@@ -3,7 +3,7 @@ package user
 import (
 	"fmt"
 
-	"github.com/budden/a/pkg/shared"
+	"github.com/budden/semdict/pkg/shared"
 	"github.com/go-mail/mail"
 )
 

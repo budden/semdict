@@ -8,14 +8,14 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/budden/a/pkg/database"
-	"github.com/budden/a/pkg/shutdown"
+	"github.com/budden/semdict/pkg/database"
+	"github.com/budden/semdict/pkg/shutdown"
 
-	"github.com/budden/a/pkg/apperror"
-	"github.com/budden/a/pkg/user"
+	"github.com/budden/semdict/pkg/apperror"
+	"github.com/budden/semdict/pkg/user"
 
-	"github.com/budden/a/pkg/query"
-	"github.com/budden/a/pkg/shared"
+	"github.com/budden/semdict/pkg/query"
+	"github.com/budden/semdict/pkg/shared"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/net/netutil"
 )

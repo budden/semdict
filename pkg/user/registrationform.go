@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/budden/a/pkg/database"
+	"github.com/budden/semdict/pkg/database"
 
-	"github.com/budden/a/pkg/apperror"
-	"github.com/budden/a/pkg/shared"
+	"github.com/budden/semdict/pkg/apperror"
+	"github.com/budden/semdict/pkg/shared"
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
 )

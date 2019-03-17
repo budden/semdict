@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/budden/a/pkg/database"
+	"github.com/budden/semdict/pkg/database"
 )
 
 func init() {

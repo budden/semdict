@@ -3,7 +3,7 @@ package user
 import (
 	"sync"
 
-	"github.com/budden/a/pkg/database"
+	"github.com/budden/semdict/pkg/database"
 	"github.com/jmoiron/sqlx"
 )
 

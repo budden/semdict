@@ -7,9 +7,9 @@ import (
 	"os"
 	"runtime/debug"
 
-	"github.com/budden/a/pkg/shutdown"
+	"github.com/budden/semdict/pkg/shutdown"
 
-	"github.com/budden/a/pkg/shared"
+	"github.com/budden/semdict/pkg/shared"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )

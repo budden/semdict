@@ -4,7 +4,7 @@ import (
 	"log"
 	"runtime/debug"
 
-	"github.com/budden/a/pkg/apperror"
+	"github.com/budden/semdict/pkg/apperror"
 )
 
 // SetConnectionDead is used to announce that db connection is broken. We do that when something

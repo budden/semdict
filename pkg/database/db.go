@@ -16,9 +16,9 @@ import (
 	//	"time"
 	"database/sql"
 
-	"github.com/budden/a/pkg/apperror"
-	"github.com/budden/a/pkg/shared"
-	"github.com/budden/a/pkg/shutdown"
+	"github.com/budden/semdict/pkg/apperror"
+	"github.com/budden/semdict/pkg/shared"
+	"github.com/budden/semdict/pkg/shutdown"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 )

@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/budden/a/pkg/app"
+	"github.com/budden/semdict/pkg/app"
 )
 
 func main() {
