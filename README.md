@@ -1,4 +1,4 @@
-# "a" - E-mail based user registration in golang + postgresql
+# "semdict" - E-mail based user registration in golang + postgresql
 
 ## Goal 
 Something more or less realistic in terms of features. Securely stored passwords, expiring registration confirmation links sent over an E-mail and so on.
@@ -16,14 +16,16 @@ there is no project structure yet.
 - genNonce (for registration confirmation links)
 - hashAndSaltPassword (safe storing of passwords)
 - run postgres as self (non-root) - done once, but steps were not recorded very well
+- sending e-mails
+- confirm registration
 
 
 ## To do
+- validate e-mails and passwords
+- captcha
 - ssl locally
 - hosting
-- sending e-mails
-- validate e-mails and passwords
 - cleanup goroutine or postgresql service? 
-- one connect, pool of connections or what?
+- one connect, pool of connections or what? (now using pool and crashing if something is wrong)
 
 
