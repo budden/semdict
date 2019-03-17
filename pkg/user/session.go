@@ -69,10 +69,12 @@ func PerformLogin(c *gin.Context) {
 }
 
 func isUserValid(username, password string) bool {
+	// TODO do actual things
 	return true
 }
 
 func generateSessionToken() string {
+	// TODO do actual check
 	return "blablabla"
 }
 
