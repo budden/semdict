@@ -6,18 +6,18 @@
 {{ template "header.html" .}}
 
 <body>
+ <p>Edit article</p>
  <form class="form" action="/articleeditformsubmit" method="POST">
   <div class="form-group">
    <label for="id">ID</label>
-   <input type="text" class="form-control" id="senseid" name="senseid" 
-   value="{{.Ad.Senseid}}" readonly>
+   <input type="text" class="form-control" id="senseid" name="senseid" value="{{.Ad.Senseid}}" readonly>
   </div>
   <div class="form-group">
    <label for="phrase">Phrase</label>
-   <input type="text" class="form-control" id="phrase" 
-   name="phrase" placeholder="Express the sense in detail as a phrase in the same language" 
-   value="{{.Ad.Phrase}}"
-   >
+   <textarea rows="10" cols="80" class="form-control" id="phrase" name="phrase"
+    placeholder="Express the sense in detail as a phrase in the same language">
+    {{.Ad.Phrase}}
+    </textarea>
   </div>
   <div class="form-group">
    <label for="word">Word</label>
