@@ -9,19 +9,21 @@
  <form class="form" action="/articlepost" method="POST">
   <div class="form-group">
    <label for="id">ID</label>
-   <input type="text" class="form-control" id="id" name="id" readonly>
+   <input type="text" class="form-control" id="id" name="id" 
+   value="{{.Ad.Senseid}}" readonly>
   </div>
   <div class="form-group">
    <label for="phrase">Phrase</label>
    <input type="text" class="form-control" id="phrase" 
    name="phrase" placeholder="Express the sense in detail as a phrase in the same language" 
-   value="Blublc"
+   value="{{.Ad.Phrase}}"
    >
   </div>
   <div class="form-group">
    <label for="word">Word</label>
    <input type="text" name="word" class="form-control" id="word"
    placeholder="The word denoting the sense"
+   value="{{.Ad.Word}}"
    required>
   </div>
   <button type="submit" class="btn btn-primary">Save</button>

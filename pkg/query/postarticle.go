@@ -15,7 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type postArticleDataType struct {
+type articlePostDataType struct {
 	ID           int64
 	LanguageSlug string // unprocessed
 	DialectSlug  string // unprocessed
@@ -26,10 +26,10 @@ type postArticleDataType struct {
 // ArticlePostDataPageHandler posts an article data
 func ArticlePostDataPageHandler(c *gin.Context) {
 	user.EnsureLoggedIn(c)
-	var pad postArticleDataType
-	extractDataFromRequest(c, &pad)
-	sanitizeData(&pad)
-	writeToDb(&pad)
+	pad := &articlePostDataType{}
+	extractDataFromRequest(c, pad)
+	sanitizeData(pad)
+	writeToDb(pad)
 	// promote the user to Sd Db. If we crash here, user will be able to login,
 	// (and unable to register again), but wil be missing from the main content db
 	c.HTML(http.StatusMovedPermanently,
@@ -37,14 +37,14 @@ func ArticlePostDataPageHandler(c *gin.Context) {
 		shared.GeneralTemplateParams{Message: "Registration confirmed. Now you can proceed to the <a href=/>Login page</a>"})
 }
 
-func sanitizeData(pad *postArticleDataType) {
+func sanitizeData(pad *articlePostDataType) {
 	// example just from the title page of https://github.com/microcosm-cc/bluemonday
 	p := bluemonday.UGCPolicy()
 	pad.Phrase = p.Sanitize(pad.Phrase)
 	// todo: match word with this: /^[a-zA-Z ]+$/\p{L}
 }
 
-func extractDataFromRequest(c *gin.Context, pad *postArticleDataType) {
+func extractDataFromRequest(c *gin.Context, pad *articlePostDataType) {
 	query := c.Request.URL.Query()
 	phrases, ok1 := query["phrase"]
 	words, ok2 := query["word"]
@@ -65,7 +65,7 @@ func extractDataFromRequest(c *gin.Context, pad *postArticleDataType) {
 	}
 }
 
-func writeToDb(pad *postArticleDataType) {
+func writeToDb(pad *articlePostDataType) {
 	db := database.SDUsersDb
 	database.CheckDbAlive(db)
 	if pad.ID != 0 {
@@ -92,3 +92,28 @@ func writeToDb(pad *postArticleDataType) {
 		}
 	}
 }
+
+/* Example of nested records in the template:
+
+package main
+
+import (
+	"html/template"
+	"log"
+	"os"
+)
+
+func main() {
+	type z struct{ Msg string; Child *z }
+	v := z{Msg: "hi", Child: &z{Msg: "wow"}}
+	master := "Greeting: {{ .Msg}}, {{ .Child.Msg}}"
+	masterTmpl, err := template.New("master").Parse(master)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := masterTmpl.Execute(os.Stdout, v); err != nil {
+		log.Fatal(err)
+	}
+}
+
+*/

@@ -49,8 +49,9 @@ func playWithServer() {
 	engine.GET("/", homePageHandler)
 	engine.GET("/searchform", query.SearchFormPageHandler)
 	engine.GET("/searchresult", query.SearchResultPageHandler)
+	// FIXME - change a way of addressing articles to be adequate!
 	engine.GET("/articleview/:word", query.ArticleViewDirHandler)
-	engine.GET("/articleedit/:articleslug", query.ArticleEditDirHandler)
+	engine.GET("/articleedit/:word", query.ArticleEditDirHandler)
 
 	engine.GET("/registrationform", user.RegistrationFormPageHandler)
 	engine.POST("/registrationformsubmit", user.RegistrationFormSubmitPostHandler)

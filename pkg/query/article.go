@@ -29,7 +29,7 @@ type articleDataForEditType struct {
 }
 
 type articleEditTemplateParams struct {
-	ad *articleDataForEditType
+	Ad *articleDataForEditType
 }
 
 // ArticleViewDirHandler ...
@@ -87,5 +87,27 @@ func readArticleFromDb(avdhp *articleViewDirHandlerParams) (dataFound bool, ad *
 // ArticleEditDirHandler is a handler to open edit page
 func ArticleEditDirHandler(c *gin.Context) {
 	user.EnsureLoggedIn(c)
+	var avdhp articleViewDirHandlerParams
+	avdhp.LanguageSlug = "en"
+	avdhp.DialectSlug = "-"
+	avdhp.Word = c.Param("word")
 
+	if avdhp.Word == "" {
+		apperror.Panic500If(apperror.ErrDummy, "No article for empty word")
+		return
+	}
+
+	dataFound, ad := readArticleFromDb(&avdhp)
+
+	if !dataFound {
+		c.HTML(http.StatusBadRequest,
+			"general.html",
+			shared.GeneralTemplateParams{Message: fmt.Sprintf("Sorry, no article (yet?) for «%s»", avdhp.Word)})
+		return
+	}
+
+	aetp := &articleEditTemplateParams{Ad: ad}
+	c.HTML(http.StatusOK,
+		"articleedit.html",
+		aetp)
 }
