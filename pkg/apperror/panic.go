@@ -125,6 +125,17 @@ func Panic500If(err error, format string, args ...interface{}) {
 	}
 }
 
+// Panic500IfLogError is like Panic500, but logs error
+func Panic500IfLogError(err error, format string, args ...interface{}) {
+	if err != nil {
+		msg := fmt.Sprintf(format, args...)
+		data := Exception500{Message: msg}
+		log.Printf("Panic500IfLogError: error is %#v, message for the user is «%s», stack follows\n", err, msg)
+		debug.PrintStack()
+		panic(&data)
+	}
+}
+
 // Panic200 should be called inside an http request handler and will cause the
 // default template to be built with the message
 /* func Panic200(format string, args ...interface{}) {

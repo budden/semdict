@@ -12,14 +12,24 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// params for a query for a word
 type articleViewDirHandlerParams struct {
 	LanguageSlug string
 	DialectSlug  string
 	Word         string
 }
 
+// FIXME shall we create a record for each query?
 type articleDataForEditType struct {
+	Senseid      int32
 	Languageslug string
+	Dialectslug  string
+	Phrase       string
+	Word         string
+}
+
+type articleEditTemplateParams struct {
+	ad *articleDataForEditType
 }
 
 // ArticleViewDirHandler ...
@@ -34,12 +44,12 @@ func ArticleViewDirHandler(c *gin.Context) {
 		return
 	}
 
-	dataFound, phrase := readArticleFromDb(&avdhp)
+	dataFound, ad := readArticleFromDb(&avdhp)
 
 	if dataFound {
 		c.HTML(http.StatusOK,
 			"general.html",
-			shared.GeneralTemplateParams{Message: fmt.Sprintf("Article page for «%s»:\n%s", avdhp.Word, phrase)})
+			shared.GeneralTemplateParams{Message: fmt.Sprintf("Article page for «%s»:\n%s", ad.Word, ad.Phrase)})
 	} else {
 		c.HTML(http.StatusBadRequest,
 			"general.html",
@@ -47,23 +57,30 @@ func ArticleViewDirHandler(c *gin.Context) {
 	}
 }
 
-func readArticleFromDb(avdhp *articleViewDirHandlerParams) (dataFound bool, phrase string) {
+func readArticleFromDb(avdhp *articleViewDirHandlerParams) (dataFound bool, ad *articleDataForEditType) {
 	db := database.SDUsersDb
 	reply, err1 := db.Db.NamedQuery(
-		`select /*tsense.id, phrase,*/ word from tsense 
-			inner join tdialect on tsense.dialectid = tdialect.id 
-			inner join tlanguage on tdialect.languageid = tlanguage.id
+		`select 
+			s.id as senseid
+			,l.slug as languageslug
+			,d.slug as dialectslug 
+			,phrase
+			,word 
+			from tsense as s
+			inner join tdialect as d on s.dialectid = d.id 
+			inner join tlanguage as l on d.languageid = l.id
 			where 
-			tlanguage.slug = :languageslug 
-			and tdialect.slug = :dialectslug
+			l.slug = :languageslug 
+			and d.slug = :dialectslug
 			and word = :word
 			limit 1`, &avdhp)
-	apperror.Panic500If(err1, "Failed to extract an article, sorry")
+	apperror.Panic500IfLogError(err1, "Failed to extract an article, sorry")
+	ad = &articleDataForEditType{}
 	for reply.Next() {
-		err1 = reply.Scan(&phrase)
-		database.FatalDatabaseErrorIf(err1, database.SDUsersDb, "Error obtaining phrase of sense", err1)
+		err1 = reply.StructScan(ad)
 		dataFound = true
 	}
+	database.FatalDatabaseErrorIf(err1, database.SDUsersDb, "Error obtaining data of sense: %#v", err1)
 	return
 }
 
