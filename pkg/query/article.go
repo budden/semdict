@@ -18,6 +18,10 @@ type articleViewDirHandlerParams struct {
 	Word         string
 }
 
+type articleDataForEditType struct {
+	Languageslug string
+}
+
 // ArticleViewDirHandler ...
 func ArticleViewDirHandler(c *gin.Context) {
 	var avdhp articleViewDirHandlerParams
@@ -30,24 +34,8 @@ func ArticleViewDirHandler(c *gin.Context) {
 		return
 	}
 
-	db := database.SDUsersDb
-	reply, err1 := db.Db.NamedQuery(
-		`select phrase from tsense 
-			inner join tdialect on tsense.dialectid = tdialect.id 
-			inner join tlanguage on tdialect.languageid = tlanguage.id
-			where 
-			tlanguage.slug = :languageslug 
-			and tdialect.slug = :dialectslug
-			and word = :word
-			limit 1`, &avdhp)
-	apperror.Panic500If(err1, "Failed to extract an article, sorry")
-	dataFound := false
-	var phrase string
-	for reply.Next() {
-		err1 = reply.Scan(&phrase)
-		database.FatalDatabaseErrorIf(err1, database.SDUsersDb, "Error obtaining phrase of sense", err1)
-		dataFound = true
-	}
+	dataFound, phrase := readArticleFromDb(&avdhp)
+
 	if dataFound {
 		c.HTML(http.StatusOK,
 			"general.html",
@@ -59,7 +47,28 @@ func ArticleViewDirHandler(c *gin.Context) {
 	}
 }
 
+func readArticleFromDb(avdhp *articleViewDirHandlerParams) (dataFound bool, phrase string) {
+	db := database.SDUsersDb
+	reply, err1 := db.Db.NamedQuery(
+		`select /*tsense.id, phrase,*/ word from tsense 
+			inner join tdialect on tsense.dialectid = tdialect.id 
+			inner join tlanguage on tdialect.languageid = tlanguage.id
+			where 
+			tlanguage.slug = :languageslug 
+			and tdialect.slug = :dialectslug
+			and word = :word
+			limit 1`, &avdhp)
+	apperror.Panic500If(err1, "Failed to extract an article, sorry")
+	for reply.Next() {
+		err1 = reply.Scan(&phrase)
+		database.FatalDatabaseErrorIf(err1, database.SDUsersDb, "Error obtaining phrase of sense", err1)
+		dataFound = true
+	}
+	return
+}
+
 // ArticleEditDirHandler is a handler to open edit page
 func ArticleEditDirHandler(c *gin.Context) {
 	user.EnsureLoggedIn(c)
+
 }

@@ -60,7 +60,7 @@ func playWithServer() {
 	engine.POST("/loginformsubmit", user.PerformLogin)
 	engine.GET("/logout", user.Logout)
 
-	engine.POST("/postarticle", query.PostArticleDataPageHandler)
+	engine.POST("/articlepost", query.ArticlePostDataPageHandler)
 
 	// "/articlepost/"
 

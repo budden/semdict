@@ -23,8 +23,8 @@ type postArticleDataType struct {
 	Word         string
 }
 
-// PostArticleDataPageHandler posts an article data
-func PostArticleDataPageHandler(c *gin.Context) {
+// ArticlePostDataPageHandler posts an article data
+func ArticlePostDataPageHandler(c *gin.Context) {
 	user.EnsureLoggedIn(c)
 	var pad postArticleDataType
 	extractDataFromRequest(c, &pad)
