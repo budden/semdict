@@ -22,13 +22,13 @@ func Play(commandLineArgs []string) {
 	shutdown.RunSignalListener()
 	/// Uncomment next line to create secret-data.config.json.example
 	//saveSecretConfigDataExample()
+
 	loadSecretConfigData()
 	database.OpenSDUsersDb()
-	// database.PlayWithDb()
-	playWithPanic()
+	/* playWithPanic()
 	playWithNonce(16)
 	playWithHashAndSalt()
-	user.PlayWithEmail()
+	user.PlayWithEmail() */
 	playWithServer()
 }
 

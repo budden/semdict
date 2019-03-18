@@ -61,6 +61,5 @@ func loadSecretConfigData() (err error) {
 		fmt.Printf("Error reading config file %s: %#v\n", fn, err)
 		return
 	}
-	fmt.Printf("playWithSecretConfigData returned %#v\n", sds)
 	return
 }

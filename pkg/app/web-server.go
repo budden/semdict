@@ -41,6 +41,8 @@ func playWithServer() {
 	port := ":" + shared.WebServerPort
 	log.Printf("Starting server on %s - kill app to stop\n", port)
 
+	// https://stackoverflow.com/a/52830435/9469533
+	gin.SetMode(gin.ReleaseMode)
 	engine := gin.New()
 
 	engine.Use(gin.Logger(), user.SetUserStatus(), apperror.HandlePanicInRequestHandler())
@@ -62,8 +64,6 @@ func playWithServer() {
 	engine.GET("/logout", user.Logout)
 
 	engine.POST("/articlepost", query.ArticlePostDataPageHandler)
-
-	// "/articlepost/"
 
 	// https://habr.com/ru/post/197468/
 	ThisHTTPServer := &http.Server{
