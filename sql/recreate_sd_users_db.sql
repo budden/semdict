@@ -23,6 +23,11 @@ CREATE TABLE sduser (
  registrationtimestamp timestamptz not null
 );
 
+insert into sduser (nickname, registrationemail, hash, salt, registrationtimestamp)
+values ('a','a@example.com','OHQgQbmVlLdeLz3muq48mQ',
+'qlyxhq_cWSWmORUJRK6YEfx5XDn4hoLJoQym-pWK2g4',current_timestamp);
+-- password is 'a'
+
 -- https://stackoverflow.com/a/9808332/9469533 - it is considered safe to lowercase an E-mail
 create unique index 
  i_sduser_registrationemail 
@@ -58,6 +63,15 @@ create unique index
 create unique index
  i_registrationattempt__registrationemail
  on registrationattempt(lower(registrationemail));
+
+
+CREATE TABLE session (
+  id serial primary key,
+  hash text,
+  salt text,
+  sduserid int, -- we omit fk intentionally
+  expireat timestamptz not null -- expire at
+);
 
 --- delete_expired_registrationattempts. 
 --- We have a unique indices on a registrationemail and nickname. 
@@ -178,4 +192,4 @@ insert into tsense (dialectid, phrase, word)
   VALUES
   (1,'Programming language by Google created in 2000s','golang');
 
-create view marker_of_script_success as select 1;
+create view marker_of_script_success as select current_timestamp;
