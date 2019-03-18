@@ -3,6 +3,7 @@ package query
 import (
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
 
 	"github.com/microcosm-cc/bluemonday"
@@ -44,7 +45,11 @@ func sanitizeData(pad *articlePostDataType) {
 	// example just from the title page of https://github.com/microcosm-cc/bluemonday
 	p := bluemonday.UGCPolicy()
 	pad.Phrase = p.Sanitize(pad.Phrase)
-	// TODO: match word with this: /^[a-zA-Z ]+$/\p{L}
+	matched, err := regexp.Match(`^[0-9a-zA-Z\p{L} ]+$`, []byte(pad.Word))
+	if (err != nil) || !matched {
+		// https://www.linux.org.ru/forum/development/14877320
+		apperror.Panic500If(apperror.ErrDummy, "Word can only contain letters, digits and spaces")
+	}
 }
 
 func extractDataFromRequest(c *gin.Context, pad *articlePostDataType) {
