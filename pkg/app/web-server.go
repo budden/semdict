@@ -5,11 +5,13 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"runtime/debug"
 	"time"
 
 	"github.com/budden/semdict/pkg/database"
 	"github.com/budden/semdict/pkg/shutdown"
+	"github.com/budden/semdict/pkg/unsorted"
 
 	"github.com/budden/semdict/pkg/apperror"
 	"github.com/budden/semdict/pkg/user"
@@ -42,28 +44,10 @@ func playWithServer() {
 	log.Printf("Starting server on %s - kill app to stop\n", port)
 
 	// https://stackoverflow.com/a/52830435/9469533
-	gin.SetMode(gin.ReleaseMode)
-	engine := gin.New()
+	//gin.SetMode(gin.ReleaseMode)
+	//This will disable hot template reloading, so we'll try to disable any messaging for a whil
 
-	engine.Use(gin.Logger(), user.SetUserStatus(), apperror.HandlePanicInRequestHandler())
-
-	engine.LoadHTMLGlob("templates/*")
-	engine.GET("/", homePageHandler)
-	engine.GET("/searchform", query.SearchFormPageHandler)
-	engine.GET("/searchresult", query.SearchResultPageHandler)
-	// FIXME - change a way of addressing articles to be adequate!
-	engine.GET("/articleview/:word", query.ArticleViewDirHandler)
-	engine.GET("/articleedit/:word", query.ArticleEditDirHandler)
-
-	engine.GET("/registrationform", user.RegistrationFormPageHandler)
-	engine.POST("/registrationformsubmit", user.RegistrationFormSubmitPostHandler)
-	engine.GET("/registrationconfirmation", user.RegistrationConfirmationPageHandler)
-
-	engine.GET("/loginform", user.LoginFormPageHandler)
-	engine.POST("/loginformsubmit", user.PerformLogin)
-	engine.GET("/logout", user.Logout)
-
-	engine.POST("/articlepost", query.ArticlePostDataPageHandler)
+	engine := initRouter()
 
 	// https://habr.com/ru/post/197468/
 	ThisHTTPServer := &http.Server{
@@ -91,4 +75,36 @@ func actualFatalDatabaseErrorHandler(err error, c *database.ConnectionType, form
 	debug.PrintStack()
 	shutdown.InitiateGracefulShutdown()
 	apperror.Panic500If(apperror.ErrDummy, "Internal error")
+}
+
+func initRouter() *gin.Engine {
+
+	// we send this annoying startup messages to dev/null
+	oldStderr := os.Stderr
+	devNull := unsorted.OpenDevNullForWrite()
+	os.Stderr = devNull
+	defer func() { os.Stderr = oldStderr; devNull.Close() }()
+
+	engine := gin.New()
+
+	engine.Use(gin.Logger(), user.SetUserStatus(), apperror.HandlePanicInRequestHandler())
+
+	engine.LoadHTMLGlob("templates/*")
+	engine.GET("/", homePageHandler)
+	engine.GET("/searchform", query.SearchFormPageHandler)
+	engine.GET("/searchresult", query.SearchResultPageHandler)
+	// FIXME - change a way of addressing articles to be adequate!
+	engine.GET("/articleview/:word", query.ArticleViewDirHandler)
+	engine.GET("/articleedit/:word", query.ArticleEditDirHandler)
+
+	engine.GET("/registrationform", user.RegistrationFormPageHandler)
+	engine.POST("/registrationformsubmit", user.RegistrationFormSubmitPostHandler)
+	engine.GET("/registrationconfirmation", user.RegistrationConfirmationPageHandler)
+
+	engine.GET("/loginform", user.LoginFormPageHandler)
+	engine.POST("/loginformsubmit", user.PerformLogin)
+	engine.GET("/logout", user.Logout)
+
+	engine.POST("/articleeditformsubmit", query.ArticleEditFormSubmitPostHandler)
+	return engine
 }

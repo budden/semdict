@@ -2,6 +2,7 @@ package query
 
 import (
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/microcosm-cc/bluemonday"
@@ -11,20 +12,19 @@ import (
 	"github.com/budden/semdict/pkg/apperror"
 
 	"github.com/budden/semdict/pkg/database"
-	"github.com/budden/semdict/pkg/shared"
 	"github.com/gin-gonic/gin"
 )
 
 type articlePostDataType struct {
-	ID           int64
+	ID           int32
 	LanguageSlug string // unprocessed
 	DialectSlug  string // unprocessed
 	Phrase       string
 	Word         string
 }
 
-// ArticlePostDataPageHandler posts an article data
-func ArticlePostDataPageHandler(c *gin.Context) {
+// ArticleEditFormSubmitPostHandler posts an article data
+func ArticleEditFormSubmitPostHandler(c *gin.Context) {
 	user.EnsureLoggedIn(c)
 	pad := &articlePostDataType{}
 	extractDataFromRequest(c, pad)
@@ -32,37 +32,32 @@ func ArticlePostDataPageHandler(c *gin.Context) {
 	writeToDb(pad)
 	// promote the user to Sd Db. If we crash here, user will be able to login,
 	// (and unable to register again), but wil be missing from the main content db
-	c.HTML(http.StatusMovedPermanently,
-		"general.html",
-		shared.GeneralTemplateParams{Message: "Registration confirmed. Now you can proceed to the <a href=/>Login page</a>"})
+
+	// https://github.com/gin-gonic/gin/issues/444
+	c.Redirect(http.StatusFound,
+		"/articleview/"+
+			// https://stackoverflow.com/a/43429641/9469533
+			url.PathEscape(pad.Word))
 }
 
 func sanitizeData(pad *articlePostDataType) {
 	// example just from the title page of https://github.com/microcosm-cc/bluemonday
 	p := bluemonday.UGCPolicy()
 	pad.Phrase = p.Sanitize(pad.Phrase)
-	// todo: match word with this: /^[a-zA-Z ]+$/\p{L}
+	// TODO: match word with this: /^[a-zA-Z ]+$/\p{L}
 }
 
 func extractDataFromRequest(c *gin.Context, pad *articlePostDataType) {
-	query := c.Request.URL.Query()
-	phrases, ok1 := query["phrase"]
-	words, ok2 := query["word"]
-	ids, _ := query["id"]
-
-	if !ok1 || !ok2 ||
-		len(phrases) == 0 ||
-		len(words) == 0 {
-		apperror.Panic500If(apperror.ErrDummy, "Bad query")
-	}
-	pad.Phrase = phrases[0]
-	pad.Word = words[0]
-	if len(ids) > 0 {
-		idAsString := ids[0]
+	idAsString := c.PostForm("senseid")
+	if idAsString != "" {
 		padID, err := strconv.Atoi(idAsString)
 		apperror.Panic500If(err, "Wrong article ID")
-		pad.ID = int64(padID)
+		pad.ID = int32(padID)
+	} else {
+		pad.ID = 0
 	}
+	pad.Phrase = c.PostForm("phrase")
+	pad.Word = c.PostForm("word")
 }
 
 func writeToDb(pad *articlePostDataType) {

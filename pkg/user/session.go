@@ -1,7 +1,6 @@
 package user
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/budden/semdict/pkg/apperror"
@@ -38,7 +37,6 @@ func SetUserStatus() gin.HandlerFunc {
 }
 
 func setUserStatusFn(c *gin.Context) {
-	fmt.Println("setUserStatusFn!")
 	if token, err := c.Cookie("token"); err == nil || token != "" {
 		c.Set("is_logged_in", true)
 	} else {

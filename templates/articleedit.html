@@ -6,10 +6,10 @@
 {{ template "header.html" .}}
 
 <body>
- <form class="form" action="/articlepost" method="POST">
+ <form class="form" action="/articleeditformsubmit" method="POST">
   <div class="form-group">
    <label for="id">ID</label>
-   <input type="text" class="form-control" id="id" name="id" 
+   <input type="text" class="form-control" id="senseid" name="senseid" 
    value="{{.Ad.Senseid}}" readonly>
   </div>
   <div class="form-group">
