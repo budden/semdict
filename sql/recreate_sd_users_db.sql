@@ -18,12 +18,12 @@ CREATE TABLE sduser (
   NOT NULL primary key,
  nickname varchar(256) not null,
  registrationemail text not null,
- hash text NOT NULL,
  salt text not null,
+ hash text NOT NULL,
  registrationtimestamp timestamptz not null
 );
 
-insert into sduser (nickname, registrationemail, hash, salt, registrationtimestamp)
+insert into sduser (nickname, registrationemail, salt, hash, registrationtimestamp)
 values ('a','a@example.com','OHQgQbmVlLdeLz3muq48mQ',
 'qlyxhq_cWSWmORUJRK6YEfx5XDn4hoLJoQym-pWK2g4',current_timestamp);
 -- password is 'a'
@@ -41,8 +41,8 @@ CREATE TABLE registrationattempt (
  id serial primary key,
  nickname varchar(256) not null,
  registrationemail text not null,
- hash text NOT NULL,
  salt text not null,
+ hash text NOT NULL,
  confirmationkey text not null,
  registrationtimestamp timestamptz not null default current_timestamp,
  status registrationattempt_status default 'new'
@@ -67,9 +67,10 @@ create unique index
 
 CREATE TABLE session (
   id serial primary key,
-  hash text,
-  salt text,
-  sduserid int, -- we omit fk intentionally
+  -- won't hash sessions, 
+  -- see https://security.stackexchange.com/questions/138389/should-i-also-hash-my-session-id-before-storing-it-in-the-database
+  eid text not null,
+  sduserid int not null, -- we omit fk intentionally
   expireat timestamptz not null -- expire at
 );
 
@@ -99,8 +100,8 @@ $$ language plpgsql;
 --- nickname and password must be unique in the union of registrationattempt and sduser tables
 --- use repeatable read transaction and/or single threaded registration processor
 create or replace function add_registrationattempt(p_nickname text
-  ,p_hash text
   ,p_salt text
+  ,p_hash text
   ,p_registrationemail text
   ,p_confirmationkey text)
 returns void as $$
@@ -117,8 +118,8 @@ returns void as $$
   if exists (select 1 from sduser ra where lower(ra.registrationemail)=lower(p_registrationemail)) THEN
     raise unique_violation using table = 'sduser', column = 'registrationemail', constraint = 'i_sduser_registrationemail';
   end if;
-  insert into registrationattempt(nickname, hash, salt, registrationemail, confirmationkey) 
-    values (p_nickname, p_hash, p_salt, p_registrationemail, p_confirmationkey);
+  insert into registrationattempt(nickname, salt, hash, registrationemail, confirmationkey) 
+    values (p_nickname, p_salt, p_hash, p_registrationemail, p_confirmationkey);
  end;
 $$ language plpgsql;
 
@@ -136,8 +137,8 @@ returns setof integer as $$
   declare v_id bigint := null;
   begin
     lock table themutex;
-    insert into sduser (nickname, registrationemail, hash, salt, registrationtimestamp)
-     select nickname, registrationemail, hash, salt, registrationtimestamp from registrationattempt 
+    insert into sduser (nickname, registrationemail, salt, hash, registrationtimestamp)
+     select nickname, registrationemail, salt, hash, registrationtimestamp from registrationattempt 
      where confirmationkey = p_confirmationkey and nickname = p_nickname 
      and status='e-mail sent' returning id into v_id;
     if v_id is null THEN

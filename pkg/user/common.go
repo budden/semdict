@@ -8,6 +8,8 @@ import (
 )
 
 // Mutex we lock for any writes to sdusers_db to minimize parallelism at the db level
+// TODO create an WithMutex fn and use it for all writing queries
+// Also, think about db-level locks (put every update into transaction?)
 var writeSDUsersMutex sync.Mutex
 
 // PostgresqlErrorCodeUniqueViolation is a unique_violation,
@@ -46,4 +48,16 @@ func WithTransaction(
 		err = database.CommitIfActive(&trans)
 	}
 	return
+}
+
+func isNicknameInValidFormat(nickname string) bool {
+	return true
+}
+
+func isPasswordInValidFormat(password string) bool {
+	return true
+}
+
+func isEmailInValidFormat(email string) bool {
+	return true
 }

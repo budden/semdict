@@ -22,18 +22,6 @@ func RegistrationFormPageHandler(c *gin.Context) {
 		shared.GeneralTemplateParams{Message: "Search Form"})
 }
 
-// RegistrationData is a transient struct containing data obtained from a /registrationformsubmit query
-// as well as some of calculated data
-type RegistrationData struct {
-	Nickname          string
-	Password          string
-	Registrationemail string
-	Calculatedhash    string
-	Calculatedsalt    string
-	ConfirmationKey   string
-	UserID            int64
-}
-
 // RegistrationFormSubmitPostHandler processes a registrationformsubmit form post request
 func RegistrationFormSubmitPostHandler(c *gin.Context) {
 	EnsureNotLoggedIn(c)
@@ -143,11 +131,11 @@ func processRegistrationFormSubmitWithDb(rd *RegistrationData) *apperror.AppErr 
 	err = WithTransaction(
 		database.SDUsersDb,
 		func(trans *database.TransactionType) (err error) {
-			rd.Calculatedhash, rd.Calculatedsalt = HashAndSaltPassword(rd.Password)
+			rd.Salt, rd.Hash = SaltAndHashPassword(rd.Password)
 			rd.ConfirmationKey = GenNonce(20)
 			database.CheckDbAlive(trans.Conn)
 			_, err = trans.Tx.NamedExec(
-				`select add_registrationattempt(:nickname, :calculatedhash, :calculatedsalt, :registrationemail, :confirmationkey)`,
+				`select add_registrationattempt(:nickname, :salt, :hash, :registrationemail, :confirmationkey)`,
 				rd)
 			if err == nil {
 				database.CheckDbAlive(trans.Conn)

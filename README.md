@@ -14,7 +14,7 @@ there is no project structure yet.
 - postgres quoting - sqlx seem to work fine
 - genExpiryDate (schedule an expiry of a link)
 - genNonce (for registration confirmation links)
-- hashAndSaltPassword (safe storing of passwords)
+- SaltAndHashPassword (safe storing of passwords)
 - run postgres as self (non-root) - done once, but steps were not recorded very well
 - sending e-mails
 - confirm registration

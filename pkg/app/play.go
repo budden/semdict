@@ -27,7 +27,7 @@ func Play(commandLineArgs []string) {
 	database.OpenSDUsersDb()
 	/* playWithPanic()
 	playWithNonce(16)
-	playWithHashAndSalt()
+	playWithSaltAndHash()
 	user.PlayWithEmail() */
 	playWithServer()
 }
@@ -37,14 +37,6 @@ func playWithNonce(length uint8) {
 	for i := 0; i < 5; i++ {
 		str := user.GenNonce(length)
 		fmt.Println("Nonce1:", str)
-	}
-}
-
-func playWithHashAndSalt() {
-	for i := 0; i < 2; i++ {
-		password := "kvack"
-		hash, salt := user.HashAndSaltPassword(password)
-		fmt.Printf("playWithHashAndSalt: hash=%s, salt=%s\n", hash, salt)
 	}
 }
 

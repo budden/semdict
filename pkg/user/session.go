@@ -1,7 +1,10 @@
 package user
 
 import (
+	"fmt"
 	"net/http"
+
+	"github.com/budden/semdict/pkg/database"
 
 	"github.com/budden/semdict/pkg/apperror"
 	"github.com/budden/semdict/pkg/shared"
@@ -44,21 +47,21 @@ func setUserStatusFn(c *gin.Context) {
 	}
 }
 
-// PerformLogin handles login route
-func PerformLogin(c *gin.Context) {
+// LoginFormSubmitPostHandler handles login route
+func LoginFormSubmitPostHandler(c *gin.Context) {
 	// We could check that user is not yet logged in, but we won't do
 	// Obtain the POSTed username and password values
-	username := c.PostForm("username")
+	nickname := c.PostForm("nickname")
 	password := c.PostForm("password")
 
 	// Check if the username/password combination is valid
-	if isUserValid(username, password) {
+	if isUserValid(nickname, password) {
 		// If the username/password is valid set the token in a cookie
 		token := generateSessionToken()
 		c.SetCookie("token", token, 3600, "", "", false, true)
 
 		c.HTML(http.StatusOK, "general.html",
-			shared.GeneralTemplateParams{Message: "Welcome, a citizen!"})
+			shared.GeneralTemplateParams{Message: fmt.Sprintf("Welcome, %s!", nickname)})
 
 	} else {
 		c.HTML(http.StatusBadRequest, "general.html",
@@ -66,14 +69,42 @@ func PerformLogin(c *gin.Context) {
 	}
 }
 
-func isUserValid(username, password string) bool {
+func isUserValid(nickname, password string) bool {
 	// TODO do actual things
-	return true
+	if !isNicknameInValidFormat(nickname) {
+		apperror.Panic500If(apperror.ErrDummy, "Nickname has an illegal format (e.g. invalid characters)")
+	}
+
+	if !isPasswordInValidFormat(nickname) {
+		apperror.Panic500If(apperror.ErrDummy, "Password has an illegal format (e.g. invalid characters)")
+	}
+
+	var sud SDUserData
+	getSDUserDataFromDb(nickname, &sud)
+
+	return CheckPasswordAgainstSaltAndHash(password, sud.Salt, sud.Hash)
+}
+
+// function could be general, but it's error messages are login process specific. FIXME
+func getSDUserDataFromDb(nickname string, sud *SDUserData) {
+	db := database.SDUsersDb
+	// have <= 1 record only due to unique index
+	res, err := db.Db.Queryx("select * from sduser where nickname = $1 limit 1", nickname)
+	apperror.Panic500If(err, "Unable to login, sorry")
+	dataFound := false
+	for res.Next() {
+		err1 := res.StructScan(sud)
+		apperror.GracefullyExitAppIf(err1, "Failed to read sduser's record: «%s»", err1)
+		dataFound = true
+	}
+	if !dataFound {
+		apperror.Panic500IfLogError(err, "Attempt to log on as a non-existing user «%s»", nickname)
+	}
+	return
 }
 
 func generateSessionToken() string {
-	// TODO do actual check
-	return "blablabla"
+	return GenNonce(32)
 }
 
 // Logout performs a logout

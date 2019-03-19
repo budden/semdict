@@ -53,14 +53,25 @@ func GenNonce(length uint8) string {
 
 const saltBytes = 16
 
-// HashAndSaltPassword generates a dynamic salt, hash and return both
+// SaltAndHashPassword generates a dynamic salt, hash and return both
 // https://habr.com/ru/post/145648/
-func HashAndSaltPassword(password string) (saltBase64, dkBase64 string) {
+func SaltAndHashPassword(password string) (saltBase64, dkBase64 string) {
 	salt := randomBytes(saltBytes)
 	dk := pbkdf2.Key([]byte(password), salt, 4096, 32, sha1.New)
 	saltBase64 = base64.RawURLEncoding.EncodeToString(salt)
 	dkBase64 = base64.RawURLEncoding.EncodeToString(dk)
 	return
+}
+
+// CheckPasswordAgainstSaltAndHash matches password to hash/salt pair
+func CheckPasswordAgainstSaltAndHash(password, saltBase64, dkBase64 string) bool {
+	salt, err := base64.RawURLEncoding.DecodeString(saltBase64)
+	if err != nil {
+		return false
+	}
+	dk := pbkdf2.Key([]byte(password), salt, 4096, 32, sha1.New)
+	dkBase642 := base64.RawURLEncoding.EncodeToString(dk)
+	return (dkBase64 == dkBase642)
 }
 
 /*

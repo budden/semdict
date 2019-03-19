@@ -102,7 +102,7 @@ func initRouter() *gin.Engine {
 	engine.GET("/registrationconfirmation", user.RegistrationConfirmationPageHandler)
 
 	engine.GET("/loginform", user.LoginFormPageHandler)
-	engine.POST("/loginformsubmit", user.PerformLogin)
+	engine.POST("/loginformsubmit", user.LoginFormSubmitPostHandler) // FIXME rename handler
 	engine.GET("/logout", user.Logout)
 
 	engine.POST("/articleeditformsubmit", query.ArticleEditFormSubmitPostHandler)
