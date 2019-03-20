@@ -74,7 +74,7 @@ func readArticleFromDb(avdhp *articleViewDirHandlerParams) (dataFound bool, ad *
 			and d.slug = :dialectslug
 			and word = :word
 			limit 1`, &avdhp)
-	apperror.Panic500IfLogError(err1, "Failed to extract an article, sorry")
+	apperror.Panic500AndErrorIf(err1, "Failed to extract an article, sorry")
 	ad = &articleDataForEditType{}
 	for reply.Next() {
 		err1 = reply.StructScan(ad)

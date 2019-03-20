@@ -125,15 +125,33 @@ func Panic500If(err error, format string, args ...interface{}) {
 	}
 }
 
-// Panic500IfLogError is like Panic500, but logs error
-func Panic500IfLogError(err error, format string, args ...interface{}) {
+// Panic500AndErrorIf is like Panic500, but logs error. We need to log error to know what is wrong and
+// for fail2ban
+// FIXME TODO - fail2ban and error logging are two different things, write two functions!
+func Panic500AndErrorIf(err error, format string, args ...interface{}) {
 	if err != nil {
 		msg := fmt.Sprintf(format, args...)
 		data := Exception500{Message: msg}
-		log.Printf("Panic500IfLogError: error is %#v, message for the user is «%s», stack follows\n", err, msg)
+		log.Printf("Panic500AndErrorIf: error is %#v, message for the user is «%s», stack follows\n", err, msg)
 		debug.PrintStack()
 		panic(&data)
 	}
+}
+
+// Panic500AndLogAttackIf is used when the error can be a part of attack. We're going to put it to
+// the log (maybe a separated log) in the form understandible by fail2ban
+func Panic500AndLogAttackIf(err error, c *gin.Context, format string, args ...interface{}) {
+	if err != nil {
+		msg := fmt.Sprintf(format, args...)
+		LogAttack(c)
+		data := Exception500{Message: msg}
+		panic(&data)
+	}
+}
+
+// LogAttack is recording a request which is a suspected attack (for fail2ban)
+func LogAttack(c *gin.Context) {
+	log.Printf("Suspected attack TODO write IP address and other things for fail2ban")
 }
 
 // Panic200 should be called inside an http request handler and will cause the

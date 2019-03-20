@@ -13,25 +13,34 @@ import (
 )
 
 // EnsureLoggedIn causes a request to be aborted with an error
-// if the user is not logged in
+// if the user is not logged in. Can only be used downstream from SetUserStatus
+// middleware
 func EnsureLoggedIn(c *gin.Context) {
-	loggedInInterface, _ := c.Get("is_logged_in")
-	loggedIn := loggedInInterface.(bool)
-	if !loggedIn {
+	if !IsLoggedIn(c) {
 		apperror.Panic500If(apperror.ErrDummy, "Please log in to view this page")
 	}
 }
 
 // EnsureNotLoggedIn ensures that a request will be aborted with an error
-// if the user is already logged in
+// if the user is already logged in.  Can only be used downstream from SetUserStatus
+// middleware
 func EnsureNotLoggedIn(c *gin.Context) {
-	loggedInInterface, _ := c.Get("is_logged_in")
-	loggedIn := loggedInInterface.(bool)
-	if loggedIn {
+	if IsLoggedIn(c) {
 		// FIXME - invent "Panic401" or do whatever else meaningful here,
 		// but don't return 500.
-		apperror.Panic500If(apperror.ErrDummy, "Please log in to view this page")
+		apperror.Panic500If(apperror.ErrDummy, "Please log OUT to view this page")
 	}
+}
+
+// IsLoggedIn is true if the user is logged in with valid credentials.
+// Can only be used downstream from SetUserStatus middleware
+func IsLoggedIn(c *gin.Context) bool {
+	loggedInInterface, exists := c.Get("is_logged_in")
+	loggedIn := loggedInInterface.(bool)
+	if !exists {
+		apperror.GracefullyExitAppIf(apperror.ErrDummy, "Only call this one after SetUserStatus")
+	}
+	return loggedIn
 }
 
 // SetUserStatus sets a flag indicating whether the request was from an authenticated user or not
@@ -40,11 +49,41 @@ func SetUserStatus() gin.HandlerFunc {
 }
 
 func setUserStatusFn(c *gin.Context) {
-	if token, err := c.Cookie("token"); err == nil || token != "" {
-		c.Set("is_logged_in", true)
+	tokenPresent, tokenValid, sduserid := getAndValidateToken(c)
+	isLoggedIn := false
+	if !tokenPresent {
+		// ok, it will be false
+	} else if !tokenValid {
+		// session expired, or, worse, it is an attack
+		apperror.LogAttack(c)
+		endSessionIfThereIsOne(c)
 	} else {
-		c.Set("is_logged_in", false)
+		// hence token is present and valid
+		isLoggedIn = true
 	}
+	c.Set("is_logged_in", isLoggedIn)
+	if isLoggedIn {
+		c.Set("sduserid", sduserid)
+	} else {
+		c.Set("sduserid", nil)
+	}
+}
+
+func getAndValidateToken(c *gin.Context) (tokenPresent, tokenValid bool, sduserid int) {
+	var token string
+	token, tokenPresent = getSessionToken(c)
+	if !tokenPresent {
+		return
+	}
+	db := database.SDUsersDb
+	res, err := db.Db.Queryx("select sduserid from session where eid=$1 and expireat > current_timestamp limit 1", token)
+	apperror.Panic500AndErrorIf(err, "Failed to check validity of your session, sorry. Please logout and retry")
+	for res.Next() {
+		err1 := res.Scan(&sduserid)
+		apperror.GracefullyExitAppIf(err1, "Failed to check if session is present, error is «%#v»", err1)
+	}
+	tokenValid = (sduserid != 0)
+	return
 }
 
 // LoginFormSubmitPostHandler handles login route
@@ -103,7 +142,7 @@ func getSDUserDataFromDb(nickname string, sud *SDUserData) {
 		dataFound = true
 	}
 	if !dataFound {
-		apperror.Panic500IfLogError(err, "Attempt to log on as a non-existing user «%s»", nickname)
+		apperror.Panic500AndErrorIf(err, "Attempt to log on as a non-existing user «%s»", nickname)
 	}
 	return
 }
