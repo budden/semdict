@@ -7,16 +7,18 @@ import (
 	"github.com/go-mail/mail"
 )
 
-// if fakeEmail is true, email is printed to stdout
-const fakeEmail = true
+// if fakeEmail() is true, email is printed to stdout
+func fakeEmail() bool {
+	return shared.SecretConfigData.SMTPServer == ""
+}
 
-// SendEmail sends an email, or, if fakeEmail is true, prints it to stdout
+// SendEmail sends an email, or, if fakeEmail() is true, prints it to stdout
 // Sender, SMTP server and credentials are taken from secret-data.config.json
 // (loaded when program starts)
 func SendEmail(recieverEMail, subj, html string) (err error) {
-	if fakeEmail {
+	if fakeEmail() {
 		fmt.Printf(
-			"user.fakeEmail is true, so printing this EMail:\nTo:«%s»\nSubj:«%s»\n«%s»\n",
+			"user.fakeEmail() is true, so printing this EMail:\nTo:«%s»\nSubj:«%s»\n«%s»\n",
 			recieverEMail, subj, html)
 		return
 	}

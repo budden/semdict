@@ -53,14 +53,14 @@ func doRegistrationFormSubmit(rd *RegistrationData) (apperr *apperror.AppErr) {
 
 func sendConfirmationEmail(rd *RegistrationData) {
 	scd := shared.SecretConfigData
-	confirmationLinkBase := "https:" + scd.SiteRoot + ":" + scd.WebServerPort + "/registrationconfirmation"
+	confirmationLinkBase := "https://" + scd.SiteRoot + ":" + scd.WebServerPort + "/registrationconfirmation"
 	parameters := url.Values{"nickname": {rd.Nickname}, "confirmationkey": {rd.ConfirmationKey}}
 	u, err := url.Parse(confirmationLinkBase)
 	apperror.GracefullyExitAppIf(err, "Unable to parse base URL for a confirmation link")
 	u.RawQuery = parameters.Encode()
 	confirmationLink := u.String()
 	body := fmt.Sprintf(
-		"Hello, %s!\nTo activate your account, please follow an <a href=%s>activation link</a>",
+		"Hello, %s!\nTo activate your account, please follow an activation link: %s",
 		// FIXME should Nickname need html escaping?
 		html.EscapeString(rd.Nickname),
 		confirmationLink)
