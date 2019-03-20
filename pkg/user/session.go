@@ -119,7 +119,7 @@ func isUserValid(nickname, password string) bool {
 		apperror.Panic500If(apperror.ErrDummy, "Nickname has an illegal format (e.g. invalid characters)")
 	}
 
-	if !isPasswordInValidFormat(nickname) {
+	if validatePassword(password) != nil {
 		apperror.Panic500If(apperror.ErrDummy, "Password has an illegal format (e.g. invalid characters)")
 	}
 

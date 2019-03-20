@@ -27,8 +27,9 @@ func RegistrationFormSubmitPostHandler(c *gin.Context) {
 	EnsureNotLoggedIn(c)
 	var rd RegistrationData
 	rd.Nickname = c.PostForm("nickname")
-	rd.Password = c.PostForm("password")
 	rd.Registrationemail = c.PostForm("registrationemail")
+	rd.Password1 = c.PostForm("password1")
+	rd.Password2 = c.PostForm("password2")
 	appErr := doRegistrationFormSubmit(&rd)
 	if appErr == nil {
 		c.HTML(http.StatusOK,
@@ -43,6 +44,7 @@ func RegistrationFormSubmitPostHandler(c *gin.Context) {
 }
 
 func doRegistrationFormSubmit(rd *RegistrationData) (apperr *apperror.AppErr) {
+	validateRegistrationData(rd)
 	apperr = processRegistrationFormSubmitWithDb(rd)
 	if apperr == nil {
 		// sendConfirmationEmail only produces 500 in case of failure
@@ -51,9 +53,26 @@ func doRegistrationFormSubmit(rd *RegistrationData) (apperr *apperror.AppErr) {
 	return apperr
 }
 
+func validateRegistrationData(rd *RegistrationData) {
+	if !isNicknameInValidFormat(rd.Nickname) {
+		apperror.Panic500If(apperror.ErrDummy, "Nickname is invalid")
+	}
+	if rd.Password1 != rd.Password2 {
+		apperror.Panic500If(apperror.ErrDummy, "Passwords don't match")
+	}
+	passwordErr := validatePassword(rd.Password1)
+	if passwordErr != nil {
+		apperror.Panic500If(apperror.ErrDummy, "%s", passwordErr.Error())
+	}
+	if !isEmailInValidFormat(rd.Registrationemail) {
+		apperror.Panic500If(apperror.ErrDummy, "Email is invalid")
+	}
+}
+
 func sendConfirmationEmail(rd *RegistrationData) {
 	scd := shared.SecretConfigData
-	confirmationLinkBase := "https://" + scd.SiteRoot + ":" + scd.WebServerPort + "/registrationconfirmation"
+	// TODO: if there are no certificate files, use http an7
+	confirmationLinkBase := shared.SitesProtocol() + scd.SiteRoot + ":" + scd.WebServerPort + "/registrationconfirmation"
 	parameters := url.Values{"nickname": {rd.Nickname}, "confirmationkey": {rd.ConfirmationKey}}
 	u, err := url.Parse(confirmationLinkBase)
 	apperror.GracefullyExitAppIf(err, "Unable to parse base URL for a confirmation link")
@@ -132,7 +151,7 @@ func processRegistrationFormSubmitWithDb(rd *RegistrationData) *apperror.AppErr 
 	err = WithTransaction(
 		database.SDUsersDb,
 		func(trans *database.TransactionType) (err error) {
-			rd.Salt, rd.Hash = SaltAndHashPassword(rd.Password)
+			rd.Salt, rd.Hash = SaltAndHashPassword(rd.Password1)
 			rd.ConfirmationKey = GenNonce(20)
 			database.CheckDbAlive(trans.Conn)
 			_, err = trans.Tx.NamedExec(

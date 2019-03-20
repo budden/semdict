@@ -6,8 +6,9 @@ import "time"
 // as well as some of calculated data
 type RegistrationData struct {
 	Nickname          string
-	Password          string
 	Registrationemail string
+	Password1         string
+	Password2         string
 	Salt              string
 	Hash              string
 	ConfirmationKey   string

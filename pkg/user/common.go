@@ -1,6 +1,7 @@
 package user
 
 import (
+	"regexp"
 	"sync"
 
 	"github.com/budden/semdict/pkg/database"
@@ -51,16 +52,16 @@ func WithTransaction(
 }
 
 func isNicknameInValidFormat(nickname string) bool {
-	//TODO
-	return true
+	matched, err := regexp.Match(`^[0-9a-zA-Z\p{L}]+$`, []byte(nickname))
+	return err == nil && matched
 }
 
-func isPasswordInValidFormat(password string) bool {
-	//TODO
-	return true
-}
+// password must be from 8 to 25 characters long, must not contain spaces
 
 func isEmailInValidFormat(email string) bool {
-	//TODO
-	return true
+	//https://socketloop.com/tutorials/golang-validate-email-address-with-regular-expression
+	matched, err := regexp.Match(
+		`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`,
+		[]byte(email))
+	return err == nil && matched
 }
