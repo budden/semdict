@@ -58,11 +58,15 @@ func playWithServer() {
 		MaxHeaderBytes: 1 << 20}
 
 	listener, err := net.Listen("tcp", ThisHTTPServer.Addr)
+
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	certFile := "/y/slovo-ipp/сертификат/rootCA.pem"
+	keyFile := "/y/slovo-ipp/сертификат/rootCA.key"
 	limitListener := netutil.LimitListener(listener, connectionLimit)
-	log.Print(ThisHTTPServer.Serve(limitListener))
+	log.Print(ThisHTTPServer.ServeTLS(limitListener, certFile, keyFile))
 
 	closer1 := func() { ThisHTTPServer.Shutdown(context.TODO()) }
 	closer := func() { go closer1() }
