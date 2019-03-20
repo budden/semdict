@@ -11,9 +11,9 @@ import (
 	// "github.com/flynn/json5"
 )
 
-func saveSecretDataConfigTToFile(sds *shared.SecretConfigDataT, filename string) (err error) {
+func saveSecretDataConfigTToFile(scd *shared.SecretConfigDataT, filename string) (err error) {
 	var text []byte
-	text, err = json.MarshalIndent(sds, "", " ")
+	text, err = json.MarshalIndent(scd, "", " ")
 	if err != nil {
 		return
 	}
@@ -26,8 +26,8 @@ const ConfigFileName = "secret-data.config.json"
 
 // SaveSecretConfigDataExample is called from the test suite.
 // As a side effect, secret-data.config.json.example is created
-func SaveSecretConfigDataExample(fileName string) (sds *shared.SecretConfigDataT, err error) {
-	sds = &shared.SecretConfigDataT{
+func SaveSecretConfigDataExample(fileName string) (scd *shared.SecretConfigDataT, err error) {
+	scd = &shared.SecretConfigDataT{
 		Comment: "Example config file. Copy this one to the secret-data.config.json and edit. TLSCertFile and TLSKeyFile" +
 			" are file names of files in PEM format",
 		SiteRoot:            "localhost",
@@ -40,13 +40,13 @@ func SaveSecretConfigDataExample(fileName string) (sds *shared.SecretConfigDataT
 		TLSCertFile:         "example.pem",
 		TLSKeyFile:          "example.key",
 		PostgresqlServerURL: "postgresql://localhost:5432"}
-	err = saveSecretDataConfigTToFile(sds, fileName)
+	err = saveSecretDataConfigTToFile(scd, fileName)
 	return
 }
 
 // LoadSecretConfigData reads the config file and inititalizes a SecretConfigData global
 func LoadSecretConfigData(configFileName string) (err error) {
-	sds := &shared.SecretConfigData
+	scd := &shared.SecretConfigData
 	fn := configFileName
 	if _, err = os.Stat(fn); os.IsNotExist(err) {
 		fmt.Printf("No config file %s found. Create one by copying from %s.example\n",
@@ -61,7 +61,7 @@ func LoadSecretConfigData(configFileName string) (err error) {
 	}
 	dec := json.NewDecoder(strings.NewReader(string(bytes)))
 	dec.DisallowUnknownFields()
-	err = dec.Decode(sds)
+	err = dec.Decode(scd)
 	if err != nil {
 		fmt.Printf("Error reading config file %s: %#v\n", fn, err)
 		return

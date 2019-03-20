@@ -14,11 +14,11 @@ func Test_GenerateSecretConfigDataExample(t *testing.T) {
 	// secret-data.config.json.example
 	// FIXME use make or at least bash script to generate an example2
 	fn := "../../" + ConfigFileName + ".example"
-	sds, err := SaveSecretConfigDataExample(fn)
+	scd, err := SaveSecretConfigDataExample(fn)
 	assert.Nilf(t, err, "Error %#v in SaveSecretConfigDataExample", err)
 	err2 := LoadSecretConfigData(fn)
 	assert.Nilf(t, err2, "Error %#v in LoadSecretConfigData", err)
-	assert.Equal(t, *sds, shared.SecretConfigData)
+	assert.Equal(t, *scd, shared.SecretConfigData)
 }
 
 func Test_Nonce(t *testing.T) {

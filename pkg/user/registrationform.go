@@ -52,8 +52,8 @@ func doRegistrationFormSubmit(rd *RegistrationData) (apperr *apperror.AppErr) {
 }
 
 func sendConfirmationEmail(rd *RegistrationData) {
-	sds := shared.SecretConfigData
-	confirmationLinkBase := "https:" + sds.SiteRoot + ":" + sds.WebServerPort + "/registrationconfirmation"
+	scd := shared.SecretConfigData
+	confirmationLinkBase := "https:" + scd.SiteRoot + ":" + scd.WebServerPort + "/registrationconfirmation"
 	parameters := url.Values{"nickname": {rd.Nickname}, "confirmationkey": {rd.ConfirmationKey}}
 	u, err := url.Parse(confirmationLinkBase)
 	apperror.GracefullyExitAppIf(err, "Unable to parse base URL for a confirmation link")
