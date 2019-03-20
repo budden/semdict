@@ -72,7 +72,7 @@ func validateRegistrationData(rd *RegistrationData) {
 func sendConfirmationEmail(rd *RegistrationData) {
 	scd := shared.SecretConfigData
 	// TODO: if there are no certificate files, use http an7
-	confirmationLinkBase := shared.SitesProtocol() + scd.SiteRoot + ":" + scd.WebServerPort + "/registrationconfirmation"
+	confirmationLinkBase := shared.SitesProtocol() + "//" + scd.SiteRoot + ":" + scd.WebServerPort + "/registrationconfirmation"
 	parameters := url.Values{"nickname": {rd.Nickname}, "confirmationkey": {rd.ConfirmationKey}}
 	u, err := url.Parse(confirmationLinkBase)
 	apperror.GracefullyExitAppIf(err, "Unable to parse base URL for a confirmation link")
