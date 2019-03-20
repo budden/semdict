@@ -23,7 +23,7 @@ func Play(commandLineArgs []string) {
 	/// Uncomment next line to create secret-data.config.json.example
 	//saveSecretConfigDataExample()
 
-	loadSecretConfigData()
+	LoadSecretConfigData(ConfigFileName)
 	database.OpenSDUsersDb()
 	/* playWithPanic()
 	playWithNonce(16)

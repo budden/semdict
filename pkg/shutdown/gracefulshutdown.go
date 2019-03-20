@@ -6,6 +6,8 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/budden/semdict/pkg/shared"
 )
 
 // https://android.wekeepcoding.com/article/10973673/How+to+delete+a+file+using+golang+on+program+exit%3F
@@ -23,9 +25,6 @@ type ArrayOfParameterlessFunctions = []func()
 
 // Actions - see RunSignalListener
 var Actions = ArrayOfParameterlessFunctions{}
-
-// ExitCodeGracefulShutdownTimeout exit code means that graceful shutdown timed out
-const ExitCodeGracefulShutdownTimeout = 107
 
 // RunSignalListener creates a listener to catch SIGINT and SIGTERM. When
 // signal arrives, functions from Actions are run
@@ -46,7 +45,7 @@ func signalListener() {
 	// Second one is started after all cleanup actions. We could use waitgroup,
 	// but no need here as both guards call exit (hopefully exit is thread safe)
 	if Timeout != 0 {
-		go timeoutGuard(ExitCodeGracefulShutdownTimeout)
+		go timeoutGuard(shared.ExitCodeGracefulShutdownTimeout)
 	}
 	cleanupAllTheThings()
 	time.Sleep(Timeout)

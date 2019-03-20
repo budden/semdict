@@ -40,7 +40,7 @@ var ThisHTTPServer *http.Server
 // https://golang.hotexamples.com/examples/golang.org.x.net.netutil/-/LimitListener/golang-limitlistener-function-examples.html
 // https://habr.com/ru/post/197468/
 func playWithServer() {
-	port := ":" + shared.WebServerPort
+	port := ":" + shared.SecretConfigData.WebServerPort
 	log.Printf("Starting server on %s - kill app to stop\n", port)
 
 	// https://stackoverflow.com/a/52830435/9469533
@@ -63,10 +63,11 @@ func playWithServer() {
 		log.Fatalln(err)
 	}
 
-	certFile := "/y/slovo-ipp/сертификат/rootCA.pem"
-	keyFile := "/y/slovo-ipp/сертификат/rootCA.key"
 	limitListener := netutil.LimitListener(listener, connectionLimit)
-	log.Print(ThisHTTPServer.ServeTLS(limitListener, certFile, keyFile))
+
+	sds := &shared.SecretConfigData
+
+	log.Print(ThisHTTPServer.ServeTLS(limitListener, sds.TLSCertFile, sds.TLSKeyFile))
 
 	closer1 := func() { ThisHTTPServer.Shutdown(context.TODO()) }
 	closer := func() { go closer1() }
