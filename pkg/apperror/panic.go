@@ -97,7 +97,7 @@ func coerceToError(x interface{}) (e error) {
 }
 
 // GracefullyExitAppIf can be used if error is considered not so horrible
-// and we can afford to shutdown the server gracefully.
+// and we can afford to shutdown the server gracefully. Error is not printed
 func GracefullyExitAppIf(err error, format string, args ...interface{}) {
 	if err != nil {
 		log.Printf(format, args...)

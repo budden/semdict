@@ -54,10 +54,16 @@ func LoginFormSubmitPostHandler(c *gin.Context) {
 	nickname := c.PostForm("nickname")
 	password := c.PostForm("password")
 
+	// just in case, if there is an old session, we close it.
+	endSessionIfThereIsOne(c)
+
 	// Check if the username/password combination is valid
 	if isUserValid(nickname, password) {
 		// If the username/password is valid set the token in a cookie
 		token := generateSessionToken()
+
+		recordSessionTokenIntoDb(nickname, token)
+
 		c.SetCookie("token", token, 3600, "", "", false, true)
 
 		c.HTML(http.StatusOK, "general.html",
@@ -70,7 +76,6 @@ func LoginFormSubmitPostHandler(c *gin.Context) {
 }
 
 func isUserValid(nickname, password string) bool {
-	// TODO do actual things
 	if !isNicknameInValidFormat(nickname) {
 		apperror.Panic500If(apperror.ErrDummy, "Nickname has an illegal format (e.g. invalid characters)")
 	}
@@ -107,13 +112,57 @@ func generateSessionToken() string {
 	return GenNonce(32)
 }
 
+func recordSessionTokenIntoDb(nickname, token string) {
+	err := WithTransaction(database.SDUsersDb,
+		func(trans *database.TransactionType) (err1 error) {
+			res, err1 := trans.Tx.Queryx("select begin_session($1,$2)", nickname, token)
+			// FIXME process exception with too_many_sessions mentioned
+			apperror.GracefullyExitAppIf(err1, "Failed to begin session, error is «%#v»", err1)
+			for res.Next() {
+				// it returns an id, but we don't need it
+			}
+			return
+		})
+	apperror.GracefullyExitAppIf(err, "Failed to begin session 2, error is «%#v»", err)
+}
+
+func getSessionToken(c *gin.Context) (token string, found bool) {
+	token, err := c.Cookie("token")
+	if err == http.ErrNoCookie {
+		return
+	}
+	apperror.GracefullyExitAppIf(err, "Unknown error getting session token: «%s»", err)
+	found = true
+	return
+}
+
 // Logout performs a logout
 func Logout(c *gin.Context) {
-	// Clear the cookie
-	c.SetCookie("token", "", -1, "", "", false, true)
-
+	endSessionIfThereIsOne(c)
 	// Redirect to the home page
 	c.Redirect(http.StatusTemporaryRedirect, "/")
+}
+
+// clear the cookie and delete the session from db
+func endSessionIfThereIsOne(c *gin.Context) {
+	token, tokenFound := getSessionToken(c)
+	if !tokenFound {
+		return
+	}
+
+	c.SetCookie("token", "", -1, "", "", false, true)
+
+	err := WithTransaction(database.SDUsersDb,
+		func(trans *database.TransactionType) (err1 error) {
+			res, err1 := trans.Tx.Queryx("select end_session($1)", token)
+			// FIXME process exception with too_many_sessions mentioned
+			apperror.GracefullyExitAppIf(err1, "Failed to end session, error is «%#v»", err1)
+			for res.Next() {
+				// don't need the result
+			}
+			return
+		})
+	apperror.GracefullyExitAppIf(err, "Failed to end session 2, error is «%#v»", err)
 }
 
 // LoginFormPageHandler renders a /loginform page

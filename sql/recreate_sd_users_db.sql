@@ -74,6 +74,9 @@ CREATE TABLE session (
   expireat timestamptz not null -- expire at
 );
 
+create unique index i_session__eid on session (eid); 
+create index i_session__sduserid on session (sduserid);
+
 --- delete_expired_registrationattempts. 
 --- We have a unique indices on a registrationemail and nickname. 
 --- So we MUST delete all expired registrationattempts before adding new one 
@@ -193,4 +196,49 @@ insert into tsense (dialectid, phrase, word)
   VALUES
   (1,'Programming language by Google created in 2000s','golang');
 
+-- begin_session. Return an id of a new session in a dataset. Tokens are random and may
+-- clash. We will just fail with exception in this case in the service will crash. It is ok
+-- due to low probability and crashing is our strategy in case anything wrong happens 
+create or replace function begin_session(p_nickname text, p_token text)
+returns table (sessionid integer) as $$
+ declare v_sduserid int;
+ declare v_count_of_sessions int;
+ declare v_result int;
+ BEGIN
+  lock table themutex;
+  delete from session where expireat <= current_timestamp;
+  select id from sduser 
+    where nickname = p_nickname 
+    limit 1 into v_sduserid ;
+  if v_sduserid is null then
+    raise data_exception using table = 'begin_session', column = 'user_not_found', message = 'user not found';
+  end if;
+  -- in case someone would want to flood us with new sessions
+  select count(1) 
+    from 
+    (select 1 from session 
+      where sduserid = v_sduserid 
+      limit 100) sessions_limited
+    into v_count_of_sessions;
+  if v_count_of_sessions = 100 then 
+    -- TODO FIXME close old session if logging in while in session
+    raise data_exception using table = 'begin_session', column = 'too_many_sessions', message = 'too many sessions for this user';
+  end if;
+  insert into session (eid, sduserid, expireat) values
+  (p_token, v_sduserid, current_timestamp + interval '40' minute)
+  returning id into v_result;
+  return query(select v_result);
+ END;
+$$ language plpgsql;
+
+create or replace function end_session(p_token text)
+returns void as $$
+  BEGIN
+  lock table themutex;
+  delete from session where expireat <= current_timestamp;
+  delete from session where eid = p_token;
+  END;
+$$ language plpgsql;
+
+-- keep this one the last statement!
 create view marker_of_script_success as select current_timestamp;

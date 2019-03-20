@@ -51,13 +51,16 @@ func WithTransaction(
 }
 
 func isNicknameInValidFormat(nickname string) bool {
+	//TODO
 	return true
 }
 
 func isPasswordInValidFormat(password string) bool {
+	//TODO
 	return true
 }
 
 func isEmailInValidFormat(email string) bool {
+	//TODO
 	return true
 }
