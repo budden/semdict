@@ -65,7 +65,7 @@ func playWithServer() {
 
 	limitListener := netutil.LimitListener(listener, connectionLimit)
 
-	scd := &shared.SecretConfigData
+	scd := shared.SecretConfigData
 
 	log.Print(ThisHTTPServer.ServeTLS(limitListener, scd.TLSCertFile, scd.TLSKeyFile))
 

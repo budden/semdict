@@ -18,7 +18,7 @@ func Test_GenerateSecretConfigDataExample(t *testing.T) {
 	assert.Nilf(t, err, "Error %#v in SaveSecretConfigDataExample", err)
 	err2 := LoadSecretConfigData(fn)
 	assert.Nilf(t, err2, "Error %#v in LoadSecretConfigData", err)
-	assert.Equal(t, *scd, shared.SecretConfigData)
+	assert.Equal(t, scd, shared.SecretConfigData)
 }
 
 func Test_Nonce(t *testing.T) {

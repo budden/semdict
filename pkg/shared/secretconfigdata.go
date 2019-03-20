@@ -17,4 +17,4 @@ type SecretConfigDataT struct {
 }
 
 // SecretConfigData is an in-memory copy of a secret-data.config.json configuration file
-var SecretConfigData SecretConfigDataT
+var SecretConfigData *SecretConfigDataT

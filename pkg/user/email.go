@@ -20,7 +20,7 @@ func SendEmail(recieverEMail, subj, html string) (err error) {
 			recieverEMail, subj, html)
 		return
 	}
-	scd := &shared.SecretConfigData
+	scd := shared.SecretConfigData
 	m := mail.NewMessage()
 	m.SetHeader("From", scd.SenderEMail)
 	m.SetHeader("To", recieverEMail)
@@ -35,6 +35,6 @@ func SendEmail(recieverEMail, subj, html string) (err error) {
 
 // PlayWithEmail sends an example email (of fakes it)
 func PlayWithEmail() {
-	scd := &shared.SecretConfigData
+	scd := shared.SecretConfigData
 	SendEmail(scd.RecieverEMail, "Hello!", "Hello, world!")
 }

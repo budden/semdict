@@ -46,7 +46,8 @@ func SaveSecretConfigDataExample(fileName string) (scd *shared.SecretConfigDataT
 
 // LoadSecretConfigData reads the config file and inititalizes a SecretConfigData global
 func LoadSecretConfigData(configFileName string) (err error) {
-	scd := &shared.SecretConfigData
+	shared.SecretConfigData = &shared.SecretConfigDataT{}
+	scd := shared.SecretConfigData
 	fn := configFileName
 	if _, err = os.Stat(fn); os.IsNotExist(err) {
 		fmt.Printf("No config file %s found. Create one by copying from %s.example\n",
