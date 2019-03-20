@@ -23,7 +23,7 @@ import (
 )
 
 func homePageHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "general.html", shared.GeneralTemplateParams{Message: "Hello from gin"})
+	c.HTML(http.StatusOK, "general.html", shared.GeneralTemplateParams{Message: "Welcome to semantic dictionary"})
 }
 
 const connectionLimit = 500
@@ -91,6 +91,7 @@ func initRouter() *gin.Engine {
 
 	engine.LoadHTMLGlob("templates/*")
 	engine.GET("/", homePageHandler)
+	engine.GET("/menu", menuPageHandler)
 	engine.GET("/searchform", query.SearchFormPageHandler)
 	engine.GET("/searchresult", query.SearchResultPageHandler)
 	// FIXME - change a way of addressing articles to be adequate!

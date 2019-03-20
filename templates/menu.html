@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+    <!-- See https://tehnojam.pro/category/development/razrabotka-web-prilozhenij-i-mikroservisov-na-golang-s-gin.html -->
+    <!--Embed the header.html template at this location-->
+    {{ template "header.html" .}}
+    <body>
+     <ul>
+      <li><a href="/articleview/golang">View article</a></li>
+      {{if not .IsLoggedIn}}<li><a href="/loginform">Login/register</a></li>{{end}}
+     {{if .IsLoggedIn}}<li><a href="/articleedit/golang">Edit article</a></li>{{end}}
+     {{if .IsLoggedIn}}<li><a href="/logout">Log out</a></li>{{end}}
+     <li><a href="https://github.com/budden/semdict">GitHub</a></li>
+    </body>
+</html>

@@ -6,7 +6,8 @@
 {{ template "header.html" .}}
 
 <body>
- <form class="form" action="/loginformsubmit" method="POST">
+  <p><a href="menu">Menu</a></p>
+  <form class="form" action="/loginformsubmit" method="POST">
   <div class="form-group">
    <label for="nickname">Nickname</label>
    <input type="text" class="form-control" id="nickname" 
@@ -20,8 +21,9 @@
    placeholder="Password"
    required>
   </div>
-  <button type="submit" class="btn btn-primary">Register</button>
+  <button type="submit" class="btn btn-primary">Log in</button>
  </form>
+ <p><a href="/registrationform">Sign up</a></p>
 </body>
 
 </html>
