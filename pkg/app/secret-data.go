@@ -28,10 +28,10 @@ const ConfigFileName = "secret-data.config.json"
 // As a side effect, secret-data.config.json.example is created
 func SaveSecretConfigDataExample(fileName string) (scd *shared.SecretConfigDataT, err error) {
 	scd = &shared.SecretConfigDataT{
-		Comment: "Example config file. Copy this one to the secret-data.config.json and edit." +
-			"If an SMTPServer is set to an empty string, emails are printed to stdout instead of actually being sent" +
-			"TLSCertFile and TLSKeyFile are file names of files in PEM format. You can set them to empty strings to use" +
-			"plain http, but some functionality (e.g. confirmation E-mails) will be broken",
+		Comment: []string{"Example config file. Copy this one to the secret-data.config.json and edit.",
+			"If an SMTPServer is set to an empty string, emails are printed to stdout instead of actually being sent",
+			"TLSCertFile and TLSKeyFile are file names of files in PEM format. You can set them to empty strings to use",
+			"plain http"},
 		SiteRoot:            "localhost",
 		WebServerPort:       "8085",
 		SenderEMail:         "den@example.net",
