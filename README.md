@@ -18,14 +18,19 @@ there is no project structure yet.
 - run postgres as self (non-root) - done once, but steps were not recorded very well
 - sending e-mails
 - confirm registration
+- ssl locally
 
 
 ## To do
+- sane page titles (otherwise history is ugly)
 - validate e-mails and passwords
+- deamonization
+- integration test
+- deploy on hosting
+
+# Possible future extensions
+- comment in config file to be an array of strings instead of one huge string
+- fail2ban integration
 - captcha
-- ssl locally
-- hosting
 - cleanup goroutine or postgresql service? 
 - one connect, pool of connections or what? (now using pool and crashing if something is wrong)
-
-
