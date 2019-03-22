@@ -194,7 +194,6 @@ func endSessionIfThereIsOne(c *gin.Context) {
 	err := WithTransaction(database.SDUsersDb,
 		func(trans *database.TransactionType) (err1 error) {
 			res, err1 := trans.Tx.Queryx("select end_session($1)", token)
-			// FIXME process exception with too_many_sessions mentioned
 			apperror.GracefullyExitAppIf(err1, "Failed to end session, error is «%#v»", err1)
 			for res.Next() {
 				// don't need the result

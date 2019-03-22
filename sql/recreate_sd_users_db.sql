@@ -1,6 +1,6 @@
 DROP DATABASE IF EXISTS sdusers_db;
 
-CREATE DATABASE sdusers_db;
+CREATE DATABASE sdusers_db with owner root;
 
 \connect sdusers_db;
 

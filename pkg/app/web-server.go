@@ -12,6 +12,7 @@ import (
 	"github.com/budden/semdict/pkg/database"
 	"github.com/budden/semdict/pkg/shutdown"
 	"github.com/budden/semdict/pkg/unsorted"
+	"github.com/coreos/go-systemd/daemon"
 
 	"github.com/budden/semdict/pkg/apperror"
 	"github.com/budden/semdict/pkg/user"
@@ -44,7 +45,8 @@ func playWithServer() {
 	log.Printf("Starting server on %s - kill app to stop\n", port)
 
 	// https://stackoverflow.com/a/52830435/9469533
-	//gin.SetMode(gin.ReleaseMode)
+	// FIXME conditionalize
+	gin.SetMode(gin.ReleaseMode)
 	//This will disable hot template reloading, so we'll try to disable any messaging for a whil
 
 	engine := initRouter()
@@ -67,6 +69,7 @@ func playWithServer() {
 
 	scd := shared.SecretConfigData
 
+	daemon.SdNotify(false, "READY=1")
 	log.Print(ThisHTTPServer.ServeTLS(limitListener, scd.TLSCertFile, scd.TLSKeyFile))
 
 	closer1 := func() { ThisHTTPServer.Shutdown(context.TODO()) }
@@ -94,7 +97,8 @@ func initRouter() *gin.Engine {
 
 	engine.Use(gin.Logger(), user.SetUserStatus(), apperror.HandlePanicInRequestHandler())
 
-	engine.LoadHTMLGlob("templates/*")
+	templatesGlob := *TemplateBaseDir + "templates/*"
+	engine.LoadHTMLGlob(templatesGlob)
 	engine.GET("/", homePageHandler)
 	engine.GET("/menu", menuPageHandler)
 	engine.GET("/searchform", query.SearchFormPageHandler)

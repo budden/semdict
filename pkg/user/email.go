@@ -13,7 +13,7 @@ func fakeEmail() bool {
 }
 
 // SendEmail sends an email, or, if fakeEmail() is true, prints it to stdout
-// Sender, SMTP server and credentials are taken from secret-data.config.json
+// Sender, SMTP server and credentials are taken from semdict.config.json
 // (loaded when program starts)
 func SendEmail(recieverEMail, subj, html string) (err error) {
 	if fakeEmail() {

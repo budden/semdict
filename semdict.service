@@ -1,0 +1,10 @@
+[Unit]
+Description=Semantic dict
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/semdict
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

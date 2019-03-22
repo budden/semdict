@@ -17,12 +17,9 @@ import (
 	"github.com/budden/semdict/pkg/user"
 )
 
-// Play runs a set of exercises/demos
+// Play runs an app (FIXME rename)
 func Play(commandLineArgs []string) {
 	shutdown.RunSignalListener()
-	/// Uncomment next line to create secret-data.config.json.example
-	//saveSecretConfigDataExample()
-
 	LoadSecretConfigData(ConfigFileName)
 	database.OpenSDUsersDb()
 	/* playWithPanic()

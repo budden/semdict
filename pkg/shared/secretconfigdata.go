@@ -1,6 +1,6 @@
 package shared
 
-// SecretConfigDataT specifies the fields of secret-data.config.json
+// SecretConfigDataT specifies the fields of semdict.config.json
 // That file contains the data which is secret and site-specific so it can't be stored to git
 type SecretConfigDataT struct {
 	Comment             []string
@@ -16,7 +16,7 @@ type SecretConfigDataT struct {
 	TLSKeyFile          string
 }
 
-// SecretConfigData is an in-memory copy of a secret-data.config.json configuration file
+// SecretConfigData is an in-memory copy of a semdict.config.json configuration file
 var SecretConfigData *SecretConfigDataT
 
 // SitesProtocol returns "http:" if there are no TLS sertificates

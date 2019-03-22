@@ -11,12 +11,12 @@ import (
 
 func Test_GenerateSecretConfigDataExample(t *testing.T) {
 	// thiss not merely a test, but also an utility: it creates
-	// secret-data.config.json.example
+	// semdict.config.json.example
 	// FIXME use make or at least bash script to generate an example2
-	fn := "../../" + ConfigFileName + ".example"
-	scd, err := SaveSecretConfigDataExample(fn)
+	cfn := "../../" + DefaultConfigFileName + ".example"
+	scd, err := SaveSecretConfigDataExample(&cfn)
 	assert.Nilf(t, err, "Error %#v in SaveSecretConfigDataExample", err)
-	err2 := LoadSecretConfigData(fn)
+	err2 := LoadSecretConfigData(&cfn)
 	assert.Nilf(t, err2, "Error %#v in LoadSecretConfigData", err)
 	assert.Equal(t, scd, shared.SecretConfigData)
 }
