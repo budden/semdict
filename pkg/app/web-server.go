@@ -70,7 +70,12 @@ func playWithServer() {
 	scd := shared.SecretConfigData
 
 	daemon.SdNotify(false, "READY=1")
-	log.Print(ThisHTTPServer.ServeTLS(limitListener, scd.TLSCertFile, scd.TLSKeyFile))
+
+	if scd.TLSCertFile == "" && scd.TLSKeyFile == "" {
+		log.Print(ThisHTTPServer.Serve(limitListener))
+	} else {
+		log.Print(ThisHTTPServer.ServeTLS(limitListener, scd.TLSCertFile, scd.TLSKeyFile))
+	}
 
 	closer1 := func() { ThisHTTPServer.Shutdown(context.TODO()) }
 	closer := func() { go closer1() }

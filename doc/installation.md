@@ -90,12 +90,37 @@ sudo psql postgres://localhost/postgres
 
 ### Create a database
 
+```
 cd $GOPATH/src/github.com/budden/semdict
 sudo psql -f sql/recreate_sd_users_db.sql postgres://localhost/postgres
-
 # Must pass w/o errors and end with "CREATE VIEW"
+```
+
+### Test run as an application
+
+Create semdict.config.json like this:
+```
+{"Comment":["My"
+ ,"config"]
+,"SiteRoot": "localhost"
+,"WebServerPort": "8085"
+,"RecieverEMail":""
+,"SMTPServer":""
+,"SMTPUser":""
+,"SMTPPassword":""
+,"SenderEMail":""
+,"PostgresqlServerURL": "postgresql://localhost:5432"
+,"TLSCertFile": ""
+,"TLSKeyFile": ""
+}
+
+```
 
 
+
+### Write config file
+```
+sudo cp /etc/semdict/config.json.
 
 Something more or less realistic in terms of features. Securely stored passwords, expiring registration confirmation links sent over an E-mail and so on.
 
