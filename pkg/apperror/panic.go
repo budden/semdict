@@ -142,16 +142,17 @@ func Panic500AndErrorIf(err error, format string, args ...interface{}) {
 // the log (maybe a separated log) in the form understandible by fail2ban
 func Panic500AndLogAttackIf(err error, c *gin.Context, format string, args ...interface{}) {
 	if err != nil {
+		LogAttack(c, err)
 		msg := fmt.Sprintf(format, args...)
-		LogAttack(c)
 		data := Exception500{Message: msg}
 		panic(&data)
 	}
 }
 
 // LogAttack is recording a request which is a suspected attack (for fail2ban)
-func LogAttack(c *gin.Context) {
-	log.Printf("Suspected attack TODO write IP address and other things for fail2ban")
+func LogAttack(c *gin.Context, err error) {
+	log.Printf("Error (may be an attack). IP address is %s\n, Error is «%#v»\n", c.ClientIP(), err)
+	// FIXME integrate with fail2ban
 }
 
 // Panic200 should be called inside an http request handler and will cause the

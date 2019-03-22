@@ -1,6 +1,7 @@
 package user
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -55,7 +56,7 @@ func setUserStatusFn(c *gin.Context) {
 		// ok, it will be false
 	} else if !tokenValid {
 		// session expired, or, worse, it is an attack
-		apperror.LogAttack(c)
+		apperror.LogAttack(c, errors.New("setUserStatusFn: invalid token"))
 		endSessionIfThereIsOne(c)
 	} else {
 		// hence token is present and valid
