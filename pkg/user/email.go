@@ -29,7 +29,7 @@ func SendEmail(recieverEMail, subj, html string) (err error) {
 	m.SetHeader("Subject", subj)
 	m.SetBody("text/html", html)
 
-	d := mail.NewDialer(scd.SMTPServer, 587, scd.SMTPUser, scd.SMTPPassword)
+	d := mail.NewDialer(scd.SMTPServer, 25, scd.SMTPUser, scd.SMTPPassword)
 
 	err = d.DialAndSend(m)
 	return

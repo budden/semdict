@@ -30,7 +30,7 @@ func RegistrationFormSubmitPostHandler(c *gin.Context) {
 	rd.Registrationemail = c.PostForm("registrationemail")
 	rd.Password1 = c.PostForm("password1")
 	rd.Password2 = c.PostForm("password2")
-	appErr := doRegistrationFormSubmit(&rd)
+	appErr := doRegistrationFormSubmit(c, &rd)
 	if appErr == nil {
 		c.HTML(http.StatusOK,
 			"general.html",
@@ -43,12 +43,12 @@ func RegistrationFormSubmitPostHandler(c *gin.Context) {
 	}
 }
 
-func doRegistrationFormSubmit(rd *RegistrationData) (apperr *apperror.AppErr) {
+func doRegistrationFormSubmit(c *gin.Context, rd *RegistrationData) (apperr *apperror.AppErr) {
 	validateRegistrationData(rd)
 	apperr = processRegistrationFormSubmitWithDb(rd)
 	if apperr == nil {
 		// sendConfirmationEmail only produces 500 in case of failure
-		sendConfirmationEmail(rd)
+		sendConfirmationEmail(c, rd)
 	}
 	return apperr
 }
@@ -69,7 +69,7 @@ func validateRegistrationData(rd *RegistrationData) {
 	}
 }
 
-func sendConfirmationEmail(rd *RegistrationData) {
+func sendConfirmationEmail(c *gin.Context, rd *RegistrationData) {
 	scd := shared.SecretConfigData
 	// TODO: if there are no certificate files, use http an7
 	confirmationLinkBase := shared.SitesProtocol() + "//" + scd.SiteRoot + ":" + scd.WebServerPort + "/registrationconfirmation"
@@ -92,7 +92,7 @@ func sendConfirmationEmail(rd *RegistrationData) {
 	if err != nil {
 		// We assume that failure to send an E-mail can be due to temporary
 		// network issues
-		apperror.Panic500If(err, "Failed to send a confirmation E-mail")
+		apperror.Panic500AndLogAttackIf(err, c, "Failed to send a confirmation E-mail")
 	}
 
 	noteRegistrationConfirmationEMailSentWithDb(rd)
