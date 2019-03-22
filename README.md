@@ -9,28 +9,31 @@ there is no project structure yet.
 
 ## Elements
 
-### Done or all clear
+### Done 
 - concept of database error handling
 - postgres quoting - sqlx seem to work fine
 - genExpiryDate (schedule an expiry of a link)
 - genNonce (for registration confirmation links)
 - SaltAndHashPassword (safe storing of passwords)
-- run postgres as self (non-root) - done once, but steps were not recorded very well
+- run postgres as a user 
 - sending e-mails
 - confirm registration
 - ssl locally
+- deploy locally
 
 
 ## To do
 - sane page titles (otherwise history is ugly)
 - validate e-mails and passwords
-- deamonization
 - integration test
 - deploy on hosting
 
 # Possible future extensions
-- comment in config file to be an array of strings instead of one huge string
 - fail2ban integration
 - captcha
-- cleanup goroutine or postgresql service? 
+- now cleanup of timed out things is 'lazy'. Implement cleanup goroutine or postgresql service? 
+- implement keepalive for the service https://www.linux.org.ru/forum/development/14883028
 - one connect, pool of connections or what? (now using pool and crashing if something is wrong)
+
+# Installation 
+See [installation.md in doc directory](doc/installation.md)

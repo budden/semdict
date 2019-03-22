@@ -24,9 +24,9 @@ CREATE TABLE sduser (
 );
 
 insert into sduser (nickname, registrationemail, salt, hash, registrationtimestamp)
-values ('a','a@example.com','OHQgQbmVlLdeLz3muq48mQ',
-'qlyxhq_cWSWmORUJRK6YEfx5XDn4hoLJoQym-pWK2g4',current_timestamp);
--- password is 'a'
+values ('testuser','testuser@example.com','Fr5ISNGBVjsNUX1C5Q--Vw',
+'qZwRJrl9O_VwBuQKJrMTYW1bh4zqNUAhMcmPyh5kBpo',current_timestamp);
+-- password is aA$9bbbb
 
 -- https://stackoverflow.com/a/9808332/9469533 - it is considered safe to lowercase an E-mail
 create unique index 
