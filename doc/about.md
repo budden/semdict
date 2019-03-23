@@ -13,6 +13,7 @@ a confirmation key.
 # Technology stack
 
 - golang
+- pkg/errors
 - gin
 - html/template
 - sqlx
@@ -20,6 +21,8 @@ a confirmation key.
 - nginx
 - systemd
 - VPS
+- VS Code
+- git
 
 # Security
 
@@ -38,9 +41,7 @@ it to the log and continue to work. For instance, if something bad happened in a
 will return to the connection pool in a messy state, which will obviously impact subsequent activity. 
 
 We took more stringest approach to error handling. There is a set of "known" errors, like "bad credentials", or
-"non-unique key" which we are capturing and handling. All other things cause server to complain to the log and then quit. 
-There is a "graceful" exit (we wait couple seconds to let http server to quit and close database connection politely), and
-"hard" crash where we just exit the app after only printing a notice about the error. 
+"non-unique key" which we are capturing and handling. All other things cause service to complain to the log and then quit. It is up to systemd to start a new instance. There is a "graceful" exit (we wait couple seconds to let http server to quit and close database connection politely) for some dedicated "half-known" errors, and "hard" crash where we just call os.Exit() after printing a notice about the error. 
 
 To implement it we had to re-think the recommended approach to the error handling in golang. Later we found that our 
 insights are very similar to the opinions expressed by "pro" golang developers, like this one: [Panic like a pro](https://hackernoon.com/panic-like-a-pro-89044d5a2d35)
