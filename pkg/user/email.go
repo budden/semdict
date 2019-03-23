@@ -34,9 +34,3 @@ func SendEmail(recieverEMail, subj, html string) (err error) {
 	err = d.DialAndSend(m)
 	return
 }
-
-// PlayWithEmail sends an example email (of fakes it)
-func PlayWithEmail() {
-	scd := shared.SecretConfigData
-	SendEmail(scd.RecieverEMail, "Hello!", "Hello, world!")
-}

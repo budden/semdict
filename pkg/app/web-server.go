@@ -41,7 +41,7 @@ var ThisHTTPServer *http.Server
 // https://golang.hotexamples.com/examples/golang.org.x.net.netutil/-/LimitListener/golang-limitlistener-function-examples.html
 // https://habr.com/ru/post/197468/
 func playWithServer() {
-	port := ":" + shared.SecretConfigData.WebServerPort
+	port := ":" + shared.SecretConfigData.ServerPort
 	log.Printf("Starting server on %s - kill app to stop\n", port)
 
 	// https://stackoverflow.com/a/52830435/9469533

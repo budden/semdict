@@ -12,6 +12,9 @@ package app
 import (
 	"fmt"
 
+	"github.com/budden/semdict/pkg/shared"
+
+	"github.com/budden/semdict/pkg/apperror"
 	"github.com/budden/semdict/pkg/database"
 	"github.com/budden/semdict/pkg/shutdown"
 	"github.com/budden/semdict/pkg/user"
@@ -20,12 +23,15 @@ import (
 // Play runs an app (FIXME rename)
 func Play(commandLineArgs []string) {
 	shutdown.RunSignalListener()
-	LoadSecretConfigData(ConfigFileName)
+	err := LoadSecretConfigData(ConfigFileName)
+	apperror.ExitAppIf(err,
+		shared.ExitCodeBadConfigFile,
+		"Failed to load configuation, error is «%s»",
+		err)
 	database.OpenSDUsersDb()
 	/* playWithPanic()
 	playWithNonce(16)
-	playWithSaltAndHash()
-	user.PlayWithEmail() */
+	playWithSaltAndHash() */
 	playWithServer()
 }
 

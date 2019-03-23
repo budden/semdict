@@ -7,6 +7,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/pkg/errors"
+
 	"github.com/budden/semdict/pkg/shared"
 	// "github.com/flynn/json5"
 )
@@ -34,14 +36,10 @@ var TemplateBaseDir *string
 // As a side effect, semdict.config.json.example is created
 func SaveSecretConfigDataExample(fileName *string) (scd *shared.SecretConfigDataT, err error) {
 	scd = &shared.SecretConfigDataT{
-		Comment: []string{"Example config file. Copy this one to the semdict.config.json and edit.",
-			"If an SMTPServer is set to an empty string, emails are printed to stdout instead of actually being sent",
-			"TLSCertFile and TLSKeyFile are file names of files in PEM format. You can set them to empty strings to use",
-			"plain http"},
+		Comment:             shared.SecretConfigDataTComment,
 		SiteRoot:            "localhost",
-		WebServerPort:       "8085",
+		ServerPort:          "8085",
 		SenderEMail:         "den@example.net",
-		RecieverEMail:       "world@example.net",
 		SMTPServer:          "smtp.example.net",
 		SMTPUser:            "Кирилл",
 		SMTPPassword:        "bla-bla-bla",
@@ -74,6 +72,51 @@ func LoadSecretConfigData(configFileName *string) (err error) {
 	if err != nil {
 		fmt.Printf("Error reading config file %s: %#v\n", fn, err)
 		return
+	}
+	err = validateConfiguration(scd)
+	if err != nil {
+		return
+	}
+	return
+}
+
+func validateConfiguration(scd *shared.SecretConfigDataT) (err error) {
+	cert := scd.TLSCertFile
+	key := scd.TLSKeyFile
+	switch scd.UnderAProxy {
+	case 0:
+		{
+			if cert == "" && key == "" {
+				// ok
+			} else if cert != "" && key != "" {
+				// both must exist
+				var probe bool
+				probe, err = shared.IsFileExist(cert)
+				if err != nil {
+					err = errors.Wrapf(err, "Failed to stat a TLS cert file")
+				} else if !probe {
+					err = errors.Errorf("TLSCertFile «%s» not found", cert)
+				}
+				probe, err = shared.IsFileExist(key)
+				if err != nil {
+					err = errors.Wrapf(err, "Failed to stat a TLS key file")
+				} else if !probe {
+					err = errors.Errorf("TLSKeyFile «%s» not found", key)
+				}
+			} else {
+				err = errors.New("In a standalone mode, you must supply either both TLSCertFile and TLSKeyFile, or none of them")
+			}
+		}
+	case 1:
+		{
+			if cert != "" || key != "" {
+				err = errors.New("Under a proxy, don't supply TLSCertFile and TLSKeyFile")
+			}
+		}
+	default:
+		{
+			err = errors.New("UnderAProxy must be 0 (standalone mode) or 1 (behind a proxy)")
+		}
 	}
 	return
 }

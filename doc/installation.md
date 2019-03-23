@@ -103,8 +103,7 @@ Create semdict.config.json like this:
 {"Comment":["My"
  ,"config"]
 ,"SiteRoot": "localhost"
-,"WebServerPort": "8085"
-,"RecieverEMail":""
+,"ServerPort": "8085"
 ,"SMTPServer":""
 ,"SMTPUser":""
 ,"SMTPPassword":""
