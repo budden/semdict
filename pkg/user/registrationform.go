@@ -79,10 +79,10 @@ func sendConfirmationEmail(c *gin.Context, rd *RegistrationData) {
 	u.RawQuery = parameters.Encode()
 	confirmationLink := u.String()
 	body := fmt.Sprintf(
-		"Hello, %s!\nTo activate your account, please follow an activation link: %s",
+		"Hello, %s!\nTo activate your account, please follow an activation link: <a href=%s>%s</a>",
 		// FIXME should Nickname need html escaping?
 		html.EscapeString(rd.Nickname),
-		confirmationLink)
+		confirmationLink, confirmationLink)
 
 	err = SendEmail(
 		rd.Registrationemail,

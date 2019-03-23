@@ -7,7 +7,6 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"github.com/budden/semdict/pkg/database"
-	"github.com/budden/semdict/pkg/shared"
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,8 +21,8 @@ func RegistrationConfirmationPageHandler(c *gin.Context) {
 	// promote the user to Sd Db. If we crash here, user will be able to login,
 	// (and unable to register again), but wil be missing from the main content db
 	c.HTML(http.StatusMovedPermanently,
-		"general.html",
-		shared.GeneralTemplateParams{Message: "Registration confirmed. Now you can proceed to the <a href=/>Login page</a>"})
+		"registrationconfirmation.html",
+		gin.H{})
 }
 
 func extractNicknameAndConfirmationKeyFromRequest(c *gin.Context, rd *RegistrationData) {
