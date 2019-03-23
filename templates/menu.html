@@ -6,7 +6,7 @@
     <body>
      <ul>
       <li><a href="/articleview/golang">View article</a></li>
-      {{if not .IsLoggedIn}}<li><a href="/loginform">Login/register</a></li>{{end}}
+      {{if not .IsLoggedIn}}<li><a href="/loginform">Login or Sign Up</a></li>{{end}}
      {{if .IsLoggedIn}}<li><a href="/articleedit/golang">Edit article</a></li>{{end}}
      {{if .IsLoggedIn}}<li><a href="/logout">Log out</a></li>{{end}}
      <li><a href="https://github.com/budden/semdict">GitHub</a></li>
