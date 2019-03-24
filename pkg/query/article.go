@@ -81,7 +81,7 @@ func readArticleFromDb(avdhp *articleViewDirHandlerParams) (dataFound bool, ad *
 		err1 = reply.StructScan(ad)
 		dataFound = true
 	}
-	sddb.FatalDatabaseErrorIf(err1, sddb.SDUsersDb, "Error obtaining data of sense: %#v", err1)
+	sddb.FatalDatabaseErrorIf(err1, "Error obtaining data of sense: %#v", err1)
 	return
 }
 

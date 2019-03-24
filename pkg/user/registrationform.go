@@ -102,13 +102,13 @@ func sendConfirmationEmail(c *gin.Context, rd *RegistrationData) {
 // rd.UserID is filled
 func noteRegistrationConfirmationEMailSentWithDb(rd *RegistrationData) {
 	err := sddb.WithTransaction(func(trans *sddb.TransactionType) (err1 error) {
-		sddb.CheckDbAlive(trans.Conn)
+		sddb.CheckDbAlive()
 		_, err1 = trans.Tx.NamedExec(
 			`select note_registrationconfirmation_email_sent(:nickname, :confirmationkey)`,
 			rd)
 		return
 	})
-	sddb.FatalDatabaseErrorIf(err, sddb.SDUsersDb, "Error remembering that E-Mail was sent, error is %#v", err)
+	sddb.FatalDatabaseErrorIf(err, "Error remembering that E-Mail was sent, error is %#v", err)
 	return
 }
 
@@ -120,16 +120,15 @@ var mapViolatedConstraintNameToMessage = map[string]string{
 	"i_sduser_nickname":                        "There is already a user with the same nickname"}
 
 func deleteExpiredRegistrationAttempts(trans *sddb.TransactionType) error {
-	conn := trans.Conn
 	tx := trans.Tx
-	sddb.CheckDbAlive(conn)
+	sddb.CheckDbAlive()
 	_, err1 := tx.Exec("select delete_expired_registrationattempts()")
 	// it's not a fatal error (rare case!)
 	apperror.Panic500If(err1,
 		"Failed to register. Please try again later or contact us for assistance")
-	sddb.CheckDbAlive(conn)
+	sddb.CheckDbAlive()
 	err1 = tx.Commit()
-	sddb.FatalDatabaseErrorIf(err1, conn,
+	sddb.FatalDatabaseErrorIf(err1,
 		"Failed to commit after delete_expired_registrationattempts, error = %#v",
 		err1)
 	return nil
@@ -139,22 +138,20 @@ func deleteExpiredRegistrationAttempts(trans *sddb.TransactionType) error {
 // If some "normal" error happens like non-unique nickname, it is returned in dberror.
 func processRegistrationFormSubmitWithDb(rd *RegistrationData) *apperror.AppErr {
 
-	db := sddb.SDUsersDb
 	err := sddb.WithTransaction(deleteExpiredRegistrationAttempts)
 	sddb.FatalDatabaseErrorIf(err,
-		db,
 		"Failed around delete_expired_registrationattempts, %#v",
 		err)
 
 	err = sddb.WithTransaction(func(trans *sddb.TransactionType) (err error) {
 		rd.Salt, rd.Hash = SaltAndHashPassword(rd.Password1)
 		rd.ConfirmationKey = GenNonce(20)
-		sddb.CheckDbAlive(trans.Conn)
+		sddb.CheckDbAlive()
 		_, err = trans.Tx.NamedExec(
 			`select add_registrationattempt(:nickname, :salt, :hash, :registrationemail, :confirmationkey)`,
 			rd)
 		if err == nil {
-			sddb.CheckDbAlive(trans.Conn)
+			sddb.CheckDbAlive()
 			err = trans.Tx.Commit()
 		}
 		return
@@ -172,6 +169,6 @@ func handleRegistrationAttemptInsertError(err error) *apperror.AppErr {
 			}
 		}
 	}
-	sddb.FatalDatabaseErrorIf(err, sddb.SDUsersDb, "Unexpected error in the registrationformsubmit, %#v\n", err)
+	sddb.FatalDatabaseErrorIf(err, "Unexpected error in the registrationformsubmit, %#v\n", err)
 	return nil
 }

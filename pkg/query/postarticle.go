@@ -66,13 +66,12 @@ func extractDataFromRequest(c *gin.Context, pad *articlePostDataType) {
 }
 
 func writeToDb(pad *articlePostDataType) {
-	db := sddb.SDUsersDb
 	if pad.ID != 0 {
 		res, err1 := sddb.NamedExec(
 			`update tsense set phrase = :phrase, word = :word where	dialectid = 1 and id=:id`, pad)
 		apperror.Panic500If(err1, "Failed to update an article")
 		count, err2 := res.RowsAffected()
-		sddb.FatalDatabaseErrorIf(err2, db, "Unable to check if the record was updated")
+		sddb.FatalDatabaseErrorIf(err2, "Unable to check if the record was updated")
 		if count == 0 {
 			apperror.Panic500If(apperror.ErrDummy, "Article with id = %v not found", pad.ID)
 		}
@@ -85,10 +84,10 @@ func writeToDb(pad *articlePostDataType) {
 		for reply.Next() {
 			dataFound = true
 			err1 := reply.Scan(&pad.ID)
-			sddb.FatalDatabaseErrorIf(err1, sddb.SDUsersDb, "Error obtaining id of a new article, err = %#v", err1)
+			sddb.FatalDatabaseErrorIf(err1, "Error obtaining id of a new article, err = %#v", err1)
 		}
 		if !dataFound {
-			sddb.FatalDatabaseErrorIf(apperror.ErrDummy, sddb.SDUsersDb, "Id of a new article is not returned")
+			sddb.FatalDatabaseErrorIf(apperror.ErrDummy, "Id of a new article is not returned")
 		}
 	}
 }

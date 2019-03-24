@@ -49,12 +49,12 @@ func processRegistrationConfirmationWithSDUsersDbStage1(rd *RegistrationData) {
 		for reply.Next() {
 			err1 = reply.Scan(&rd.UserID)
 			//fmt.Printf("UserID = %v\n", rd.UserID)
-			sddb.FatalDatabaseErrorIf(err1, sddb.SDUsersDb, "Error obtaining id of a new user, err = %#v", err1)
+			sddb.FatalDatabaseErrorIf(err1, "Error obtaining id of a new user, err = %#v", err1)
 		}
 		// hence err1 == nil
 		return
 	})
 	// if we have error here, it is an error in commit, so is fatal
-	sddb.FatalDatabaseErrorIf(err, sddb.SDUsersDb, "Failed around registrationconfirmation, error is %#v", err)
+	sddb.FatalDatabaseErrorIf(err, "Failed around registrationconfirmation, error is %#v", err)
 	return
 }

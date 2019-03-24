@@ -39,16 +39,18 @@ var FatalDatabaseErrorHandler FatalDatabaseErrorHandlerType = initialFatalDataba
 // But this module knows nothing about http, so we only have a stub here. Actual handler is stored
 // in the FatalDatabaseErrorHandler variable and is set up later to app.actualFatalDatabaseErrorHandler
 // FatalDataBaseErrorIf is believed to be thread safe
-func FatalDatabaseErrorIf(err error, c *ConnectionType, format string, args ...interface{}) {
+func FatalDatabaseErrorIf(err error, format string, args ...interface{}) {
 	if err == nil {
 		return
 	}
+	c := SDUsersDb
 	FatalDatabaseErrorHandler(err, c, format, args...)
 	return
 }
 
 // CheckDbAlive is to be called in page handlers before every db interaction
-func CheckDbAlive(c *ConnectionType) {
+func CheckDbAlive() {
+	c := SDUsersDb
 	if IsConnectionDead(c) {
 		apperror.Panic500If(apperror.ErrDummy, "Internal error")
 	}

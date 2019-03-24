@@ -121,10 +121,9 @@ func RollbackIfActive(trans *TransactionType) {
 	}
 	preExistingPanic := recover()
 	if preExistingPanic == nil {
-		FatalDatabaseErrorIf(apperror.ErrDummy, trans.Conn, "Failed to rollback transaction")
+		FatalDatabaseErrorIf(apperror.ErrDummy, "Failed to rollback transaction")
 	} else if ae, ok := preExistingPanic.(apperror.Exception500); ok {
 		FatalDatabaseErrorIf(apperror.ErrDummy,
-			trans.Conn,
 			"Failed to rollback transaction with Exception500 pending: %#v",
 			ae)
 	} else {
@@ -188,7 +187,7 @@ func genExpiryDate(db *sqlx.DB) {
 func WithTransaction(body func(tx *TransactionType) (err error)) (err error) {
 
 	conn := SDUsersDb
-	CheckDbAlive(conn)
+	CheckDbAlive()
 
 	mutex := conn.Mutex
 	if mutex != nil {
@@ -197,18 +196,18 @@ func WithTransaction(body func(tx *TransactionType) (err error)) (err error) {
 	}
 
 	var tx *sqlx.Tx
-	CheckDbAlive(conn)
+	CheckDbAlive()
 	tx, err = conn.Db.Beginx()
 	trans := TransactionType{Conn: conn, Tx: tx}
-	FatalDatabaseErrorIf(err, conn, "Unable to start transaction")
+	FatalDatabaseErrorIf(err, "Unable to start transaction")
 	defer func() { RollbackIfActive(&trans) }()
-	CheckDbAlive(conn)
+	CheckDbAlive()
 	_, err = tx.Exec(`set transaction isolation level repeatable read`)
-	FatalDatabaseErrorIf(err, conn, "Unable to set transaction isolation level")
-	CheckDbAlive(conn)
+	FatalDatabaseErrorIf(err, "Unable to set transaction isolation level")
+	CheckDbAlive()
 	err = body(&trans)
 	if err == nil {
-		CheckDbAlive(conn)
+		CheckDbAlive()
 		err = CommitIfActive(&trans)
 	}
 	return
@@ -218,13 +217,13 @@ func WithTransaction(body func(tx *TransactionType) (err error)) (err error) {
 // to ensure serialization of all writes in scope of instances.
 func NamedUpdateQuery(sql string, params interface{}) (res *sqlx.Rows, err error) {
 	conn := SDUsersDb
-	CheckDbAlive(conn)
+	CheckDbAlive()
 	mutex := conn.Mutex
 	if mutex != nil {
 		mutex.Lock()
 		defer mutex.Unlock()
 	}
-	CheckDbAlive(conn)
+	CheckDbAlive()
 	res, err = conn.Db.NamedQuery(sql, params)
 	return
 }
@@ -233,13 +232,13 @@ func NamedUpdateQuery(sql string, params interface{}) (res *sqlx.Rows, err error
 // can update the db
 func NamedExec(sql string, params interface{}) (res sql.Result, err error) {
 	conn := SDUsersDb
-	CheckDbAlive(conn)
+	CheckDbAlive()
 	mutex := conn.Mutex
 	if mutex != nil {
 		mutex.Lock()
 		defer mutex.Unlock()
 	}
-	CheckDbAlive(conn)
+	CheckDbAlive()
 	res, err = conn.Db.NamedExec(sql, params)
 	return
 }
