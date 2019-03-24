@@ -142,7 +142,6 @@ func RollbackIfActive(trans *TransactionType) {
 func OpenDb(url, logFriendlyName string, withMutex bool) *ConnectionType {
 	var err error
 	var db *sqlx.DB
-	fmt.Printf("Url=%s", url)
 	db, err = sqlx.Open("postgres", url)
 	apperror.ExitAppIf(err, 6, "Failed to open «%s» database", logFriendlyName)
 	err = db.Ping()

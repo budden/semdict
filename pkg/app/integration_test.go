@@ -1,7 +1,7 @@
 package app
 
 import (
-	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
@@ -42,15 +42,33 @@ func TestAll(t *testing.T) {
 		return
 	}
 
-	/* defer func() {
-		time.Sleep(1 * time.Second)
-		assert.Truef(t,
-			reportIfErr(teardownClient()),
-			"teardownClient failed")
-	}() */
+	t.Run("getHomePage", getHomePage)
 
-	fmt.Println("Ughhhhhhh!")
 	// t.Run("testDataImportCSVAlternativeDelimiter", testDataImportCSVAlternativeDelimiter)
+}
+
+func getHomePage(t *testing.T) {
+	// https://stackoverflow.com/a/38807963/9469533
+	url := serviceURL + "/"
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Printf("Failed to GET %s, error is %#v", url, err)
+		t.Fail()
+		return
+	}
+	defer resp.Body.Close()
+	responseData, err1 := ioutil.ReadAll(resp.Body)
+	if err1 != nil {
+		log.Printf("Failed to read response from %s, error is %#v", url, err)
+		t.Fail()
+		return
+	}
+
+	responseString := string(responseData)
+
+	if strings.Index(responseString, "Welcome to semantic dictionary") < 0 {
+		t.Fail()
+	}
 }
 
 // Run runs an app
@@ -93,7 +111,7 @@ func teardownServer(t *testing.T) {
 func dataImportCSV(tableName, fieldDelimiter, fileName string) (err error) {
 	var client *http.Client
 	client = &http.Client{Timeout: time.Second * 10}
-	apiURL := "http://localhost:8081/api/import/csv"
+	apiURL := "http://localhost:????/api/import/csv"
 
 	fd := formDataType{
 		"importCSVTableName":      strings.NewReader(tableName),

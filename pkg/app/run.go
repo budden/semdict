@@ -28,6 +28,11 @@ func Run(commandLineArgs []string) {
 		shared.ExitCodeBadConfigFile,
 		"Failed to load configuation, error is «%s»",
 		err)
+	err = ValidateConfiguration()
+	apperror.ExitAppIf(err,
+		shared.ExitCodeBadConfigFile,
+		"Invalid configuation, error is «%s»",
+		err)
 	sddb.OpenSdUsersDb("sduser_db")
 	/* playWithPanic()
 	playWithNonce(16)

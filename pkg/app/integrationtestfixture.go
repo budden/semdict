@@ -22,7 +22,7 @@ const (
 	serverHost     = "localhost"
 	serverPort     = "5432"
 	serverDatabase = "sduser_test_db"
-	serviceURL     = "http://localhost:8081"
+	serviceURL     = "http://localhost:8085"
 )
 
 var (
@@ -93,7 +93,7 @@ func decodeErrorFromHTTPResponsesBody(res *http.Response) (err error) {
 func errIfQueryResultMismatch(t *testing.T, query, expectedResult string) (err error) {
 	var client *http.Client
 	client = &http.Client{Timeout: time.Second * 10}
-	apiURL := "http://localhost:8081/api/query"
+	apiURL := "http://localhost:????/api/query"
 
 	fd := formDataType{
 		"query": strings.NewReader(query),

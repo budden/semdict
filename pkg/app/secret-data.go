@@ -74,14 +74,12 @@ func LoadSecretConfigData(configFileName *string) (err error) {
 		fmt.Printf("Error reading config file %s: %#v\n", fn, err)
 		return
 	}
-	err = validateConfiguration(scd)
-	if err != nil {
-		return
-	}
 	return
 }
 
-func validateConfiguration(scd *shared.SecretConfigDataT) (err error) {
+// ValidateConfiguration validates a "secret config data"
+func ValidateConfiguration() (err error) {
+	scd := shared.SecretConfigData
 	cert := scd.TLSCertFile
 	key := scd.TLSKeyFile
 	switch scd.UnderAProxy {
