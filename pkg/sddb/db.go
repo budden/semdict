@@ -47,23 +47,23 @@ type TransactionType struct {
 	Tx   *sqlx.Tx
 }
 
-// SDUsersDb contains, after the call to OpenSDUsersDb, a connection to sdusers_db
-var SDUsersDb *ConnectionType
+// sdUsersDb contains, after the call to OpenSdUsersDb, a connection to sdusers_db
+var sdUsersDb *ConnectionType
 
-// OpenSDUsersDb opens sdusers_db
-func OpenSDUsersDb() {
-	if SDUsersDb != nil {
+// OpenSdUsersDb opens sdusers_db
+func OpenSdUsersDb() {
+	if sdUsersDb != nil {
 		log.Fatal("An attempt to re-open SDUsers database")
 	}
 	url := shared.SecretConfigData.PostgresqlServerURL + "/sdusers_db"
-	SDUsersDb = OpenDb(url, "sdusers_db", true)
+	sdUsersDb = OpenDb(url, "sdusers_db", true)
 	return
 }
 
 // PlayWithDb is used to manually test db functionality
 func PlayWithDb() {
 	justAQuery := func(query string) {
-		rows, err := SDUsersDb.Db.Query(query)
+		rows, err := sdUsersDb.Db.Query(query)
 		apperror.LogicalPanicIf(err, "Query error, query: «%s», error: %#v", query, err)
 		rows.Close()
 	}
@@ -75,7 +75,7 @@ func PlayWithDb() {
 	m := map[string]interface{}{"name": `",sql 'inject?`}
 	for i := 0; i < 2; i++ {
 		var res sql.Result
-		res, err1 := SDUsersDb.Db.NamedExec(`insert into budden_a values (:name)`,
+		res, err1 := sdUsersDb.Db.NamedExec(`insert into budden_a values (:name)`,
 			m)
 		//xt := reflect.TypeOf(err1).Kind()
 		if err1 != nil {
@@ -93,7 +93,7 @@ func PlayWithDb() {
 			fmt.Printf("Inserted %#v\n", res)
 		}
 	}
-	genExpiryDate(SDUsersDb.Db)
+	genExpiryDate(sdUsersDb.Db)
 }
 
 const maxOpenConns = 4
@@ -186,7 +186,7 @@ func genExpiryDate(db *sqlx.DB) {
 // see RollbackIfActive
 func WithTransaction(body func(tx *TransactionType) (err error)) (err error) {
 
-	conn := SDUsersDb
+	conn := sdUsersDb
 	CheckDbAlive()
 
 	mutex := conn.Mutex
@@ -213,10 +213,10 @@ func WithTransaction(body func(tx *TransactionType) (err error)) (err error) {
 	return
 }
 
-// NamedUpdateQuery is a query in the SDUsersDb which updates the db. So we hold our mutex
+// NamedUpdateQuery is a query in the sdUsersDb which updates the db. So we hold our mutex
 // to ensure serialization of all writes in scope of instances.
 func NamedUpdateQuery(sql string, params interface{}) (res *sqlx.Rows, err error) {
-	conn := SDUsersDb
+	conn := sdUsersDb
 	CheckDbAlive()
 	mutex := conn.Mutex
 	if mutex != nil {
@@ -231,7 +231,7 @@ func NamedUpdateQuery(sql string, params interface{}) (res *sqlx.Rows, err error
 // NamedExec is like sqlx.NamedExec and also holds the mutex. Use it whenever the query executed
 // can update the db
 func NamedExec(sql string, params interface{}) (res sql.Result, err error) {
-	conn := SDUsersDb
+	conn := sdUsersDb
 	CheckDbAlive()
 	mutex := conn.Mutex
 	if mutex != nil {
@@ -240,5 +240,14 @@ func NamedExec(sql string, params interface{}) (res sql.Result, err error) {
 	}
 	CheckDbAlive()
 	res, err = conn.Db.NamedExec(sql, params)
+	return
+}
+
+// NamedReadQuery is for queries which are read-only. We introduce one as we encapsulate
+// sql(x) connection of sdusers_db in the sddb module.
+func NamedReadQuery(sql string, params interface{}) (res *sqlx.Rows, err error) {
+	conn := sdUsersDb
+	CheckDbAlive()
+	res, err = conn.Db.NamedQuery(sql, params)
 	return
 }

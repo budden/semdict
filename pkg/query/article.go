@@ -59,8 +59,7 @@ func ArticleViewDirHandler(c *gin.Context) {
 }
 
 func readArticleFromDb(avdhp *articleViewDirHandlerParams) (dataFound bool, ad *articleDataForEditType) {
-	db := sddb.SDUsersDb
-	reply, err1 := db.Db.NamedQuery(
+	reply, err1 := sddb.NamedReadQuery(
 		`select 
 			s.id as senseid
 			,l.slug as languageslug

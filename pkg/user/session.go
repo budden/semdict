@@ -76,8 +76,10 @@ func getAndValidateToken(c *gin.Context) (tokenPresent, tokenValid bool, sduseri
 	if !tokenPresent {
 		return
 	}
-	db := sddb.SDUsersDb
-	res, err := db.Db.Queryx("select sduserid from session where eid=$1 and expireat > current_timestamp limit 1", token)
+	params := map[string]interface{}{"token": token}
+	res, err := sddb.NamedReadQuery(`select sduserid from session 
+		where eid=:token and expireat > current_timestamp limit 1`,
+		params)
 	apperror.Panic500AndErrorIf(err, "Failed to check validity of your session, sorry. Please logout and retry")
 	for res.Next() {
 		err1 := res.Scan(&sduserid)
@@ -132,9 +134,9 @@ func isUserValid(nickname, password string) bool {
 
 // function could be general, but it's error messages are login process specific. FIXME
 func getSDUserDataFromDb(nickname string, sud *SDUserData) {
-	db := sddb.SDUsersDb
 	// have <= 1 record only due to unique index
-	res, err := db.Db.Queryx("select * from sduser where nickname = $1 limit 1", nickname)
+	params := map[string]interface{}{"nickname": nickname}
+	res, err := sddb.NamedReadQuery("select * from sduser where nickname = :nickname limit 1", params)
 	apperror.Panic500If(err, "Unable to login, sorry")
 	dataFound := false
 	for res.Next() {

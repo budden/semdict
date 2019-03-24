@@ -43,14 +43,14 @@ func FatalDatabaseErrorIf(err error, format string, args ...interface{}) {
 	if err == nil {
 		return
 	}
-	c := SDUsersDb
+	c := sdUsersDb
 	FatalDatabaseErrorHandler(err, c, format, args...)
 	return
 }
 
 // CheckDbAlive is to be called in page handlers before every db interaction
 func CheckDbAlive() {
-	c := SDUsersDb
+	c := sdUsersDb
 	if IsConnectionDead(c) {
 		apperror.Panic500If(apperror.ErrDummy, "Internal error")
 	}

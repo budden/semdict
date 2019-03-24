@@ -28,7 +28,7 @@ func Play(commandLineArgs []string) {
 		shared.ExitCodeBadConfigFile,
 		"Failed to load configuation, error is «%s»",
 		err)
-	sddb.OpenSDUsersDb()
+	sddb.OpenSdUsersDb()
 	/* playWithPanic()
 	playWithNonce(16)
 	playWithSaltAndHash() */
