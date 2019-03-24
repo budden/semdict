@@ -67,9 +67,8 @@ func extractDataFromRequest(c *gin.Context, pad *articlePostDataType) {
 
 func writeToDb(pad *articlePostDataType) {
 	db := sddb.SDUsersDb
-	sddb.CheckDbAlive(db)
 	if pad.ID != 0 {
-		res, err1 := user.NamedExec(
+		res, err1 := sddb.NamedExec(
 			`update tsense set phrase = :phrase, word = :word where	dialectid = 1 and id=:id`, pad)
 		apperror.Panic500If(err1, "Failed to update an article")
 		count, err2 := res.RowsAffected()
@@ -78,7 +77,7 @@ func writeToDb(pad *articlePostDataType) {
 			apperror.Panic500If(apperror.ErrDummy, "Article with id = %v not found", pad.ID)
 		}
 	} else {
-		reply, err := user.NamedUpdateQuery(
+		reply, err := sddb.NamedUpdateQuery(
 			`insert into tsense (dialectid, phrase, word) values (1, :phrase, :word) returning id`,
 			pad)
 		apperror.Panic500If(err, "Failed to insert an article")
