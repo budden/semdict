@@ -2,6 +2,7 @@ package query
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 
 	"github.com/budden/semdict/pkg/apperror"
@@ -48,8 +49,8 @@ func ArticleViewDirHandler(c *gin.Context) {
 
 	if dataFound {
 		c.HTML(http.StatusOK,
-			"general.html",
-			shared.GeneralTemplateParams{Message: fmt.Sprintf("Article page for «%s»:\n%s", ad.Word, ad.Phrase)})
+			"articleview.html",
+			shared.ArticleViewParams{Word: ad.Word, Phrase: template.HTML(ad.Phrase)})
 	} else {
 		c.HTML(http.StatusBadRequest,
 			"general.html",

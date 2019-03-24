@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+    <!-- See https://tehnojam.pro/category/development/razrabotka-web-prilozhenij-i-mikroservisov-na-golang-s-gin.html -->
+    <!--Embed the header.html template at this location-->
+    {{ template "header.html" .}}
+    <body>
+            <p><a href="/menu">Menu</a></p>
+            <p>Word: {{ .Word}}</p>
+            <hr>
+            <p>Phrase:</p>
+            <p>{{ .Phrase}}</p>
+    </body>
+</html>
