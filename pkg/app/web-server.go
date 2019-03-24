@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/http/httputil"
 	"os"
 	"runtime/debug"
 	"time"
@@ -46,7 +47,7 @@ func playWithServer() {
 
 	// https://stackoverflow.com/a/52830435/9469533
 	// FIXME conditionalize
-	gin.SetMode(gin.ReleaseMode)
+	// gin.SetMode(gin.ReleaseMode)
 	//This will disable hot template reloading, so we'll try to disable any messaging for a whil
 
 	engine := initRouter()
@@ -121,5 +122,23 @@ func initRouter() *gin.Engine {
 	engine.GET("/logout", user.Logout)
 
 	engine.POST("/articleeditformsubmit", query.ArticleEditFormSubmitPostHandler)
+
+	engine.GET("/captcha/:imagefilename", ReverseProxy)
 	return engine
+}
+
+// ReverseProxy https://stackoverflow.com/a/39009974/9469533
+func ReverseProxy(c *gin.Context) {
+	target := "localhost:8666"
+	director := func(req *http.Request) {
+		r := c.Request
+		//req = r
+		req.URL.Scheme = "http"
+		req.URL.Host = target
+		req.Header["my-header"] = []string{r.Header.Get("my-header")}
+		// Golang camelcases headers
+		delete(req.Header, "My-Header")
+	}
+	proxy := &httputil.ReverseProxy{Director: director}
+	proxy.ServeHTTP(c.Writer, c.Request)
 }
