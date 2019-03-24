@@ -153,7 +153,7 @@ func generateSessionToken() string {
 }
 
 func recordSessionTokenIntoDb(nickname, token string) {
-	err := WithTransaction(func(trans *sddb.TransactionType) (err1 error) {
+	err := sddb.WithTransaction(func(trans *sddb.TransactionType) (err1 error) {
 		res, err1 := trans.Tx.Queryx("select begin_session($1,$2)", nickname, token)
 		// FIXME process exception with too_many_sessions mentioned
 		apperror.GracefullyExitAppIf(err1, "Failed to begin session, error is «%#v»", err1)
@@ -191,7 +191,7 @@ func endSessionIfThereIsOne(c *gin.Context) {
 
 	c.SetCookie("token", "", -1, "", "", false, true)
 
-	err := WithTransaction(func(trans *sddb.TransactionType) (err1 error) {
+	err := sddb.WithTransaction(func(trans *sddb.TransactionType) (err1 error) {
 		res, err1 := trans.Tx.Queryx("select end_session($1)", token)
 		apperror.GracefullyExitAppIf(err1, "Failed to end session, error is «%#v»", err1)
 		for res.Next() {

@@ -101,7 +101,7 @@ func sendConfirmationEmail(c *gin.Context, rd *RegistrationData) {
 
 // rd.UserID is filled
 func noteRegistrationConfirmationEMailSentWithDb(rd *RegistrationData) {
-	err := WithTransaction(func(trans *sddb.TransactionType) (err1 error) {
+	err := sddb.WithTransaction(func(trans *sddb.TransactionType) (err1 error) {
 		sddb.CheckDbAlive(trans.Conn)
 		_, err1 = trans.Tx.NamedExec(
 			`select note_registrationconfirmation_email_sent(:nickname, :confirmationkey)`,
@@ -140,13 +140,13 @@ func deleteExpiredRegistrationAttempts(trans *sddb.TransactionType) error {
 func processRegistrationFormSubmitWithDb(rd *RegistrationData) *apperror.AppErr {
 
 	db := sddb.SDUsersDb
-	err := WithTransaction(deleteExpiredRegistrationAttempts)
+	err := sddb.WithTransaction(deleteExpiredRegistrationAttempts)
 	sddb.FatalDatabaseErrorIf(err,
 		db,
 		"Failed around delete_expired_registrationattempts, %#v",
 		err)
 
-	err = WithTransaction(func(trans *sddb.TransactionType) (err error) {
+	err = sddb.WithTransaction(func(trans *sddb.TransactionType) (err error) {
 		rd.Salt, rd.Hash = SaltAndHashPassword(rd.Password1)
 		rd.ConfirmationKey = GenNonce(20)
 		sddb.CheckDbAlive(trans.Conn)

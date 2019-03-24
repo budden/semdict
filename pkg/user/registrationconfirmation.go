@@ -40,7 +40,7 @@ func extractNicknameAndConfirmationKeyFromRequest(c *gin.Context, rd *Registrati
 }
 
 func processRegistrationConfirmationWithSDUsersDbStage1(rd *RegistrationData) {
-	err := WithTransaction(func(trans *sddb.TransactionType) (err1 error) {
+	err := sddb.WithTransaction(func(trans *sddb.TransactionType) (err1 error) {
 		var reply *sqlx.Rows
 		reply, err1 = trans.Tx.NamedQuery(
 			`select * from process_registrationconfirmation(:confirmationkey, :nickname)`,

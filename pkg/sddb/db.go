@@ -29,8 +29,11 @@ import (
 type ConnectionType struct {
 	Db *sqlx.DB
 
-	// If we serialize writes to this db, we
-	// hold the mutex while being in the transaction (FIXME - do that only in write transaction)
+	// We hold the mutex for all writes to the database.
+	// This way we control the number of concurrent transactions in the database.
+	// For now we only have one instance of the service, so there will be no more than
+	// one concurrent write to the database. If we have several instances, there will be
+	// no more concurrent writes than there are service instances.
 	Mutex *sync.Mutex
 
 	IsDead bool
@@ -176,4 +179,67 @@ func genExpiryDate(db *sqlx.DB) {
 	var magic time.Time
 	res1.Scan(&magic)
 	fmt.Printf("Expiry at %s\n", magic.Format("2006-01-02 15:04 -0700"))
+}
+
+// WithTransaction opens a transaction in the sdusers_db, then runs body
+// Then, if there is no error, and transaction is still active, commit transaction and returns commit's error
+// If there was an error or panic while executing body, tries to rollback the tran transaction,
+// see RollbackIfActive
+func WithTransaction(body func(tx *TransactionType) (err error)) (err error) {
+
+	conn := SDUsersDb
+	CheckDbAlive(conn)
+
+	mutex := conn.Mutex
+	if mutex != nil {
+		mutex.Lock()
+		defer mutex.Unlock()
+	}
+
+	var tx *sqlx.Tx
+	CheckDbAlive(conn)
+	tx, err = conn.Db.Beginx()
+	trans := TransactionType{Conn: conn, Tx: tx}
+	FatalDatabaseErrorIf(err, conn, "Unable to start transaction")
+	defer func() { RollbackIfActive(&trans) }()
+	CheckDbAlive(conn)
+	_, err = tx.Exec(`set transaction isolation level repeatable read`)
+	FatalDatabaseErrorIf(err, conn, "Unable to set transaction isolation level")
+	CheckDbAlive(conn)
+	err = body(&trans)
+	if err == nil {
+		CheckDbAlive(conn)
+		err = CommitIfActive(&trans)
+	}
+	return
+}
+
+// NamedUpdateQuery is a query in the SDUsersDb which updates the db. So we hold our mutex
+// to ensure serialization of all writes in scope of instances.
+func NamedUpdateQuery(sql string, params interface{}) (res *sqlx.Rows, err error) {
+	conn := SDUsersDb
+	CheckDbAlive(conn)
+	mutex := conn.Mutex
+	if mutex != nil {
+		mutex.Lock()
+		defer mutex.Unlock()
+	}
+	CheckDbAlive(conn)
+	res, err = conn.Db.NamedQuery(sql, params)
+	return
+}
+
+// NamedExec is like sqlx.NamedExec and also holds the mutex. Use it whenever the query executed
+// can update the db
+func NamedExec(sql string, params interface{}) (res sql.Result, err error) {
+	conn := SDUsersDb
+	CheckDbAlive(conn)
+	mutex := conn.Mutex
+	if mutex != nil {
+		mutex.Lock()
+		defer mutex.Unlock()
+	}
+	CheckDbAlive(conn)
+	res, err = conn.Db.NamedExec(sql, params)
+	return
 }
