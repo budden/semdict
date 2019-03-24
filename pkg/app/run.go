@@ -20,8 +20,8 @@ import (
 	"github.com/budden/semdict/pkg/user"
 )
 
-// Play runs an app (FIXME rename)
-func Play(commandLineArgs []string) {
+// Run runs an app
+func Run(commandLineArgs []string) {
 	shutdown.RunSignalListener()
 	err := LoadSecretConfigData(ConfigFileName)
 	apperror.ExitAppIf(err,

@@ -9,8 +9,7 @@ import (
 
 func main() {
 	parseCommandLineFlags()
-	app.Play(os.Args)
-	// app.Run(os.Args)
+	app.Run(os.Args)
 }
 
 func parseCommandLineFlags() {
