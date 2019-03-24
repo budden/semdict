@@ -209,5 +209,5 @@ func LoginFormPageHandler(c *gin.Context) {
 	EnsureNotLoggedIn(c)
 	c.HTML(http.StatusOK,
 		"loginform.html",
-		shared.LoginFormParams{CaptchaID: "100500"})
+		shared.LoginFormParams{ /*CaptchaID: "100500"*/ })
 }

@@ -123,7 +123,7 @@ func initRouter() *gin.Engine {
 
 	engine.POST("/articleeditformsubmit", query.ArticleEditFormSubmitPostHandler)
 
-	engine.GET("/captcha/:imagefilename", ReverseProxy)
+	//engine.GET("/captcha/:imagefilename", ReverseProxy)
 	return engine
 }
 

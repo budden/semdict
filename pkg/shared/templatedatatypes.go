@@ -15,5 +15,5 @@ type ArticleViewParams struct {
 
 // LoginFormParams are params for templates/loginform.html
 type LoginFormParams struct {
-	CaptchaID string
+	//CaptchaID string
 }
