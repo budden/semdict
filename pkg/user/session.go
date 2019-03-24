@@ -153,16 +153,15 @@ func generateSessionToken() string {
 }
 
 func recordSessionTokenIntoDb(nickname, token string) {
-	err := WithTransaction(sddb.SDUsersDb,
-		func(trans *sddb.TransactionType) (err1 error) {
-			res, err1 := trans.Tx.Queryx("select begin_session($1,$2)", nickname, token)
-			// FIXME process exception with too_many_sessions mentioned
-			apperror.GracefullyExitAppIf(err1, "Failed to begin session, error is «%#v»", err1)
-			for res.Next() {
-				// it returns an id, but we don't need it
-			}
-			return
-		})
+	err := WithTransaction(func(trans *sddb.TransactionType) (err1 error) {
+		res, err1 := trans.Tx.Queryx("select begin_session($1,$2)", nickname, token)
+		// FIXME process exception with too_many_sessions mentioned
+		apperror.GracefullyExitAppIf(err1, "Failed to begin session, error is «%#v»", err1)
+		for res.Next() {
+			// it returns an id, but we don't need it
+		}
+		return
+	})
 	apperror.GracefullyExitAppIf(err, "Failed to begin session 2, error is «%#v»", err)
 }
 
@@ -192,15 +191,14 @@ func endSessionIfThereIsOne(c *gin.Context) {
 
 	c.SetCookie("token", "", -1, "", "", false, true)
 
-	err := WithTransaction(sddb.SDUsersDb,
-		func(trans *sddb.TransactionType) (err1 error) {
-			res, err1 := trans.Tx.Queryx("select end_session($1)", token)
-			apperror.GracefullyExitAppIf(err1, "Failed to end session, error is «%#v»", err1)
-			for res.Next() {
-				// don't need the result
-			}
-			return
-		})
+	err := WithTransaction(func(trans *sddb.TransactionType) (err1 error) {
+		res, err1 := trans.Tx.Queryx("select end_session($1)", token)
+		apperror.GracefullyExitAppIf(err1, "Failed to end session, error is «%#v»", err1)
+		for res.Next() {
+			// don't need the result
+		}
+		return
+	})
 	apperror.GracefullyExitAppIf(err, "Failed to end session 2, error is «%#v»", err)
 }
 

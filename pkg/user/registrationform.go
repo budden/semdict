@@ -101,15 +101,13 @@ func sendConfirmationEmail(c *gin.Context, rd *RegistrationData) {
 
 // rd.UserID is filled
 func noteRegistrationConfirmationEMailSentWithDb(rd *RegistrationData) {
-	err := WithTransaction(
-		sddb.SDUsersDb,
-		func(trans *sddb.TransactionType) (err1 error) {
-			sddb.CheckDbAlive(trans.Conn)
-			_, err1 = trans.Tx.NamedExec(
-				`select note_registrationconfirmation_email_sent(:nickname, :confirmationkey)`,
-				rd)
-			return
-		})
+	err := WithTransaction(func(trans *sddb.TransactionType) (err1 error) {
+		sddb.CheckDbAlive(trans.Conn)
+		_, err1 = trans.Tx.NamedExec(
+			`select note_registrationconfirmation_email_sent(:nickname, :confirmationkey)`,
+			rd)
+		return
+	})
 	sddb.FatalDatabaseErrorIf(err, sddb.SDUsersDb, "Error remembering that E-Mail was sent, error is %#v", err)
 	return
 }
@@ -142,27 +140,25 @@ func deleteExpiredRegistrationAttempts(trans *sddb.TransactionType) error {
 func processRegistrationFormSubmitWithDb(rd *RegistrationData) *apperror.AppErr {
 
 	db := sddb.SDUsersDb
-	err := WithTransaction(sddb.SDUsersDb, deleteExpiredRegistrationAttempts)
+	err := WithTransaction(deleteExpiredRegistrationAttempts)
 	sddb.FatalDatabaseErrorIf(err,
 		db,
 		"Failed around delete_expired_registrationattempts, %#v",
 		err)
 
-	err = WithTransaction(
-		sddb.SDUsersDb,
-		func(trans *sddb.TransactionType) (err error) {
-			rd.Salt, rd.Hash = SaltAndHashPassword(rd.Password1)
-			rd.ConfirmationKey = GenNonce(20)
+	err = WithTransaction(func(trans *sddb.TransactionType) (err error) {
+		rd.Salt, rd.Hash = SaltAndHashPassword(rd.Password1)
+		rd.ConfirmationKey = GenNonce(20)
+		sddb.CheckDbAlive(trans.Conn)
+		_, err = trans.Tx.NamedExec(
+			`select add_registrationattempt(:nickname, :salt, :hash, :registrationemail, :confirmationkey)`,
+			rd)
+		if err == nil {
 			sddb.CheckDbAlive(trans.Conn)
-			_, err = trans.Tx.NamedExec(
-				`select add_registrationattempt(:nickname, :salt, :hash, :registrationemail, :confirmationkey)`,
-				rd)
-			if err == nil {
-				sddb.CheckDbAlive(trans.Conn)
-				err = trans.Tx.Commit()
-			}
-			return
-		})
+			err = trans.Tx.Commit()
+		}
+		return
+	})
 	return handleRegistrationAttemptInsertError(err)
 }
 

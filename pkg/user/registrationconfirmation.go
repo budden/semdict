@@ -40,23 +40,20 @@ func extractNicknameAndConfirmationKeyFromRequest(c *gin.Context, rd *Registrati
 }
 
 func processRegistrationConfirmationWithSDUsersDbStage1(rd *RegistrationData) {
-	err := WithTransaction(
-		sddb.SDUsersDb,
-		func(trans *sddb.TransactionType) (err1 error) {
-			sddb.CheckDbAlive(trans.Conn)
-			var reply *sqlx.Rows
-			reply, err1 = trans.Tx.NamedQuery(
-				`select * from process_registrationconfirmation(:confirmationkey, :nickname)`,
-				rd)
-			apperror.Panic500If(err1, "Failed to confirm registration, sorry")
-			for reply.Next() {
-				err1 = reply.Scan(&rd.UserID)
-				//fmt.Printf("UserID = %v\n", rd.UserID)
-				sddb.FatalDatabaseErrorIf(err1, sddb.SDUsersDb, "Error obtaining id of a new user, err = %#v", err1)
-			}
-			// hence err1 == nil
-			return
-		})
+	err := WithTransaction(func(trans *sddb.TransactionType) (err1 error) {
+		var reply *sqlx.Rows
+		reply, err1 = trans.Tx.NamedQuery(
+			`select * from process_registrationconfirmation(:confirmationkey, :nickname)`,
+			rd)
+		apperror.Panic500If(err1, "Failed to confirm registration, sorry")
+		for reply.Next() {
+			err1 = reply.Scan(&rd.UserID)
+			//fmt.Printf("UserID = %v\n", rd.UserID)
+			sddb.FatalDatabaseErrorIf(err1, sddb.SDUsersDb, "Error obtaining id of a new user, err = %#v", err1)
+		}
+		// hence err1 == nil
+		return
+	})
 	// if we have error here, it is an error in commit, so is fatal
 	sddb.FatalDatabaseErrorIf(err, sddb.SDUsersDb, "Failed around registrationconfirmation, error is %#v", err)
 	return

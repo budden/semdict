@@ -24,10 +24,9 @@ const PostgresqlErrorCodeNoData = "02000"
 // Then, if there is no error, and transaction is still active, commit transaction and returns commit's error
 // If there was an error or panic while executing body, tries to rollback the tran transaction,
 // see sddb.RollbackIfActive
-func WithTransaction(
-	conn *sddb.ConnectionType,
-	body func(tx *sddb.TransactionType) (err error)) (err error) {
+func WithTransaction(body func(tx *sddb.TransactionType) (err error)) (err error) {
 
+	conn := sddb.SDUsersDb
 	mutex := conn.Mutex
 	if mutex != nil {
 		mutex.Lock()
@@ -43,6 +42,7 @@ func WithTransaction(
 	sddb.CheckDbAlive(conn)
 	_, err = tx.Exec(`set transaction isolation level repeatable read`)
 	sddb.FatalDatabaseErrorIf(err, conn, "Unable to set transaction isolation level")
+	sddb.CheckDbAlive(conn)
 	err = body(&trans)
 	if err == nil {
 		sddb.CheckDbAlive(conn)
