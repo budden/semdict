@@ -6,7 +6,7 @@ import (
 	"github.com/budden/semdict/pkg/apperror"
 	"github.com/jmoiron/sqlx"
 
-	"github.com/budden/semdict/pkg/database"
+	"github.com/budden/semdict/pkg/sddb"
 	"github.com/gin-gonic/gin"
 )
 
@@ -41,9 +41,9 @@ func extractNicknameAndConfirmationKeyFromRequest(c *gin.Context, rd *Registrati
 
 func processRegistrationConfirmationWithSDUsersDbStage1(rd *RegistrationData) {
 	err := WithTransaction(
-		database.SDUsersDb,
-		func(trans *database.TransactionType) (err1 error) {
-			database.CheckDbAlive(trans.Conn)
+		sddb.SDUsersDb,
+		func(trans *sddb.TransactionType) (err1 error) {
+			sddb.CheckDbAlive(trans.Conn)
 			var reply *sqlx.Rows
 			reply, err1 = trans.Tx.NamedQuery(
 				`select * from process_registrationconfirmation(:confirmationkey, :nickname)`,
@@ -52,12 +52,12 @@ func processRegistrationConfirmationWithSDUsersDbStage1(rd *RegistrationData) {
 			for reply.Next() {
 				err1 = reply.Scan(&rd.UserID)
 				//fmt.Printf("UserID = %v\n", rd.UserID)
-				database.FatalDatabaseErrorIf(err1, database.SDUsersDb, "Error obtaining id of a new user, err = %#v", err1)
+				sddb.FatalDatabaseErrorIf(err1, sddb.SDUsersDb, "Error obtaining id of a new user, err = %#v", err1)
 			}
 			// hence err1 == nil
 			return
 		})
 	// if we have error here, it is an error in commit, so is fatal
-	database.FatalDatabaseErrorIf(err, database.SDUsersDb, "Failed around registrationconfirmation, error is %#v", err)
+	sddb.FatalDatabaseErrorIf(err, sddb.SDUsersDb, "Failed around registrationconfirmation, error is %#v", err)
 	return
 }

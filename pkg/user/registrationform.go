@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/budden/semdict/pkg/database"
+	"github.com/budden/semdict/pkg/sddb"
 
 	"github.com/budden/semdict/pkg/apperror"
 	"github.com/budden/semdict/pkg/shared"
@@ -102,15 +102,15 @@ func sendConfirmationEmail(c *gin.Context, rd *RegistrationData) {
 // rd.UserID is filled
 func noteRegistrationConfirmationEMailSentWithDb(rd *RegistrationData) {
 	err := WithTransaction(
-		database.SDUsersDb,
-		func(trans *database.TransactionType) (err1 error) {
-			database.CheckDbAlive(trans.Conn)
+		sddb.SDUsersDb,
+		func(trans *sddb.TransactionType) (err1 error) {
+			sddb.CheckDbAlive(trans.Conn)
 			_, err1 = trans.Tx.NamedExec(
 				`select note_registrationconfirmation_email_sent(:nickname, :confirmationkey)`,
 				rd)
 			return
 		})
-	database.FatalDatabaseErrorIf(err, database.SDUsersDb, "Error remembering that E-Mail was sent, error is %#v", err)
+	sddb.FatalDatabaseErrorIf(err, sddb.SDUsersDb, "Error remembering that E-Mail was sent, error is %#v", err)
 	return
 }
 
@@ -121,17 +121,17 @@ var mapViolatedConstraintNameToMessage = map[string]string{
 	"i_sduser_registrationemail":               "There is already a user with the same E-mail",
 	"i_sduser_nickname":                        "There is already a user with the same nickname"}
 
-func deleteExpiredRegistrationAttempts(trans *database.TransactionType) error {
+func deleteExpiredRegistrationAttempts(trans *sddb.TransactionType) error {
 	conn := trans.Conn
 	tx := trans.Tx
-	database.CheckDbAlive(conn)
+	sddb.CheckDbAlive(conn)
 	_, err1 := tx.Exec("select delete_expired_registrationattempts()")
 	// it's not a fatal error (rare case!)
 	apperror.Panic500If(err1,
 		"Failed to register. Please try again later or contact us for assistance")
-	database.CheckDbAlive(conn)
+	sddb.CheckDbAlive(conn)
 	err1 = tx.Commit()
-	database.FatalDatabaseErrorIf(err1, conn,
+	sddb.FatalDatabaseErrorIf(err1, conn,
 		"Failed to commit after delete_expired_registrationattempts, error = %#v",
 		err1)
 	return nil
@@ -141,24 +141,24 @@ func deleteExpiredRegistrationAttempts(trans *database.TransactionType) error {
 // If some "normal" error happens like non-unique nickname, it is returned in dberror.
 func processRegistrationFormSubmitWithDb(rd *RegistrationData) *apperror.AppErr {
 
-	db := database.SDUsersDb
-	err := WithTransaction(database.SDUsersDb, deleteExpiredRegistrationAttempts)
-	database.FatalDatabaseErrorIf(err,
+	db := sddb.SDUsersDb
+	err := WithTransaction(sddb.SDUsersDb, deleteExpiredRegistrationAttempts)
+	sddb.FatalDatabaseErrorIf(err,
 		db,
 		"Failed around delete_expired_registrationattempts, %#v",
 		err)
 
 	err = WithTransaction(
-		database.SDUsersDb,
-		func(trans *database.TransactionType) (err error) {
+		sddb.SDUsersDb,
+		func(trans *sddb.TransactionType) (err error) {
 			rd.Salt, rd.Hash = SaltAndHashPassword(rd.Password1)
 			rd.ConfirmationKey = GenNonce(20)
-			database.CheckDbAlive(trans.Conn)
+			sddb.CheckDbAlive(trans.Conn)
 			_, err = trans.Tx.NamedExec(
 				`select add_registrationattempt(:nickname, :salt, :hash, :registrationemail, :confirmationkey)`,
 				rd)
 			if err == nil {
-				database.CheckDbAlive(trans.Conn)
+				sddb.CheckDbAlive(trans.Conn)
 				err = trans.Tx.Commit()
 			}
 			return
@@ -176,6 +176,6 @@ func handleRegistrationAttemptInsertError(err error) *apperror.AppErr {
 			}
 		}
 	}
-	database.FatalDatabaseErrorIf(err, database.SDUsersDb, "Unexpected error in the registrationformsubmit, %#v\n", err)
+	sddb.FatalDatabaseErrorIf(err, sddb.SDUsersDb, "Unexpected error in the registrationformsubmit, %#v\n", err)
 	return nil
 }

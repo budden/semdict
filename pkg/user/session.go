@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/budden/semdict/pkg/database"
+	"github.com/budden/semdict/pkg/sddb"
 
 	"github.com/budden/semdict/pkg/apperror"
 	"github.com/budden/semdict/pkg/shared"
@@ -76,7 +76,7 @@ func getAndValidateToken(c *gin.Context) (tokenPresent, tokenValid bool, sduseri
 	if !tokenPresent {
 		return
 	}
-	db := database.SDUsersDb
+	db := sddb.SDUsersDb
 	res, err := db.Db.Queryx("select sduserid from session where eid=$1 and expireat > current_timestamp limit 1", token)
 	apperror.Panic500AndErrorIf(err, "Failed to check validity of your session, sorry. Please logout and retry")
 	for res.Next() {
@@ -132,7 +132,7 @@ func isUserValid(nickname, password string) bool {
 
 // function could be general, but it's error messages are login process specific. FIXME
 func getSDUserDataFromDb(nickname string, sud *SDUserData) {
-	db := database.SDUsersDb
+	db := sddb.SDUsersDb
 	// have <= 1 record only due to unique index
 	res, err := db.Db.Queryx("select * from sduser where nickname = $1 limit 1", nickname)
 	apperror.Panic500If(err, "Unable to login, sorry")
@@ -153,8 +153,8 @@ func generateSessionToken() string {
 }
 
 func recordSessionTokenIntoDb(nickname, token string) {
-	err := WithTransaction(database.SDUsersDb,
-		func(trans *database.TransactionType) (err1 error) {
+	err := WithTransaction(sddb.SDUsersDb,
+		func(trans *sddb.TransactionType) (err1 error) {
 			res, err1 := trans.Tx.Queryx("select begin_session($1,$2)", nickname, token)
 			// FIXME process exception with too_many_sessions mentioned
 			apperror.GracefullyExitAppIf(err1, "Failed to begin session, error is «%#v»", err1)
@@ -192,8 +192,8 @@ func endSessionIfThereIsOne(c *gin.Context) {
 
 	c.SetCookie("token", "", -1, "", "", false, true)
 
-	err := WithTransaction(database.SDUsersDb,
-		func(trans *database.TransactionType) (err1 error) {
+	err := WithTransaction(sddb.SDUsersDb,
+		func(trans *sddb.TransactionType) (err1 error) {
 			res, err1 := trans.Tx.Queryx("select end_session($1)", token)
 			apperror.GracefullyExitAppIf(err1, "Failed to end session, error is «%#v»", err1)
 			for res.Next() {

@@ -6,7 +6,7 @@ showing that I can write couple lines of code and which I can demonstrate to pot
 
 # What is here? 
 
-There are «Sign up» functionality, cookie based stateful sessions which are stored in the database. 
+There are «Sign up» functionality, cookie based stateful sessions which are stored in the sddb. 
 Session key is used to authenticate logged in user. Sign up page sends a registration confirmation E-mail with 
 a confirmation key. 
 

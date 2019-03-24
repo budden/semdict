@@ -12,7 +12,7 @@ import (
 
 	"github.com/budden/semdict/pkg/apperror"
 
-	"github.com/budden/semdict/pkg/database"
+	"github.com/budden/semdict/pkg/sddb"
 	"github.com/gin-gonic/gin"
 )
 
@@ -66,14 +66,14 @@ func extractDataFromRequest(c *gin.Context, pad *articlePostDataType) {
 }
 
 func writeToDb(pad *articlePostDataType) {
-	db := database.SDUsersDb
-	database.CheckDbAlive(db)
+	db := sddb.SDUsersDb
+	sddb.CheckDbAlive(db)
 	if pad.ID != 0 {
 		res, err1 := db.Db.NamedExec(
 			`update tsense set phrase = :phrase, word = :word where	dialectid = 1 and id=:id`, pad)
 		apperror.Panic500If(err1, "Failed to update an article")
 		count, err2 := res.RowsAffected()
-		database.FatalDatabaseErrorIf(err2, db, "Unable to check if the record was updated")
+		sddb.FatalDatabaseErrorIf(err2, db, "Unable to check if the record was updated")
 		if count == 0 {
 			apperror.Panic500If(apperror.ErrDummy, "Article with id = %v not found", pad.ID)
 		}
@@ -85,10 +85,10 @@ func writeToDb(pad *articlePostDataType) {
 		for reply.Next() {
 			dataFound = true
 			err1 := reply.Scan(&pad.ID)
-			database.FatalDatabaseErrorIf(err1, database.SDUsersDb, "Error obtaining id of a new article, err = %#v", err1)
+			sddb.FatalDatabaseErrorIf(err1, sddb.SDUsersDb, "Error obtaining id of a new article, err = %#v", err1)
 		}
 		if !dataFound {
-			database.FatalDatabaseErrorIf(apperror.ErrDummy, database.SDUsersDb, "Id of a new article is not returned")
+			sddb.FatalDatabaseErrorIf(apperror.ErrDummy, sddb.SDUsersDb, "Id of a new article is not returned")
 		}
 	}
 }

@@ -1,9 +1,9 @@
 package app
 
 import (
-	"github.com/budden/semdict/pkg/database"
+	"github.com/budden/semdict/pkg/sddb"
 )
 
 func init() {
-	database.FatalDatabaseErrorHandler = actualFatalDatabaseErrorHandler
+	sddb.FatalDatabaseErrorHandler = actualFatalDatabaseErrorHandler
 }

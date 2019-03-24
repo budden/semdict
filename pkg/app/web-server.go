@@ -9,7 +9,7 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/budden/semdict/pkg/database"
+	"github.com/budden/semdict/pkg/sddb"
 	"github.com/budden/semdict/pkg/shutdown"
 	"github.com/budden/semdict/pkg/unsorted"
 	"github.com/coreos/go-systemd/daemon"
@@ -82,8 +82,8 @@ func playWithServer() {
 	shutdown.Actions = append(shutdown.Actions, closer)
 }
 
-func actualFatalDatabaseErrorHandler(err error, c *database.ConnectionType, format string, args ...interface{}) {
-	database.SetConnectionDead(c)
+func actualFatalDatabaseErrorHandler(err error, c *sddb.ConnectionType, format string, args ...interface{}) {
+	sddb.SetConnectionDead(c)
 	log.Printf("Fatal error: "+format, args...)
 	debug.PrintStack()
 	shutdown.InitiateGracefulShutdown()

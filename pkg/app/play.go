@@ -15,7 +15,7 @@ import (
 	"github.com/budden/semdict/pkg/shared"
 
 	"github.com/budden/semdict/pkg/apperror"
-	"github.com/budden/semdict/pkg/database"
+	"github.com/budden/semdict/pkg/sddb"
 	"github.com/budden/semdict/pkg/shutdown"
 	"github.com/budden/semdict/pkg/user"
 )
@@ -28,7 +28,7 @@ func Play(commandLineArgs []string) {
 		shared.ExitCodeBadConfigFile,
 		"Failed to load configuation, error is «%s»",
 		err)
-	database.OpenSDUsersDb()
+	sddb.OpenSDUsersDb()
 	/* playWithPanic()
 	playWithNonce(16)
 	playWithSaltAndHash() */

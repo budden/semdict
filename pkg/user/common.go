@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"sync"
 
-	"github.com/budden/semdict/pkg/database"
+	"github.com/budden/semdict/pkg/sddb"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -23,10 +23,10 @@ const PostgresqlErrorCodeNoData = "02000"
 // WithTransaction opens a transaction in the sdusers_db, then runs body
 // Then, if there is no error, and transaction is still active, commit transaction and returns commit's error
 // If there was an error or panic while executing body, tries to rollback the tran transaction,
-// see database.RollbackIfActive
+// see sddb.RollbackIfActive
 func WithTransaction(
-	conn *database.ConnectionType,
-	body func(tx *database.TransactionType) (err error)) (err error) {
+	conn *sddb.ConnectionType,
+	body func(tx *sddb.TransactionType) (err error)) (err error) {
 
 	mutex := conn.Mutex
 	if mutex != nil {
@@ -35,18 +35,18 @@ func WithTransaction(
 	}
 
 	var tx *sqlx.Tx
-	database.CheckDbAlive(conn)
+	sddb.CheckDbAlive(conn)
 	tx, err = conn.Db.Beginx()
-	trans := database.TransactionType{Conn: conn, Tx: tx}
-	database.FatalDatabaseErrorIf(err, conn, "Unable to start transaction")
-	defer func() { database.RollbackIfActive(&trans) }()
-	database.CheckDbAlive(conn)
+	trans := sddb.TransactionType{Conn: conn, Tx: tx}
+	sddb.FatalDatabaseErrorIf(err, conn, "Unable to start transaction")
+	defer func() { sddb.RollbackIfActive(&trans) }()
+	sddb.CheckDbAlive(conn)
 	_, err = tx.Exec(`set transaction isolation level repeatable read`)
-	database.FatalDatabaseErrorIf(err, conn, "Unable to set transaction isolation level")
+	sddb.FatalDatabaseErrorIf(err, conn, "Unable to set transaction isolation level")
 	err = body(&trans)
 	if err == nil {
-		database.CheckDbAlive(conn)
-		err = database.CommitIfActive(&trans)
+		sddb.CheckDbAlive(conn)
+		err = sddb.CommitIfActive(&trans)
 	}
 	return
 }

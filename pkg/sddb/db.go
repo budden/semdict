@@ -1,5 +1,5 @@
-// Package database contains things for db connection
-package database
+// Package sddb contains things for db connection
+package sddb
 
 import (
 	"fmt"

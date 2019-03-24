@@ -1,4 +1,4 @@
-package database
+package sddb
 
 import (
 	"log"

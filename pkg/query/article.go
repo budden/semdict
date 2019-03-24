@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/budden/semdict/pkg/apperror"
-	"github.com/budden/semdict/pkg/database"
+	"github.com/budden/semdict/pkg/sddb"
 
 	"github.com/budden/semdict/pkg/shared"
 	"github.com/budden/semdict/pkg/user"
@@ -59,7 +59,7 @@ func ArticleViewDirHandler(c *gin.Context) {
 }
 
 func readArticleFromDb(avdhp *articleViewDirHandlerParams) (dataFound bool, ad *articleDataForEditType) {
-	db := database.SDUsersDb
+	db := sddb.SDUsersDb
 	reply, err1 := db.Db.NamedQuery(
 		`select 
 			s.id as senseid
@@ -81,7 +81,7 @@ func readArticleFromDb(avdhp *articleViewDirHandlerParams) (dataFound bool, ad *
 		err1 = reply.StructScan(ad)
 		dataFound = true
 	}
-	database.FatalDatabaseErrorIf(err1, database.SDUsersDb, "Error obtaining data of sense: %#v", err1)
+	sddb.FatalDatabaseErrorIf(err1, sddb.SDUsersDb, "Error obtaining data of sense: %#v", err1)
 	return
 }
 
