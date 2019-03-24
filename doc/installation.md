@@ -92,7 +92,7 @@ sudo psql postgres://localhost/postgres
 
 ```
 cd $GOPATH/src/github.com/budden/semdict
-sudo psql -f sql/recreate_sd_users_db.sql postgres://localhost/postgres
+sudo psql -f sql/recreate_sduser_db.sql postgres://localhost/postgres
 # Must pass w/o errors and end with "CREATE VIEW"
 ```
 

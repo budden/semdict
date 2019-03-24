@@ -38,6 +38,7 @@ func SaveSecretConfigDataExample(fileName *string) (scd *shared.SecretConfigData
 	scd = &shared.SecretConfigDataT{
 		Comment:             shared.SecretConfigDataTComment,
 		SiteRoot:            "localhost",
+		UnderAProxy:         0,
 		ServerPort:          "8085",
 		SenderEMail:         "den@example.net",
 		SMTPServer:          "smtp.example.net",

@@ -28,7 +28,7 @@ func Run(commandLineArgs []string) {
 		shared.ExitCodeBadConfigFile,
 		"Failed to load configuation, error is «%s»",
 		err)
-	sddb.OpenSdUsersDb()
+	sddb.OpenSdUsersDb("sduser_db")
 	/* playWithPanic()
 	playWithNonce(16)
 	playWithSaltAndHash() */

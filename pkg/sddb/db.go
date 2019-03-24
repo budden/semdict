@@ -50,14 +50,19 @@ type TransactionType struct {
 // sdUsersDb contains, after the call to OpenSdUsersDb, a connection to sdusers_db
 var sdUsersDb *ConnectionType
 
-// OpenSdUsersDb opens sdusers_db
-func OpenSdUsersDb() {
+// OpenSdUsersDb opens given database name
+func OpenSdUsersDb(dbName string) {
 	if sdUsersDb != nil {
 		log.Fatal("An attempt to re-open SDUsers database")
 	}
-	url := shared.SecretConfigData.PostgresqlServerURL + "/sdusers_db"
-	sdUsersDb = OpenDb(url, "sdusers_db", true)
+	url := shared.SecretConfigData.PostgresqlServerURL + "/" + dbName
+	sdUsersDb = OpenDb(url, dbName, true)
 	return
+}
+
+// CloseSdUsersDb closes the db
+func CloseSdUsersDb() error {
+	return sdUsersDb.Db.Close()
 }
 
 // PlayWithDb is used to manually test db functionality
@@ -137,6 +142,7 @@ func RollbackIfActive(trans *TransactionType) {
 func OpenDb(url, logFriendlyName string, withMutex bool) *ConnectionType {
 	var err error
 	var db *sqlx.DB
+	fmt.Printf("Url=%s", url)
 	db, err = sqlx.Open("postgres", url)
 	apperror.ExitAppIf(err, 6, "Failed to open «%s» database", logFriendlyName)
 	err = db.Ping()

@@ -1,8 +1,7 @@
-DROP DATABASE IF EXISTS sdusers_db;
-
-CREATE DATABASE sdusers_db with owner root;
-
-\connect sdusers_db;
+DROP DATABASE IF EXISTS sduser_db;
+CREATE DATABASE sduser_db;
+\connect sduser_db
+/* END_CREATE - keep this line intact. It is used to make the test db */
 
 CREATE SEQUENCE sequence_sduser_id;
 
@@ -86,7 +85,7 @@ create index i_session__sduserid on session (sduserid);
 --- We could run it from the add_registrationattempt, but in this case
 --- a request to add a non-unique nickname would cause deletion and then rollback.
 --- So we run this one in a separated transaction. But we use single goroutine for all
---- activity related to sd_users_db modifications, so calls to this one can't overlap
+--- activity related to sduser_db modifications, so calls to this one can't overlap
 --- with other writes to the entire db.
 create or replace function delete_expired_registrationattempts() 
 returns void as $$
