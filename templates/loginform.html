@@ -52,18 +52,18 @@
 
   <!-- <div class="form-group">
      <p>Type the numbers you see in the picture below:</p>
-     <p><img id=image src="/captcha/{{.CaptchaID}}.png" alt="Captcha image"></p>
+     <p><img id=image src="/captcha/{ {.CaptchaID} }.png" alt="Captcha image"></p>
      <select id="lang" onchange="changeLang()">
         <option value="en">English</option>
         <option value="ja">Japanese</option>
         <option value="ru">Russian</option>
         <option value="zh">Chinese</option>
        </select> | <a href="#" onclick="playAudio()">Play Audio</a>
-     <audio id=audio controls style="display:none" src="/captcha/{{.CaptchaID}}.wav" preload=none>
+     <audio id=audio controls style="display:none" src="/captcha/{ {.CaptchaID} }.wav" preload=none>
        You browser doesn't support audio.
-       <a href="/captcha/download/{{.CaptchaID}}.wav">Download file</a> to play it in the external player.
+       <a href="/captcha/download/{ {.CaptchaID} }.wav">Download file</a> to play it in the external player.
      </audio>
-     <input type=hidden name=captchaId value="{{.CaptchaID}}"><br>
+     <input type=hidden name=captchaId value="{ {.CaptchaID} }"><br>
      <input name=captchaSolution>
    </div class="form-group">
   -->

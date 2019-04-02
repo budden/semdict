@@ -6,6 +6,7 @@
 {{ template "header.html" .}}
 
 <body>
+ <script type="text/javascript" src="/static/ckeditor_4.11.3_basic/ckeditor.js"></script>
  <p><a href="menu">Menu</a></p>
  <p>Edit article</p>
  <form class="form" action="/articleeditformsubmit" method="POST">
@@ -30,5 +31,11 @@
   <button type="submit" class="btn btn-primary">Save</button>
  </form>
 </body>
-
+<script type="text/javascript">
+  var ckeditor1 = CKEDITOR.replace( 'phrase' );
+  AjexFileManager.init({
+  returnTo: 'ckeditor',
+  editor: ckeditor1
+  });
+  </script>
 </html>

@@ -47,7 +47,7 @@ func playWithServer() {
 
 	// https://stackoverflow.com/a/52830435/9469533
 	// FIXME conditionalize
-	gin.SetMode(gin.ReleaseMode)
+	//gin.SetMode(gin.ReleaseMode)
 	//This will disable hot template reloading, so we'll try to disable any messaging for a whil
 
 	engine := initRouter()
@@ -120,6 +120,7 @@ func initRouter() *gin.Engine {
 	engine.GET("/loginform", user.LoginFormPageHandler)
 	engine.POST("/loginformsubmit", user.LoginFormSubmitPostHandler) // FIXME rename handler
 	engine.GET("/logout", user.Logout)
+	engine.Static("/static", "static")
 
 	engine.POST("/articleeditformsubmit", query.ArticleEditFormSubmitPostHandler)
 
