@@ -15,9 +15,7 @@ import (
 
 // params for a query for a word
 type articleViewDirHandlerParams struct {
-	LanguageSlug string
-	DialectSlug  string
-	Word         string
+	Word string
 }
 
 // FIXME shall we create a record for each query?
@@ -36,8 +34,6 @@ type articleEditTemplateParams struct {
 // ArticleViewDirHandler ...
 func ArticleViewDirHandler(c *gin.Context) {
 	var avdhp articleViewDirHandlerParams
-	avdhp.LanguageSlug = "en"
-	avdhp.DialectSlug = "-"
 	avdhp.Word = c.Param("word")
 
 	if avdhp.Word == "" {
@@ -62,17 +58,12 @@ func readArticleFromDb(avdhp *articleViewDirHandlerParams) (dataFound bool, ad *
 	reply, err1 := sddb.NamedReadQuery(
 		`select 
 			s.id as senseid
-			,l.slug as languageslug
-			,d.slug as dialectslug 
+			,get_language_slug(l.id) as languageslug
 			,phrase
 			,word 
 			from tsense as s
-			inner join tdialect as d on s.dialectid = d.id 
-			inner join tlanguage as l on d.languageid = l.id
-			where 
-			l.slug = :languageslug 
-			and d.slug = :dialectslug
-			and word = :word
+			inner join tlanguage as l on s.languageid = l.id
+			where word = :word
 			limit 1`, &avdhp)
 	apperror.Panic500AndErrorIf(err1, "Failed to extract an article, sorry")
 	ad = &articleDataForEditType{}
@@ -88,8 +79,6 @@ func readArticleFromDb(avdhp *articleViewDirHandlerParams) (dataFound bool, ad *
 func ArticleEditDirHandler(c *gin.Context) {
 	user.EnsureLoggedIn(c)
 	var avdhp articleViewDirHandlerParams
-	avdhp.LanguageSlug = "en"
-	avdhp.DialectSlug = "-"
 	avdhp.Word = c.Param("word")
 
 	if avdhp.Word == "" {

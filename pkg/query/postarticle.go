@@ -48,7 +48,7 @@ func sanitizeData(pad *articlePostDataType) {
 	matched, err := regexp.Match(`^[0-9a-zA-Z\p{L} ]+$`, []byte(pad.Word))
 	if (err != nil) || !matched {
 		// https://www.linux.org.ru/forum/development/14877320
-		apperror.Panic500If(apperror.ErrDummy, "Word can only contain letters, digits and spaces")
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Word can only contain letters, digits and spaces")
 	}
 }
 
@@ -56,7 +56,7 @@ func extractDataFromRequest(c *gin.Context, pad *articlePostDataType) {
 	idAsString := c.PostForm("senseid")
 	if idAsString != "" {
 		padID, err := strconv.Atoi(idAsString)
-		apperror.Panic500If(err, "Wrong article ID")
+		apperror.Panic500AndErrorIf(err, "Wrong article ID")
 		pad.ID = int32(padID)
 	} else {
 		pad.ID = 0
@@ -68,18 +68,18 @@ func extractDataFromRequest(c *gin.Context, pad *articlePostDataType) {
 func writeToDb(pad *articlePostDataType) {
 	if pad.ID != 0 {
 		res, err1 := sddb.NamedExec(
-			`update tsense set phrase = :phrase, word = :word where	dialectid = 1 and id=:id`, pad)
-		apperror.Panic500If(err1, "Failed to update an article")
+			`update tsense set phrase = :phrase, word = :word where id=:id`, pad)
+		apperror.Panic500AndErrorIf(err1, "Failed to update an article")
 		count, err2 := res.RowsAffected()
 		sddb.FatalDatabaseErrorIf(err2, "Unable to check if the record was updated")
 		if count == 0 {
-			apperror.Panic500If(apperror.ErrDummy, "Article with id = %v not found", pad.ID)
+			apperror.Panic500AndErrorIf(apperror.ErrDummy, "Article with id = %v not found", pad.ID)
 		}
 	} else {
 		reply, err := sddb.NamedUpdateQuery(
 			`insert into tsense (dialectid, phrase, word) values (1, :phrase, :word) returning id`,
 			pad)
-		apperror.Panic500If(err, "Failed to insert an article")
+		apperror.Panic500AndErrorIf(err, "Failed to insert an article")
 		dataFound := false
 		for reply.Next() {
 			dataFound = true
