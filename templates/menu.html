@@ -5,9 +5,9 @@
     {{ template "header.html" .}}
     <body>
      <ul>
-      <li><a href="/articleview/golang">View article</a></li>
+      <li><a href="/senseview/1">View article</a></li>
       {{if not .IsLoggedIn}}<li><a href="/loginform">Login or Sign Up</a></li>{{end}}
-     {{if .IsLoggedIn}}<li><a href="/articleedit/golang">Edit article</a></li>{{end}}
+     {{if .IsLoggedIn}}<li><a href="/senseedit/1">Edit article</a></li>{{end}}
      {{if .IsLoggedIn}}<li><a href="/logout">Log out</a></li>{{end}}
      <li><a href="https://github.com/budden/semdict">GitHub</a></li>
     </body>

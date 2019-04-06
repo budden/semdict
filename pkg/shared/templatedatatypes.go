@@ -7,8 +7,9 @@ type GeneralTemplateParams struct {
 	Message string
 }
 
-// ArticleViewParams are params for templates/articleview.html
-type ArticleViewParams struct {
+// SenseViewParams are params for templates/senseview.html
+type SenseViewParams struct {
+	Id     int32
 	Word   string
 	Phrase template.HTML
 }

@@ -14,12 +14,12 @@ import (
 )
 
 // params for a query for a word
-type articleViewDirHandlerParams struct {
-	Word string
+type senseViewDirHandlerParams struct {
+	Id int32 // it is actually a number!
 }
 
 // FIXME shall we create a record for each query?
-type articleDataForEditType struct {
+type senseDataForEditType struct {
 	Senseid      int32
 	Languageslug string
 	Dialectslug  string
@@ -27,34 +27,27 @@ type articleDataForEditType struct {
 	Word         string
 }
 
-type articleEditTemplateParams struct {
-	Ad *articleDataForEditType
+type senseEditTemplateParams struct {
+	Ad *senseDataForEditType
 }
 
-// ArticleViewDirHandler ...
-func ArticleViewDirHandler(c *gin.Context) {
-	var avdhp articleViewDirHandlerParams
-	avdhp.Word = c.Param("word")
+// SenseViewDirHandler ...
+func SenseViewDirHandler(c *gin.Context) {
+	var avdhp senseViewDirHandlerParams
 
-	if avdhp.Word == "" {
-		c.HTML(http.StatusNotFound, "", nil)
-		return
-	}
-
+	avdhp.Id = extractIdFromRequest(c)
 	dataFound, ad := readArticleFromDb(&avdhp)
 
 	if dataFound {
 		c.HTML(http.StatusOK,
-			"articleview.html",
-			shared.ArticleViewParams{Word: ad.Word, Phrase: template.HTML(ad.Phrase)})
+			"senseview.html",
+			shared.SenseViewParams{Id: ad.Senseid, Word: ad.Word, Phrase: template.HTML(ad.Phrase)})
 	} else {
-		c.HTML(http.StatusBadRequest,
-			"general.html",
-			shared.GeneralTemplateParams{Message: fmt.Sprintf("Sorry, no article (yet?) for «%s»", avdhp.Word)})
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Sorry, no sense (yet?) with id = «%d»", avdhp.Id)
 	}
 }
 
-func readArticleFromDb(avdhp *articleViewDirHandlerParams) (dataFound bool, ad *articleDataForEditType) {
+func readArticleFromDb(avdhp *senseViewDirHandlerParams) (dataFound bool, ad *senseDataForEditType) {
 	reply, err1 := sddb.NamedReadQuery(
 		`select 
 			s.id as senseid
@@ -63,10 +56,10 @@ func readArticleFromDb(avdhp *articleViewDirHandlerParams) (dataFound bool, ad *
 			,word 
 			from tsense as s
 			inner join tlanguage as l on s.languageid = l.id
-			where word = :word
+			where s.id = :id
 			limit 1`, &avdhp)
 	apperror.Panic500AndErrorIf(err1, "Failed to extract an article, sorry")
-	ad = &articleDataForEditType{}
+	ad = &senseDataForEditType{}
 	for reply.Next() {
 		err1 = reply.StructScan(ad)
 		dataFound = true
@@ -75,28 +68,23 @@ func readArticleFromDb(avdhp *articleViewDirHandlerParams) (dataFound bool, ad *
 	return
 }
 
-// ArticleEditDirHandler is a handler to open edit page
-func ArticleEditDirHandler(c *gin.Context) {
+// SenseEditDirHandler is a handler to open edit page
+func SenseEditDirHandler(c *gin.Context) {
 	user.EnsureLoggedIn(c)
-	var avdhp articleViewDirHandlerParams
-	avdhp.Word = c.Param("word")
+	var avdhp senseViewDirHandlerParams
 
-	if avdhp.Word == "" {
-		apperror.Panic500If(apperror.ErrDummy, "No article for empty word")
-		return
-	}
-
+	avdhp.Id = extractIdFromRequest(c)
 	dataFound, ad := readArticleFromDb(&avdhp)
 
 	if !dataFound {
 		c.HTML(http.StatusBadRequest,
 			"general.html",
-			shared.GeneralTemplateParams{Message: fmt.Sprintf("Sorry, no article (yet?) for «%s»", avdhp.Word)})
+			shared.GeneralTemplateParams{Message: fmt.Sprintf("Sorry, no sense (yet?) for «%d»", avdhp.Id)})
 		return
 	}
 
-	aetp := &articleEditTemplateParams{Ad: ad}
+	aetp := &senseEditTemplateParams{Ad: ad}
 	c.HTML(http.StatusOK,
-		"articleedit.html",
+		"senseedit.html",
 		aetp)
 }

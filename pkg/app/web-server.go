@@ -110,8 +110,8 @@ func initRouter() *gin.Engine {
 	engine.GET("/searchform", query.SearchFormPageHandler)
 	engine.GET("/searchresult", query.SearchResultPageHandler)
 	// FIXME - change a way of addressing articles to be adequate!
-	engine.GET("/articleview/:word", query.ArticleViewDirHandler)
-	engine.GET("/articleedit/:word", query.ArticleEditDirHandler)
+	engine.GET("/senseview/:senseid", query.SenseViewDirHandler)
+	engine.GET("/senseedit/:senseid", query.SenseEditDirHandler)
 
 	engine.GET("/registrationform", user.RegistrationFormPageHandler)
 	engine.POST("/registrationformsubmit", user.RegistrationFormSubmitPostHandler)
@@ -122,7 +122,7 @@ func initRouter() *gin.Engine {
 	engine.GET("/logout", user.Logout)
 	engine.Static("/static", "static")
 
-	engine.POST("/articleeditformsubmit", query.ArticleEditFormSubmitPostHandler)
+	engine.POST("/senseeditformsubmit", query.SenseEditFormSubmitPostHandler)
 
 	//engine.GET("/captcha/:imagefilename", ReverseProxy)
 	return engine

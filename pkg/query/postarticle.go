@@ -2,7 +2,6 @@ package query
 
 import (
 	"net/http"
-	"net/url"
 	"regexp"
 	"strconv"
 
@@ -24,8 +23,8 @@ type articlePostDataType struct {
 	Word         string
 }
 
-// ArticleEditFormSubmitPostHandler posts an article data
-func ArticleEditFormSubmitPostHandler(c *gin.Context) {
+// SenseEditFormSubmitPostHandler posts an sense data
+func SenseEditFormSubmitPostHandler(c *gin.Context) {
 	user.EnsureLoggedIn(c)
 	pad := &articlePostDataType{}
 	extractDataFromRequest(c, pad)
@@ -36,9 +35,9 @@ func ArticleEditFormSubmitPostHandler(c *gin.Context) {
 
 	// https://github.com/gin-gonic/gin/issues/444
 	c.Redirect(http.StatusFound,
-		"/articleview/"+
-			// https://stackoverflow.com/a/43429641/9469533
-			url.PathEscape(pad.Word))
+		"/senseview/"+strconv.Itoa(int(pad.ID)))
+	//// https://stackoverflow.com/a/43429641/9469533
+	//url.PathEscape(pad.Word))
 }
 
 func sanitizeData(pad *articlePostDataType) {
@@ -52,15 +51,23 @@ func sanitizeData(pad *articlePostDataType) {
 	}
 }
 
-func extractDataFromRequest(c *gin.Context, pad *articlePostDataType) {
+func extractIdFromRequest(c *gin.Context) (id int32) {
 	idAsString := c.PostForm("senseid")
+	if idAsString == "" {
+		idAsString = c.Param("senseid")
+	}
 	if idAsString != "" {
 		padID, err := strconv.Atoi(idAsString)
-		apperror.Panic500AndErrorIf(err, "Wrong article ID")
-		pad.ID = int32(padID)
+		apperror.Panic500AndErrorIf(err, "Wrong sense ID")
+		id = int32(padID)
 	} else {
-		pad.ID = 0
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "No sense ID given")
 	}
+	return
+}
+
+func extractDataFromRequest(c *gin.Context, pad *articlePostDataType) {
+	pad.ID = extractIdFromRequest(c)
 	pad.Phrase = c.PostForm("phrase")
 	pad.Word = c.PostForm("word")
 }
@@ -73,7 +80,7 @@ func writeToDb(pad *articlePostDataType) {
 		count, err2 := res.RowsAffected()
 		sddb.FatalDatabaseErrorIf(err2, "Unable to check if the record was updated")
 		if count == 0 {
-			apperror.Panic500AndErrorIf(apperror.ErrDummy, "Article with id = %v not found", pad.ID)
+			apperror.Panic500AndErrorIf(apperror.ErrDummy, "Sense with id = %v not found", pad.ID)
 		}
 	} else {
 		reply, err := sddb.NamedUpdateQuery(
@@ -87,7 +94,7 @@ func writeToDb(pad *articlePostDataType) {
 			sddb.FatalDatabaseErrorIf(err1, "Error obtaining id of a new article, err = %#v", err1)
 		}
 		if !dataFound {
-			sddb.FatalDatabaseErrorIf(apperror.ErrDummy, "Id of a new article is not returned")
+			sddb.FatalDatabaseErrorIf(apperror.ErrDummy, "Id of a new sense is not returned")
 		}
 	}
 }
