@@ -52,7 +52,7 @@ var gridOptions = {
             if (params.value !== undefined) {
                 return params.value;
             } else {
-                return '<img src="../images/loading.gif">'
+                return '⌛'
             }
         }
     },
@@ -84,8 +84,8 @@ var gridOptions = {
 document.addEventListener('DOMContentLoaded', function() {
     var gridDiv = document.querySelector('#myGrid');
     new agGrid.Grid(gridDiv, gridOptions);
-
-    agGrid.simpleHttpRequest({url: 'https://raw.githubusercontent.com/ag-grid/ag-grid/master/packages/ag-grid-docs/src/olympicWinners.json'}).then(function(data) {
+    // /wordsearchresultdata
+    agGrid.simpleHttpRequest({url: '/static/olympicWinners.json'}).then(function(data) {
         var dataSource = {
             rowCount: null, // behave as infinite scroll
             getRows: function (params) {
