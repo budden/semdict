@@ -142,8 +142,9 @@ func Panic500AndErrorIf(err error, format string, args ...interface{}) {
 // the log (maybe a separated log) in the form understandible by fail2ban
 func Panic500AndLogAttackIf(err error, c *gin.Context, format string, args ...interface{}) {
 	if err != nil {
-		LogAttack(c, err)
 		msg := fmt.Sprintf(format, args...)
+		log.Printf("Panic500AndLogAttaciIf: message is «%s»\n", msg)
+		LogAttack(c, err)
 		data := Exception500{Message: msg}
 		panic(&data)
 	}
