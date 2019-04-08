@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+
+<!--Embed the header.html template at this location-->
+{{ template "header.html" .}}
+
+<body>
+ <script type="text/javascript" src="/static/ckeditor_4.11.3_basic/ckeditor.js"></script>
+ <p><a href="menu">Menu</a></p>
+ <p>Search for a word by pattern</p>
+ <form class="form" action="/wordsearchresult" method="POST">
+  <div class="form-group" style="display:none">
+   <label for="id">ID</label>
+   <input type="text" class="form-control" id="dummyid" name="dummyid" value="{{.Fd.Dummyid}}" readonly>
+  </div>
+  <div class="form-group">
+   <label for="wordpattern">Wordpattern</label>
+   <input type="text" name="wordpattern" class="form-control" id="wordpattern"
+   placeholder="Word beginning; «%» matches any string"
+   value="{{.Fd.Wordpattern}}"
+   required>
+  </div>
+  <button type="submit" class="btn btn-primary">Search</button>
+ </form>
+</body>
+</html>

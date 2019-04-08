@@ -1,6 +1,6 @@
 package query
 
-// Здесь мы пытаемся реализовать пример формы поиска как канонический пример формы (аналог редактора из conbred)
+// Здесь будет грид заложён
 
 import (
 	"net/http"
@@ -15,9 +15,10 @@ import (
 // На самом деле это должна быть модель (метаданные) - аналог deftbl из fb2/dict-ripol.lisp или
 // definterface из wrapper.lisp. А структура
 // должна из этого генерироваться. Для переходимости метданные мы можем сделать
-// константой, переменной или функцией, хотя переходить к определению будет и неудобно.
-type frmDataType struct {
-	Frmid       int32 // для формы поиска - всегда 1
+// константой, переменной или функцией, переходить к определению с помощью go to symbol in workspace
+// apperror.Panic500If (почему-то без префикса пакета, ну и ладно - там есть выбор одноимённых)
+type wordSearchResultDataType struct {
+	Resultid    int32 // для формы поиска - всегда 1
 	Wordpattern string
 }
 
@@ -26,42 +27,42 @@ type frmDataType struct {
 // В десктопе аналогом может быть params из runWrappedSprav
 // Интересный вопрос - можно ли передать wrapper через URL? Вообще говоря, wrapper - слишком могущественная вещь
 // для URL-ов.
-type frmRouteParams struct {
+type wordSearchResultRouteParams struct {
 	Wordpattern string
 }
 
 // Это нужно для статической типизации параметров шаблона? Или вообще неyужно?
-type frmTemplateParamsType struct {
-	Ad *frmDataType
+type wordSearchResultTemplateParamsType struct {
+	Fd *wordSearchResultDataType
 }
 
-// FrmRouteHandler нужен для случая, когда форма поиска заполняет через URL...
-// По идее, это - runWrappedSprav - его частный случай
-func FrmRouteHandler(c *gin.Context) {
-	var avdhp frmRouteParams
+// WordSearchResultRouteHandler - обработчик для "/wordsearchform". Поддерживается случай, когда форма поиска
+// заполняет через URL... По идее, это - runWrappedSprav - его частный случай
+func WordSearchResultRouteHandler(c *gin.Context) {
+	var frp wordSearchResultRouteParams
 
 	// Извлечь параметры из запроса
-	// avdhp.Id = extractIdFromRequest(c)
+	// frp.Id = extractIdFromRequest(c)
 
 	// Прочитать данные из базы данных. Если нет данных, паниковать
-	ad := readFrmFromDb(&avdhp)
+	fd := readWordSearchResultFromDb(&frp)
 
 	// Здесь мы генерируем интерфейс, заполненный данными (или содержащий функции AJAX для динамического заполнения)
 	// и отправляем клиенту
 	c.HTML(http.StatusOK,
 		// возможно, тут нужна развязка в зависимости от того, открываем ли мы на чтение или на ред-е - разные шаблоны
-		"senseedit.html",
-		frmTemplateParamsType{Ad: ad})
+		"wordsearchfrm.html",
+		wordSearchResultTemplateParamsType{Fd: fd})
 }
 
-func readFrmFromDb(avdhp *frmRouteParams) (ad *frmDataType) {
+func readWordSearchResultFromDb(frp *wordSearchResultRouteParams) (fd *wordSearchResultDataType) {
 	reply, err1 := sddb.NamedReadQuery(
-		`select 1 as frmid, :wordPattern as wordPattern`, &avdhp)
+		`select 1 as wordSearchResultid, :wordPattern as wordPattern`, &frp)
 	apperror.Panic500AndErrorIf(err1, "Db query failed")
-	ad = &frmDataType{}
+	fd = &wordSearchResultDataType{}
 	dataFound := false
 	for reply.Next() {
-		err1 = reply.StructScan(ad)
+		err1 = reply.StructScan(fd)
 		dataFound = true
 	}
 	if !dataFound {
