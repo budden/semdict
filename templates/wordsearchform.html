@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
 
-<!--Embed the header.html template at this location-->
-{{ template "header.html" .}}
+{{ template "header-start.html" .}}
+<title>Word search</title>
+{{ template "header-end.html" .}}
 
 <body>
- <script type="text/javascript" src="/static/ckeditor_4.11.3_basic/ckeditor.js"></script>
  <p><a href="menu">Menu</a></p>
  <p>Search for a word by pattern</p>
  <form class="form" action="/wordsearchresult" method="POST">

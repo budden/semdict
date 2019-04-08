@@ -5,9 +5,6 @@ package query
 import (
 	"net/http"
 
-	"github.com/budden/semdict/pkg/apperror"
-	"github.com/budden/semdict/pkg/sddb"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -51,23 +48,12 @@ func WordSearchResultRouteHandler(c *gin.Context) {
 	// и отправляем клиенту
 	c.HTML(http.StatusOK,
 		// возможно, тут нужна развязка в зависимости от того, открываем ли мы на чтение или на ред-е - разные шаблоны
-		"wordsearchfrm.html",
+		"wordsearchresult.html",
 		wordSearchResultTemplateParamsType{Fd: fd})
 }
 
 func readWordSearchResultFromDb(frp *wordSearchResultRouteParams) (fd *wordSearchResultDataType) {
-	reply, err1 := sddb.NamedReadQuery(
-		`select 1 as wordSearchResultid, :wordPattern as wordPattern`, &frp)
-	apperror.Panic500AndErrorIf(err1, "Db query failed")
+	// FIXME скопируй всё это из wordsearchform.html, если первая порция должна впечатываться сразу
 	fd = &wordSearchResultDataType{}
-	dataFound := false
-	for reply.Next() {
-		err1 = reply.StructScan(fd)
-		dataFound = true
-	}
-	if !dataFound {
-		apperror.Panic500AndErrorIf(apperror.ErrDummy, "No data found")
-	}
-	sddb.FatalDatabaseErrorIf(err1, "Error obtaining data of sense: %#v", err1)
 	return
 }

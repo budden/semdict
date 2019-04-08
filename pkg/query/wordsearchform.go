@@ -51,7 +51,7 @@ func WordSearchFormRouteHandler(c *gin.Context) {
 	// и отправляем клиенту
 	c.HTML(http.StatusOK,
 		// возможно, тут нужна развязка в зависимости от того, открываем ли мы на чтение или на ред-е - разные шаблоны
-		"wordsearchfrm.html",
+		"wordsearchform.html",
 		wordSearchFormTemplateParamsType{Fd: fd})
 }
 

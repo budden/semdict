@@ -2,8 +2,9 @@
 <html>
 <!-- See https://semaphoreci.com/community/tutorials/test-driven-development-of-go-web-applications-with-gin -->
 
-<!--Embed the header.html template at this location-->
-{{ template "header.html" .}}
+{{ template "header-start.html" .}}
+<title>Semantic dictionary</title>
+{{ template "header-end.html" .}}
 
 <body>
  <script type="text/javascript" src="/static/ckeditor_4.11.3_basic/ckeditor.js"></script>
