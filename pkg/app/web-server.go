@@ -121,7 +121,7 @@ func initRouter() *gin.Engine {
 	engine.GET("/loginform", user.LoginFormPageHandler)
 	engine.POST("/loginformsubmit", user.LoginFormSubmitPostHandler) // FIXME rename handler
 	engine.GET("/logout", user.Logout)
-	engine.Static("/static", "static")
+	engine.Static("/static", *TemplateBaseDir+"static")
 
 	engine.POST("/senseeditformsubmit", query.SenseEditFormSubmitPostHandler)
 

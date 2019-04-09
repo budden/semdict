@@ -29,7 +29,9 @@ const DefaultConfigFileName = "semdict.config.json"
 // ConfigFileName is a secret data configuration file name
 var ConfigFileName *string
 
-// TemplateBaseDir is a directory in which template directory is located
+// TemplateBaseDir is a directory in which template and static directory is located
+// FIXME rename. It is not "assets", because static files are not assets, only templates are.
+// but some "root directory".
 var TemplateBaseDir *string
 
 // SaveSecretConfigDataExample is called from the test suite.
