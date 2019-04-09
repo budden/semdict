@@ -36,6 +36,7 @@ cp semdict.config.json.example ${CONFIG_FILE}.example
 chmod 600 ${CONFIG_FILE}.example
 
 cp -R templates /usr/share/semdict/
+cp -R static /usr/share/semdict
 
 systemctl daemon-reload
 

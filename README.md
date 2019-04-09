@@ -1,13 +1,33 @@
-# "semdict" - E-mail based user registration in golang + postgresql
+# Semantic dictionary - an anarchic multilingual glossary engine  
 
-## Goal 
-Something more or less realistic in terms of features. Securely stored passwords, expiring registration confirmation links sent over an E-mail and so on.
+## Concept
+
+### Golang exercise
+The main goal of this project is to train myself in a full-stack development using golang and postgresql. 
+You know golang is usually associated with «microservices», but I consider golang as just a good 
+high-level programming language. So here I use golang as a replacement for a PHP.
+
+### Idea of "semantic dictionary"
+Dictionaries are used to translate words from one language to another. But every word usually have 
+multiple meanings (senses), so word translations are NxN relationships between words. We're building a translation
+engine where the key is the pair of the word and the defining phrase which disambiguates the sense. 
+This way, there is a chance that glossary entry to glossary entry translation is unambiguous. 
+
+### Anarchic = like github
+Github has a "fork" feature. That means that anyone can create one's own version of every project. Operations on forks
+are "compare versions" and "request an original author to accept my changes", or «Pull request».
+We plan to support two sorts of forks:
+
+- make a new dialect; for instance, localized MS Windows can have different translations for the same sense compared to Linux or Android.
+So we create three forks on "Russian" language and call them "Windows localization", "Linux localization" and "Android localization"
+- do a collective work; for now, fork (or branch) with a subsequent pull request seem to be a good way to administer collective work.
+Time will tell if it is really so good.
 
 ## State
-Pre-pre alpha. In a bottom-up manner, I collect necessary elements. So
-there is no project structure yet. 
+Pre-alpha. You can register on the [semantic-dict.ru](semantic-dict.ru) already, but at any time I can 
+deploy a new database with a different structure and your registration is gone. 
 
-## Elements
+## Technology
 
 ### Done 
 - concept of database error handling
