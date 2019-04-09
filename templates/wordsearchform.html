@@ -6,47 +6,49 @@
 {{ template "header-end.html" .}}
 
 <body>
-<p><span class="glyphicon glyphicon-chevron-down"> </span>Link with href</p>
-
- <p><a href="menu">Menu</a></p>
-
-
- <p>Search for a word by pattern</p>
+ <p><a href="menu"><span class="glyphicon glyphicon-menu-hamburger"></span>Menu</a></p>
  <form class="form" action="/wordsearchresultform" method="GET" enctype="application/x-www-form-urlencoded">
   <div class="form-group" style="display:none">
    <label for="id">ID</label>
-   <input type="text" class="form-control" id="dummyid" name="dummyid" value="{{.Fd.Dummyid}}" readonly>
-  </div>
+   <input type="text" class="form-control" id="dummyid" name="dummyid" value="{{.Fd.Dummyid}}" readonly> </div>
   <div class="form-group">
    <label for="wordpattern">Wordpattern</label>
    <input type="text" name="wordpattern" class="form-control" id="wordpattern"
-   placeholder="Word beginning; «%» matches any string"
+   placeholder="Word pattern; «%» matches any string"
    value="{{.Fd.Wordpattern}}"
-   required>
-  </div>
-  <button type="submit" class="btn btn-primary">Search</button>
+   required autofocus> </div>
+   <div class="form-group">
+    <div class="panel panel-default" id="advanced">
+     <div class="panel-heading inactive"><h4 class="panel-title">
+      <a class="accordion-toggle" data-toggle="collapse" data-parent="#advanced" href="#advanced-detail">
+       <span class="glyphicon glyphicon-chevron-down"></span>Advanced</a></h4></div>
+      <div id="advanced-detail" class="panel-collapse collapse">
+          <div class="panel-body"><p>Use thig page to search sense by word in any language</p>
+          <div class="form-group">
+           <label for="resultsperpage" style="vertical-align:top">Results/page</label>
+           <select id="resultsperpage" name="resultsperpage" size=3>
+            <!-- fixme render this one with template, setting the selected value from the data-->
+            <option selected="selected">10</option>
+            <option>50</option>
+            <option>All(&le;5000)</option>
+           </select>
+          </div></div></div></div></div>
+   <div class="form-group">
+     <button type="submit" class="btn btn-primary">Search</button>
+    
+    
+    </div>
  </form>
 </body>
-
-<div class="panel-group" id="accordion">
-  <div class="panel panel-default">
-      <div class="panel-heading inactive">
-          <h4 class="panel-title">
-              <a class="accordion-toggle" data-toggle="collapse" 
-               data-parent="#accordion" href="#panel1"><span class="glyphicon glyphicon-chevron-down"></span>Panel 1</a>
-          </h4></div>
-      <div id="panel1" class="panel-collapse collapse">
-          <div class="panel-body">
-              </span> Contents panel 1 </div></div></div></div>
 
 <script src="/static/js/jquery-2.1.1.min.js"></script>
 <script src="/static/bootstrap-3.3.2/js/bootstrap.js"></script>
 <script>
-jQuery(function ($) {
+jQuery(function setUpAdvancedPanelEvents($) {
  function toggleIt(e) {
   $(e.target).prev().toggleClass('active inactive').find('.glyphicon').toggleClass('glyphicon-chevron-down glyphicon-chevron-up');
  }
- $('#accordion').on('show.bs.collapse', toggleIt)
- $('#accordion').on('hide.bs.collapse', toggleIt)
+ $('#advanced').on('show.bs.collapse', toggleIt)
+ $('#advanced').on('hide.bs.collapse', toggleIt)
 });</script>
 </html>
