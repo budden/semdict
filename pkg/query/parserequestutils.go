@@ -31,6 +31,7 @@ func GetZeroOrOneNonNegativeIntFormValue(c *gin.Context, key string) (
 	return
 }
 
+// FIXME искать магическую константу 5000 в шаблонах.
 const MaxDataSetRecordCountLimit = 5000
 
 // If Limit is 0, set it to some reasonable maximum value
