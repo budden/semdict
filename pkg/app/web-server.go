@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"html/template"
 	"log"
 	"net"
 	"net/http"
@@ -103,8 +104,7 @@ func initRouter() *gin.Engine {
 
 	engine.Use(gin.Logger(), user.SetUserStatus(), apperror.HandlePanicInRequestHandler())
 
-	templatesGlob := *TemplateBaseDir + "templates/*"
-	engine.LoadHTMLGlob(templatesGlob)
+	setupTemplates(engine)
 	engine.GET("/", homePageHandler)
 	engine.GET("/menu", menuPageHandler)
 	engine.GET("/wordsearchform", query.WordSearchFormRouteHandler)
@@ -127,6 +127,18 @@ func initRouter() *gin.Engine {
 
 	//engine.GET("/captcha/:imagefilename", ReverseProxy)
 	return engine
+}
+
+func castAsHTML(s string) template.HTML {
+	return template.HTML(s)
+}
+
+func setupTemplates(engine *gin.Engine) {
+	funcMap := template.FuncMap{
+		"castAsHTML": castAsHTML}
+	engine.SetFuncMap(funcMap)
+	templatesGlob := *TemplateBaseDir + "templates/*"
+	engine.LoadHTMLGlob(templatesGlob)
 }
 
 // ReverseProxy https://stackoverflow.com/a/39009974/9469533

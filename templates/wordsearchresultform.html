@@ -12,14 +12,15 @@
     <p></p>
     {{range $index, $wordSearchQueryRecord := .Records}}
     <hr>
-    <p><a href="/senseview/{{ $wordSearchQueryRecord.Id }}"><i>Sense ID:</i> {{ $wordSearchQueryRecord.Id }}</a>
- &VerticalBar; <i>Language</i>: {{ $wordSearchQueryRecord.Languageid }} </p>
-    <p><b>{{ $wordSearchQueryRecord.Word }}</b> 
- &VerticalBar; <i>Phrase:</i> {{ $wordSearchQueryRecord.Phrase }}</p>
-    {{if $.IsLoggedIn}}
-    <p><a href="/senseedit/{{ $wordSearchQueryRecord.Id }}">
-        <span class="glyphicon glyphicon-edit"></span></a></p>{{end}}
-    {{ end }}
+    <p><i>Sense #</i><a href="/senseview/{{ $wordSearchQueryRecord.Id }}"> {{ $wordSearchQueryRecord.Id }}</a>
+        {{if $.IsLoggedIn}}
+        &VerticalBar; <a href="/senseedit/{{ $wordSearchQueryRecord.Id }}">
+            <span class="glyphicon glyphicon-edit"></span></a>
+        {{end}}
+        &VerticalBar; <i>Language</i>: {{ $wordSearchQueryRecord.Languageid }} </p>
+    <p><b>{{ $wordSearchQueryRecord.Word }}</b>
+        &VerticalBar; <i>Phrase:</i> {{ castAsHTML $wordSearchQueryRecord.Phrase }}</p>
+    {{end}}
 
 </body>
 
