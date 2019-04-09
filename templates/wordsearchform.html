@@ -6,7 +6,11 @@
 {{ template "header-end.html" .}}
 
 <body>
+<p><span class="glyphicon glyphicon-chevron-down"> </span>Link with href</p>
+
  <p><a href="menu">Menu</a></p>
+
+
  <p>Search for a word by pattern</p>
  <form class="form" action="/wordsearchresultform" method="GET" enctype="application/x-www-form-urlencoded">
   <div class="form-group" style="display:none">
@@ -23,4 +27,26 @@
   <button type="submit" class="btn btn-primary">Search</button>
  </form>
 </body>
+
+<div class="panel-group" id="accordion">
+  <div class="panel panel-default">
+      <div class="panel-heading inactive">
+          <h4 class="panel-title">
+              <a class="accordion-toggle" data-toggle="collapse" 
+               data-parent="#accordion" href="#panel1"><span class="glyphicon glyphicon-chevron-down"></span>Panel 1</a>
+          </h4></div>
+      <div id="panel1" class="panel-collapse collapse">
+          <div class="panel-body">
+              </span> Contents panel 1 </div></div></div></div>
+
+<script src="/static/js/jquery-2.1.1.min.js"></script>
+<script src="/static/bootstrap-3.3.2/js/bootstrap.js"></script>
+<script>
+jQuery(function ($) {
+ function toggleIt(e) {
+  $(e.target).prev().toggleClass('active inactive').find('.glyphicon').toggleClass('glyphicon-chevron-down glyphicon-chevron-up');
+ }
+ $('#accordion').on('show.bs.collapse', toggleIt)
+ $('#accordion').on('hide.bs.collapse', toggleIt)
+});</script>
 </html>
