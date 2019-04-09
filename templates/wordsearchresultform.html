@@ -1,112 +1,26 @@
 <!DOCTYPE html>
 <html>
 
-<head>
+{{ template "header-start.html" .}}
 <title>Word search result</title>
-
-<script src="static/js/ag-grid-community.min.js"></script>
-
-</head>
-
+{{ template "header-end.html" .}}
 
 <body>
-
- <p><a href="menu">Menu</a></p>
- <p>Word search results: «{{.P.Wordpattern}}»</p>
- {{if .IsLoggedIn}}<p><a href="/senseaddform">Add new «{{.P.Wordpattern}}»</a></p>{{end}}
- <p></p>
- <div id="myGrid" style="height: 100%;" class="ag-theme-balham"></div>
-
-<script>
-var columnDefs = [
-    // this row shows the row index, doesn't use any data from the row
-    /*{headerName: "#", width: 50,
-        // it is important to have node.id here, so that when the id changes (which happens
-        // when the row is loaded) then the cell is refreshed.
-        valueGetter: 'node.id',
-        cellRenderer: 'loadingRenderer'
-    },*/
-    {headerName: "Id", field: "Id", width: 50, cellRenderer: 'loadingRenderer'},
-    {headerName: "Languageid", field: "Languageid", width: 150},
-    {headerName: "Phrase", field: "Phrase", width: 200},
-    {headerName: "Word", field: "Word", width: 120},
-];
-
-var gridOptions = {
-    defaultColDef: {
-        resizable: true
-    },
-
-    components:{
-        loadingRenderer: function loadingRendererFn(params) {
-            if (params.value !== undefined) {
-                return params.value;
-            } else {
-                return '⌛'
-            }
-        }
-    },
-    rowBuffer: 0,
-    rowSelection: 'multiple',
-    rowDeselection: true,
-    columnDefs: columnDefs,
-    // tell grid we want virtual row model type
-    rowModelType: 'infinite',
-    // how big each page in our page cache will be, default is 100
-    paginationPageSize: 100,
-    // how many extra blank rows to display to the user at the end of the dataset,
-    // which sets the vertical scroll and then allows the grid to request viewing more rows of data.
-    // default is 1, ie show 1 row.
-    cacheOverflowSize: 2,
-    // how many server side requests to send at a time. if user is scrolling lots, then the requests
-    // are throttled down
-    maxConcurrentDatasourceRequests: 1,
-    // how many rows to initially show in the grid. having 1 shows a blank row, so it looks like
-    // the grid is loading from the users perspective (as we have a spinner in the first col)
-    infiniteInitialRowCount: 1000,
-    // how many pages to store in cache. default is undefined, which allows an infinite sized cache,
-    // pages are never purged. this should be set for large data to stop your browser from getting
-    // full of data
-    maxBlocksInCache: 10
-};
-
-function buildWordSearchQueryRowsURL(params) {
-    var url = '/wordsearchquery?wordpattern={{.Wordpatternurlencoded}}'
-    var limit = params.endRow - params.startRow
-    var offset = params.startRow
-    if (limit === undefined) {
-        console.error('limit is undefined') }
-    if (offset === undefined) {
-        console.error('offset is undefined') }
-    url = url + '&limit=' + limit + '&offset=' + offset
-    return url
-}
-
-// setup the grid after the page has finished loading
-document.addEventListener('DOMContentLoaded', function() {
-    var gridDiv = document.querySelector('#myGrid');
-    new agGrid.Grid(gridDiv, gridOptions);
-    dataSource = {
-        rowCount: null,
-        getRows: function getWordSearchQueryRows(params) {
-            var url = buildWordSearchQueryRowsURL(params)
-            agGrid.simpleHttpRequest({url: url}).then(
-                function processReceivedSearchQueryRows(data) {
-                    var rowsThisPage = data.slice(params.startRow, params.endRow);
-                        // if on or after the last page, work out the last row.
-                    var lastRow = -1;
-                    if (data.length <= params.endRow) {
-                        lastRow = data.length;
-                    }
-                    // call the success callback
-                    params.successCallback(rowsThisPage, lastRow);
-                }
-            )
-        }
-    }
-    gridOptions.api.setDatasource(dataSource);
-});
-</script>
+    <p><a href="menu">Menu</a></p>
+    <p>Word search results: «{{.P.Wordpattern}}»</p>
+    {{if .IsLoggedIn}}<p><a href="/senseaddform">Add new «{{.P.Wordpattern}}»</a></p>{{end}}
+    <p></p>
+    {{range $index, $wordSearchQueryRecord := .Records}}
+    <hr>
+    <p><a href="/senseview/{{ $wordSearchQueryRecord.Id }}"><i>Sense ID:</i> {{ $wordSearchQueryRecord.Id }}</a>
+ &VerticalBar; <i>Language</i>: {{ $wordSearchQueryRecord.Languageid }} </p>
+    <p><b>{{ $wordSearchQueryRecord.Word }}</b> 
+ &VerticalBar; <i>Phrase:</i> {{ $wordSearchQueryRecord.Phrase }}</p>
+    {{if $.IsLoggedIn}}
+    <p><a href="/senseedit/{{ $wordSearchQueryRecord.Id }}">
+        <span class="glyphicon glyphicon-edit"></span></a></p>{{end}}
+    {{ end }}
 
 </body>
+
 </html>

@@ -50,9 +50,10 @@ func readWordSearchQueryFromDb(frp *wordSearchQueryParams) (fd []*wordSearchQuer
 	fd = make([]*wordSearchQueryRecord, frp.Limit)
 	var last int
 	for last = 0; reply.Next(); last++ {
-		fd[last] = &wordSearchQueryRecord{}
-		err1 = reply.StructScan(fd[last])
+		wsqr := &wordSearchQueryRecord{}
+		err1 = reply.StructScan(wsqr)
 		sddb.FatalDatabaseErrorIf(err1, "Error obtaining data of sense: %#v", err1)
+		fd[last] = wsqr
 	}
 	fd = fd[:last]
 	return
