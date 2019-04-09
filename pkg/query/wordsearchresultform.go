@@ -7,6 +7,7 @@ import (
 	"net/url"
 
 	"github.com/budden/semdict/pkg/apperror"
+	"github.com/budden/semdict/pkg/user"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,6 +21,7 @@ type wordSearchResultFormParams struct {
 type wordSearchResultFormTemplateParamsType struct {
 	P                     *wordSearchResultFormParams
 	Wordpatternurlencoded string
+	IsLoggedIn            bool
 }
 
 // WordSearchResultRouteHandler - обработчик для "/wordsearchresult". Поддерживается случай, когда форма поиска
@@ -37,5 +39,6 @@ func WordSearchResultRouteHandler(c *gin.Context) {
 	c.HTML(http.StatusOK,
 		"wordsearchresultform.html",
 		wordSearchResultFormTemplateParamsType{P: &wsrfp,
-			Wordpatternurlencoded: wpu})
+			Wordpatternurlencoded: wpu,
+			IsLoggedIn:            user.IsLoggedIn(c)})
 }
