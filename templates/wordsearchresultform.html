@@ -75,7 +75,7 @@ var gridOptions = {
 };
 
 function buildWordSearchQueryRowsURL(params) {
-    var url = '/wordsearchquery?wordpattern={{.P.Wordpattern}}'
+    var url = '/wordsearchquery?wordpattern={{.Wordpatternurlencoded}}'
     var limit = params.endRow - params.startRow
     var offset = params.startRow
     if (limit === undefined) {

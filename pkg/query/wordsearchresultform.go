@@ -18,8 +18,8 @@ type wordSearchResultFormParams struct {
 
 // Параметры шаблона
 type wordSearchResultFormTemplateParamsType struct {
-	P                  *wordSearchResultFormParams
-	Wordsearchqueryurl string
+	P                     *wordSearchResultFormParams
+	Wordpatternurlencoded string
 }
 
 // WordSearchResultRouteHandler - обработчик для "/wordsearchresult". Поддерживается случай, когда форма поиска
@@ -32,9 +32,10 @@ func WordSearchResultRouteHandler(c *gin.Context) {
 		apperror.Panic500AndLogAttackIf(apperror.ErrDummy, c, "Empty search pattern")
 	}
 
-	queryURL := "/wordsearchquery" + "?wordpattern=" + url.QueryEscape(wp)
+	wpu := url.QueryEscape(wp)
 
 	c.HTML(http.StatusOK,
 		"wordsearchresultform.html",
-		wordSearchResultFormTemplateParamsType{P: &wsrfp, Wordsearchqueryurl: queryURL})
+		wordSearchResultFormTemplateParamsType{P: &wsrfp,
+			Wordpatternurlencoded: wpu})
 }
