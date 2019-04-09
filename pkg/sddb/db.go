@@ -256,3 +256,11 @@ func NamedReadQuery(sql string, params interface{}) (res *sqlx.Rows, err error) 
 	res, err = conn.Db.NamedQuery(sql, params)
 	return
 }
+
+// CloseRows are for use with defer to close rows in case rows iteration goes wrong
+func CloseRows(r *sqlx.Rows) func() {
+	return func() {
+		err := r.Close()
+		FatalDatabaseErrorIf(err, "Failed to close rows, «%s»")
+	}
+}
