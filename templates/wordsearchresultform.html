@@ -19,28 +19,22 @@
 <body>
 
  <p><a href="menu">Menu</a></p>
- <p>Word search results: {{.D.P.Wordpattern}}</p>
+ <p>Word search results: «{{.P.Wordpattern}}»</p>
  <div id="myGrid" style="height: 100%;" class="ag-theme-bootstrap"></div>
 
 <script>
 var columnDefs = [
     // this row shows the row index, doesn't use any data from the row
-    {headerName: "ID", width: 50,
+    {headerName: "#", width: 50,
         // it is important to have node.id here, so that when the id changes (which happens
         // when the row is loaded) then the cell is refreshed.
         valueGetter: 'node.id',
         cellRenderer: 'loadingRenderer'
     },
-    {headerName: "Athlete", field: "athlete", width: 150},
-    {headerName: "Age", field: "age", width: 90},
-    {headerName: "Country", field: "country", width: 120},
-    {headerName: "Year", field: "year", width: 90},
-    {headerName: "Date", field: "date", width: 110},
-    {headerName: "Sport", field: "sport", width: 110},
-    {headerName: "Gold", field: "gold", width: 100},
-    {headerName: "Silver", field: "silver", width: 100},
-    {headerName: "Bronze", field: "bronze", width: 100},
-    {headerName: "Total", field: "total", width: 100}
+    {headerName: "Id", field: "Id", width: 50},
+    {headerName: "Languageid", field: "Languageid", width: 150},
+    {headerName: "Phrase", field: "Phrase", width: 90},
+    {headerName: "Word", field: "Word", width: 120},
 ];
 
 var gridOptions = {
@@ -80,34 +74,67 @@ var gridOptions = {
     maxBlocksInCache: 10
 };
 
+function buildWordSearchQueryRowsURL(params) {
+    var url = '/wordsearchquery?wordpattern={{.P.Wordpattern}}'
+    var limit = params.endRow - params.startRow
+    var offset = params.startRow
+    if (limit === undefined) {
+        console.error('limit is undefined') }
+    if (offset === undefined) {
+        console.error('offset is undefined') }
+    url = url + '&limit=' + limit + '&offset=' + offset
+    return url
+}
+
 // setup the grid after the page has finished loading
 document.addEventListener('DOMContentLoaded', function() {
     var gridDiv = document.querySelector('#myGrid');
     new agGrid.Grid(gridDiv, gridOptions);
-    // /wordsearchresultdata
-    agGrid.simpleHttpRequest({url: '/static/olympicWinners.json'}).then(function(data) {
-        var dataSource = {
-            rowCount: null, // behave as infinite scroll
-            getRows: function (params) {
-                console.log('asking for ' + params.startRow + ' to ' + params.endRow);
-                // At this point in your code, you would call the server, using $http if in AngularJS 1.x.
-                // To make the demo look real, wait for 500ms before returning
-                setTimeout( function() {
-                    // take a slice of the total rows
+    dataSource = {
+        rowCount: null,
+        getRows: function getWordSearchQueryRows(params) {
+            var url = buildWordSearchQueryRowsURL(params)
+            agGrid.simpleHttpRequest({url: url}).then(
+                function processReceivedSearchQueryRows(data) {
                     var rowsThisPage = data.slice(params.startRow, params.endRow);
-                    // if on or after the last page, work out the last row.
+                        // if on or after the last page, work out the last row.
                     var lastRow = -1;
                     if (data.length <= params.endRow) {
                         lastRow = data.length;
                     }
                     // call the success callback
                     params.successCallback(rowsThisPage, lastRow);
-                }, 500);
-            }
-        };
+                }
+            )
+        }
+    }
+    gridOptions.api.setDatasource(dataSource);
+
+
+    /* agGrid.simpleHttpRequest({url: '/wordsearchquery?wordpattern={{.P.Wordpattern}}'}).then(
+        function(data) {
+            var dataSource = {
+                rowCount: null, // behave as infinite scroll
+                getRows: function (params) {
+                    console.log('asking for ' + params.startRow + ' to ' + params.endRow);
+                    // At this point in your code, you would call the server, using $http if in AngularJS 1.x.
+                    // To make the demo look real, wait for 500ms before returning
+                    setTimeout( function() {
+                        // take a slice of the total rows
+                        var rowsThisPage = data.slice(params.startRow, params.endRow);
+                        // if on or after the last page, work out the last row.
+                        var lastRow = -1;
+                        if (data.length <= params.endRow) {
+                            lastRow = data.length;
+                        }
+                        // call the success callback
+                        params.successCallback(rowsThisPage, lastRow);
+                    }, 500);
+                }
+            };
 
         gridOptions.api.setDatasource(dataSource);
-    });
+    });*/ 
 });
 </script>
 

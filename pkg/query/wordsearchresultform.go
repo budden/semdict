@@ -4,6 +4,7 @@ package query
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/budden/semdict/pkg/apperror"
 
@@ -15,14 +16,10 @@ type wordSearchResultFormParams struct {
 	Wordpattern string
 }
 
-// данные формы. Лишняя сущность, т.к. нам нужны только параметры
-type wordSearchResultFormDataType struct {
-	P *wordSearchResultFormParams
-}
-
-// Параметры шаблона. Опять же, в данном случае - лишняя сущность.
+// Параметры шаблона
 type wordSearchResultFormTemplateParamsType struct {
-	D *wordSearchResultFormDataType
+	P                  *wordSearchResultFormParams
+	Wordsearchqueryurl string
 }
 
 // WordSearchResultRouteHandler - обработчик для "/wordsearchresult". Поддерживается случай, когда форма поиска
@@ -30,16 +27,14 @@ type wordSearchResultFormTemplateParamsType struct {
 func WordSearchResultRouteHandler(c *gin.Context) {
 	var wsrfp wordSearchResultFormParams
 	wsrfp.Wordpattern = c.Query("wordpattern")
-	if wsrfp.Wordpattern == "" {
+	wp := wsrfp.Wordpattern
+	if wp == "" {
 		apperror.Panic500AndLogAttackIf(apperror.ErrDummy, c, "Empty search pattern")
 	}
 
+	queryURL := "/wordsearchquery" + "?wordpattern=" + url.QueryEscape(wp)
+
 	c.HTML(http.StatusOK,
 		"wordsearchresultform.html",
-		wordSearchResultFormTemplateParamsType{D: &wordSearchResultFormDataType{P: &wsrfp}})
-}
-
-func readWordSearchResultFromDb(frp *wordSearchResultFormParams) (fd *wordSearchResultFormDataType) {
-	fd = &wordSearchResultFormDataType{}
-	return
+		wordSearchResultFormTemplateParamsType{P: &wsrfp, Wordsearchqueryurl: queryURL})
 }
