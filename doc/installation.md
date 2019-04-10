@@ -2,7 +2,8 @@
 
 ## Requirements
 We're only currently installing via building from sources. That is suboptimal for servers, 
-but we trying to save development effort just now :)
+but we trying to save development effort just now :) Not all prerequisites are listed here, 
+follow the manual and you'll find more.
 
 ### Golang
 - golang 1.11.6 (other versions not tested), see golang home page for the instructions, we did the following
@@ -45,6 +46,15 @@ go get ./...
 go get github.com/stretchr/testify/assert
 
 go build
+```
+
+### CKEditor
+```
+cd static
+curl -L -O https://download.cksource.com/CKEditor/CKEditor/CKEditor%204.11.3/ckeditor_4.11.3_basic.zip
+unzip ckeditor_4.11.3_basic.zip
+mv ckeditor ckeditor_4.11.3_basic
+cd .. 
 ```
 
 ## Unit tests
