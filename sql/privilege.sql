@@ -46,4 +46,32 @@ insert into tuserlanguageprivilege (sduserid, privilegekindid, languageid)
  ,(1,4,1)
  ,(1,4,2);
 
+create or replace function if_user_has_privilege(p_sduserid int, p_privilegekindid int)
+returns table (result bool) 
+language plpgsql strict as $$
+ BEGIN
+  if exists (select 1 from tuserprivilege 
+    where sduserid = p_sduserid and privilegekindid = p_privilegekindid) THEN
+    return query(select true);
+  ELSE
+    return query(select false);
+  END if;
+ END;
+$$;
+
+
+-- tests
+create or replace function test_privilege() returns text
+language plpgsql strict as $$
+begin
+ if exists (select result from if_user_has_privilege(1,1) where result = false) THEN
+   return 'failure';
+ end if;
+end;
+$$;
+
+select test_privilege()
+
+
+
 \echo *** privilege.sql Done
