@@ -23,9 +23,13 @@ So we create three forks on "Russian" language and call them "Windows localizati
 - do a collective work; for now, fork (or branch) with a subsequent pull request seem to be a good way to administer collective work.
 Time will tell if it is really so good.
 
+### Detailed requirement specifications
+
+[Здесь](https://bitbucket.org/budden/ppr/src/master/док/словарь.md?at=master&fileviewer=file-view-default)
+
 ## State
-Pre-alpha. You can register on the [semantic-dict.ru](semantic-dict.ru) already, but at any time I can 
-deploy a new database with a different structure and your registration is gone. 
+Pre-alpha. You can register at the [https://semantic-dict.ru](https://semantic-dict.ru) already, but at any time I can 
+recreate a database with a different structure and your registration is gone. 
 
 ## Technology
 
