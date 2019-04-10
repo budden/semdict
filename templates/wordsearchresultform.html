@@ -17,7 +17,7 @@
         &VerticalBar; <a href="/senseedit/{{ $wordSearchQueryRecord.Id }}">
             <span class="glyphicon glyphicon-edit"></span></a>
         {{end}}
-        &VerticalBar; <i>Language</i>: {{ $wordSearchQueryRecord.Languageid }} </p>
+        &VerticalBar; <i>Language</i>: {{ $wordSearchQueryRecord.Languageslug }} </p>
     <p><b>{{ $wordSearchQueryRecord.Word }}</b>
         &VerticalBar; <i>Phrase:</i> {{ castAsHTML $wordSearchQueryRecord.Phrase }}</p>
     {{end}}

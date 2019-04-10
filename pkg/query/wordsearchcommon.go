@@ -17,10 +17,11 @@ type wordSearchQueryParams struct {
 }
 
 type wordSearchQueryRecord struct {
-	Id         int32
-	Languageid int32
-	Phrase     string
-	Word       string
+	Id           int32
+	Languageid   int32
+	Languageslug string
+	Phrase       string
+	Word         string
 }
 
 func wordSearchCommonPart(c *gin.Context) (frp *wordSearchQueryParams, fd []*wordSearchQueryRecord) {
@@ -42,9 +43,9 @@ func wordSearchCommonPart(c *gin.Context) (frp *wordSearchQueryParams, fd []*wor
 
 func readWordSearchQueryFromDb(frp *wordSearchQueryParams) (fd []*wordSearchQueryRecord) {
 	reply, err1 := sddb.NamedReadQuery(
-		`select id, languageid, word, phrase from tsense 
+		`select id, languageid, languageslug, word, phrase from vsense 
 			where word like :wordpattern
-			order by word, languageid, id offset :offset limit :limit`, frp)
+			order by word, languageslug, id offset :offset limit :limit`, frp)
 	apperror.Panic500AndErrorIf(err1, "Db query failed")
 	defer sddb.CloseRows(reply)
 	fd = make([]*wordSearchQueryRecord, frp.Limit)

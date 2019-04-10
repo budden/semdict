@@ -213,6 +213,11 @@ create table tsense (
   word varchar(512) not null
 );
 
+create view vsense as select tsense.*,
+  -- FIXME suboptimal!
+  get_language_slug(tsense.languageid) as languageslug
+  from tsense;
+
 comment on table tsense is 'tsense stored a record for a specific sense of a word. 
 There can be multiple records for the same word. API path is based on the id, like русский/excel/1';
 comment on column tsense.phrase is 'Phrase in the dialect that describes the sense of the word';
@@ -278,6 +283,19 @@ returns void as $$
   delete from session where eid = p_token;
   END;
 $$ language plpgsql;
+
+
+create table tprivilegekind (
+  id int primary key,
+  name varchar(128),
+  perlanguage bool
+);
+
+create table tuserprivelege (
+  id serial primary key,
+  privilegekindid int not null references tprivilegekind
+);
+
 
 -- keep this one the last statement!
 create view marker_of_script_success as select current_timestamp;

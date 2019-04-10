@@ -51,11 +51,10 @@ func readArticleFromDb(avdhp *senseViewDirHandlerParams) (dataFound bool, ad *se
 	reply, err1 := sddb.NamedReadQuery(
 		`select 
 			s.id as senseid
-			,get_language_slug(l.id) as languageslug
 			,phrase
 			,word 
-			from tsense as s
-			inner join tlanguage as l on s.languageid = l.id
+			,languageslug
+			from vsense as s
 			where s.id = :id
 			limit 1`, &avdhp)
 	apperror.Panic500AndErrorIf(err1, "Failed to extract an article, sorry")
