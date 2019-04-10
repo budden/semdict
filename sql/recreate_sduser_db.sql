@@ -8,22 +8,6 @@ CREATE DATABASE sduser_db;
 \i :thisdir/mutex.sql
 \i :thisdir/user_registration_session.sql
 \i :thisdir/language_and_sense.sql
-
-create table tprivilegekind (
-  id int primary key,
-  name varchar(128),
-  perlanguage bool
-);
-
--- insert into tprivilegekind 
-
-create table tuserprivelege (
-  id serial primary key,
-  privilegekindid int not null references tprivilegekind
-);
-
-
--- keep this one the last statement!
-create view marker_of_script_success as select current_timestamp;
+\i :thisdir/privilege.sql
 
 \echo *** recreate_sduser_db.sql Done
