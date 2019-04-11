@@ -1,3 +1,10 @@
+--/*
+\connect sduser_db
+\set ON_ERROR_STOP on
+drop table if exists tlanguage cascade;
+drop table if exists tsense cascade;
+--*/ 
+
 create table tlanguage (
   id serial primary KEY,
   parentid int references tlanguage,
@@ -69,12 +76,6 @@ create view vsense as select tsense.*,
   get_language_slug(tsense.languageid) as languageslug
   from tsense;
 
-
-/* create view vmysense as select mysense.*,  
-  get_language_slug(mysense.languageid) as languageslug from tsense as mysense
-  where mysense.ownerid = 
-*/
-
 insert into tsense (languageid, phrase, word)
   VALUES
   (2,'Programming language by Google created in 2000s','golang');
@@ -91,5 +92,25 @@ insert into tsense (languageid, phrase, word)
   VALUES
   (1,'Язык программирования, созданный google в 2000-х годах','go');
 
+CREATE TYPE senseforkstatus AS ENUM ('single', 'has variants', 'a variant');
+
+create view vpersonalsense as select 
+    personalsense.originid as originid
+    ,id as versionid
+    ,languageid, phrase, word, deleted, ownerid
+    ,get_language_slug(personalsense.languageid) as languageslug
+    ,cast('a variant' as senseforkstatus) as forkstatus
+  from tsense as personalsense
+  where personalsense.ownerid is not null
+  union all select
+    id as originid
+    ,cast(null as bigint) as versionid
+    ,languageid, phrase, word, deleted, ownerid
+    ,get_language_slug(commonsense.languageid) as languageslug
+    ,case when exists (select 1 from tsense as variants where variants.originid=commonsense.id)
+      then cast('has variants' as senseforkstatus)
+      else cast('single' as senseforkstatus) end as forkstatus
+  from tsense as commonsense
+  where commonsense.ownerid is null;
 
 \echo *** language_and_sense.sql Done
