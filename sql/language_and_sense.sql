@@ -50,18 +50,30 @@ create table tsense (
   id serial primary KEY,
   languageid int not null references tlanguage,
   phrase text not null,
-  word varchar(512) not null
+  word varchar(512) not null,
+  deleted bool,
+  originid bigint references tsense, 
+  ownerid bigint references sduser
 );
+
+comment on table tsense is 'tsense stored a record for a specific sense of a word. 
+There can be multiple records for the same word. API path is based on the id, like русский/excel/1';
+comment on column tsense.phrase is 'Phrase in the dialect that describes the sense of the word';
+comment on column tsense.word is 'Word or word combination in the dialect denoting the sense';
+comment on column tsense.deleted is 'We can''t delete records due to versioning, so we mark them deleted';
+comment on column tsense.originid is 'Non-empty originid means that this is a verion. In this case, ownerid must be non-null';
+comment on column tsense.ownerid is 'In case of forked sense, owner of a fork';
 
 create view vsense as select tsense.*,
   -- FIXME suboptimal!
   get_language_slug(tsense.languageid) as languageslug
   from tsense;
 
-comment on table tsense is 'tsense stored a record for a specific sense of a word. 
-There can be multiple records for the same word. API path is based on the id, like русский/excel/1';
-comment on column tsense.phrase is 'Phrase in the dialect that describes the sense of the word';
-comment on column tsense.word is 'Word or word combination in the dialect denoting the sense';
+
+/* create view vmysense as select mysense.*,  
+  get_language_slug(mysense.languageid) as languageslug from tsense as mysense
+  where mysense.ownerid = 
+*/
 
 insert into tsense (languageid, phrase, word)
   VALUES

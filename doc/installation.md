@@ -34,6 +34,8 @@ echo $GOPATH
 
 ### Postgresql
 - postgresql 9.6.10 (other versions not tested). On Debian 9, it's just `apt-get install postgresql`
+- tcl extension, `apt-get install postgresql-pltcl`
+
 
 ## Building
 
