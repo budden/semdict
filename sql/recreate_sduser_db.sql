@@ -5,6 +5,7 @@ CREATE DATABASE sduser_db;
 
 \set ON_ERROR_STOP on
 \set thisdir `echo "$GOPATH/src/github.com/budden/semdict/sql"`
+\i :thisdir/forward_declarations.sql
 \i :thisdir/mutex.sql
 \i :thisdir/user_registration_session.sql
 \i :thisdir/language_and_sense.sql

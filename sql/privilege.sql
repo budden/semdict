@@ -1,7 +1,7 @@
-\set ON_ERROR_STOP on
 
 --/*
 \connect sduser_db
+\set ON_ERROR_STOP on
 drop table if exists tprivilegekind cascade;
 drop table if exists tuserprivilege cascade;
 drop table if exists tuserlanguageprivilege cascade;
@@ -23,7 +23,7 @@ values
 
 create table tuserprivilege (
   id serial primary key,
-  sduserid int not null references sduser on delete cascade,
+  sduserid bigint not null references sduser on delete cascade,
   privilegekindid int not null references tprivilegekind
 );
 
@@ -46,7 +46,7 @@ insert into tuserlanguageprivilege (sduserid, privilegekindid, languageid)
  ,(1,4,1)
  ,(1,4,2);
 
-create or replace function if_user_has_privilege(p_sduserid int, p_privilegekindid int)
+create or replace function isuserhaveprivilege(p_sduserid bigint, p_privilegekindid int)
 returns table (result bool) 
 language plpgsql strict as $$
  BEGIN
@@ -55,22 +55,44 @@ language plpgsql strict as $$
     return query(select true);
   ELSE
     return query(select false);
-  END if;
- END;
+  END if; END;
 $$;
 
 
+create or replace function grantuserprivilege(p_sduserid bigint, p_privilegekindid int) returns void
+language plpgsql strict as $$
+ begin
+  if not (select isuserhaveprivilege(p_sduserid, p_privilegekindid)) then
+    insert into tuserprivilege (sduserid, privilegekindid) values (p_sduserid, p_privilegekindid); end if; end;
+$$;
+
+
+create or replace function isuserhavelanguageprivilege(p_sduserit bigint, p_userlanguageprivilegekindid int, p_languageid int)
+returns table (result bool)
+language plpgsql strict as $$
+  BEGIN
+  if exists (select 1 from tuserlanguageprivilege
+    where 
+    sduserid = p_sduserid 
+    and languageprivilegekindid = p_languageprivilegekindid 
+    and languageid = p_languageid) THEN
+    return query(select true);
+  ELSE
+    return query(select false);
+  end if; end;
+$$;
+
 -- tests
-create or replace function test_privilege() returns text
+create or replace function test_privilege() returns void
 language plpgsql strict as $$
 begin
- if exists (select result from if_user_has_privilege(1,1) where result = false) THEN
-   return 'failure';
+ if not exists (select result from isuserhaveprivilege(1,1) where result = true) THEN
+   raise exception 'Default user has no access to the database';
  end if;
 end;
 $$;
 
-select test_privilege()
+select test_privilege();
 
 
 

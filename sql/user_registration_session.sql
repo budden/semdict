@@ -138,6 +138,7 @@ returns setof integer as $$
      -- to sqlstate
      raise exception sqlstate '02000' using message = 'registrationattempt not found';
     end if;
+    perform grantuserprivilege(v_id,1);
     -- we have a deadlock threat here in combination with the add_registrationattempt
     -- but we ensure at the application level that only one connection runs either of those procs
     -- simultaneously (all operations are protected with the mutex), so we don't care.
