@@ -3,6 +3,7 @@
 \set ON_ERROR_STOP on
 drop table if exists tlanguage cascade;
 drop table if exists tsense cascade;
+drop type if exists senseforkstatus cascade;
 --*/ 
 
 create table tlanguage (
@@ -58,7 +59,7 @@ create table tsense (
   languageid int not null references tlanguage,
   phrase text not null,
   word varchar(512) not null,
-  deleted bool,
+  deleted bool not null default false,
   originid bigint references tsense, 
   ownerid bigint references sduser
 );
@@ -92,9 +93,24 @@ insert into tsense (languageid, phrase, word)
   VALUES
   (1,'Язык программирования, созданный google в 2000-х годах','go');
 
-CREATE TYPE senseforkstatus AS ENUM ('single', 'has variants', 'a variant');
+create type senseforkstatus AS ENUM ('single', 'has variants', 'a variant');
 
-create view vpersonalsense as select 
+-- fnPersonalSense returns all personal senses for the user. One might want
+-- to copy-paste or complicate this one to have a good select plan for searches.
+create or replace function fnpersonalsense(p_sduserid bigint) 
+  returns table(r_originid bigint, r_variantid bigint)
+  language plpgsql as $$
+  begin
+  return query(
+    select cast(orig.id as bigint) as r_originid, cast(vari.id as bigint) as r_variantid 
+    from tsense orig 
+    left join tsense vari on orig.id = vari.originid and vari.ownerid = p_sduserid 
+    where orig.originid is null); end;
+$$;
+
+/*
+create view vpersonalsense
+as select 
     personalsense.originid as originid
     ,id as versionid
     ,languageid, phrase, word, deleted, ownerid
@@ -111,6 +127,31 @@ create view vpersonalsense as select
       then cast('has variants' as senseforkstatus)
       else cast('single' as senseforkstatus) end as forkstatus
   from tsense as commonsense
-  where commonsense.ownerid is null;
+  where commonsense.ownerid is null; */
+
+-- EnsureSenseVariant ensures that a user has his own variant of a sense
+create or replace function ensuresensevariant(p_senseid bigint, p_sduserid bigint)
+returns table (variantsenseid bigint) 
+language plpgsql as $$
+  declare r_senseid bigint;
+  begin
+    lock table themutex;
+    select min(id) from tsense 
+      where originid = p_senseid and ownerid = p_sduserid
+      into r_senseid;
+    if r_senseid is not null then 
+      return query (select r_senseid); end if;
+    insert into tsense (languageid, phrase, word, originid, ownerid)
+      select languageid, phrase, word, id, p_sduserid 
+      from tsense where id = p_senseid returning id into r_senseid;
+    if r_senseid is null then
+      raise exception 
+        'something went wrong, sense cloning failed'; 
+    end if;
+  return query (select r_senseid);
+  end;
+$$;
+
+select ensuresensevariant(4,1);
 
 \echo *** language_and_sense.sql Done
