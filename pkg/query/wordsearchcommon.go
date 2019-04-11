@@ -5,6 +5,7 @@ package query
 import (
 	"github.com/budden/semdict/pkg/apperror"
 	"github.com/budden/semdict/pkg/sddb"
+	"github.com/budden/semdict/pkg/user"
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,6 +13,7 @@ import (
 type wordSearchQueryParams struct {
 	Dummyid     int32 // не имеет значения
 	Wordpattern string
+	Sduserid    int32 // 0 для незарег. польз.
 	Offset      int32
 	Limit       int32 // 0 - значит «без ограничения»
 }
@@ -22,6 +24,7 @@ type wordSearchQueryRecord struct {
 	Languageslug string
 	Phrase       string
 	Word         string
+	Variantid    int32 // fixme
 }
 
 func wordSearchCommonPart(c *gin.Context) (frp *wordSearchQueryParams, fd []*wordSearchQueryRecord) {
@@ -35,17 +38,31 @@ func wordSearchCommonPart(c *gin.Context) (frp *wordSearchQueryParams, fd []*wor
 	frp.Offset = int32(GetZeroOrOneNonNegativeIntFormValue(c, "offset"))
 	frp.Limit = int32(GetZeroOrOneNonNegativeIntFormValue(c, "limit"))
 	LimitLimit(&frp.Limit)
+	frp.Sduserid = user.GetSDUserIdOrZero(c)
 
-	// Прочитать данные из базы данных. Если нет данных, паниковать
 	fd = readWordSearchQueryFromDb(frp)
 	return
 }
 
-func readWordSearchQueryFromDb(frp *wordSearchQueryParams) (fd []*wordSearchQueryRecord) {
-	reply, err1 := sddb.NamedReadQuery(
-		`select id, languageid, languageslug, word, phrase from vsense 
+func readWordSearchQueryFromDb(frp *wordSearchQueryParams) (
+	fd []*wordSearchQueryRecord) {
+	var queryText string
+	if frp.Sduserid == 0 {
+		queryText = `select id, languageid, languageslug, word, phrase
+			, cast(0 as bigint) as variantid
+			from vsense 
 			where word like :wordpattern
-			order by word, languageslug, id offset :offset limit :limit`, frp)
+			order by word, languageslug, id offset :offset limit :limit`
+	} else {
+		queryText = `select ts.id, ts.languageid, ts.languageslug, ts.word, ts.phrase, 
+			coalesce(ps.r_variantid,0) as variantid
+			from 
+			fnpersonalsense(:sduserid) ps 
+			left join vsense ts on coalesce(ps.r_variantid, ps.r_originid) = ts.id
+			order by word, languageslug, id offset :offset limit :limit`
+	}
+	reply, err1 := sddb.NamedReadQuery(
+		queryText, frp)
 	apperror.Panic500AndErrorIf(err1, "Db query failed")
 	defer sddb.CloseRows(reply)
 	fd = make([]*wordSearchQueryRecord, frp.Limit)

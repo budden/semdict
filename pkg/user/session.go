@@ -45,6 +45,23 @@ func IsLoggedIn(c *gin.Context) bool {
 	return loggedIn
 }
 
+// GetSDUserIdOrZero returns sduserid for a logged in user, or 0 for a not logged
+// Use downstream from SetUserStatus middleware
+func GetSDUserIdOrZero(c *gin.Context) int32 {
+	if !IsLoggedIn(c) {
+		return 0
+	}
+	sduserid, mustExist := c.Get("sduserid")
+	if !mustExist {
+		apperror.GracefullyExitAppIf(apperror.ErrDummy, "sduser must be set if a user is logged in")
+	}
+	if sduserIdint32, ok := sduserid.(int32); ok {
+		return sduserIdint32
+	}
+	apperror.GracefullyExitAppIf(apperror.ErrDummy, "sduser must be int32 in a gin context")
+	return -1 // this must never happen
+}
+
 // SetUserStatus sets a flag indicating whether the request was from an authenticated user or not
 func SetUserStatus() gin.HandlerFunc {
 	return setUserStatusFn
@@ -65,7 +82,7 @@ func setUserStatusFn(c *gin.Context) {
 	}
 	c.Set("is_logged_in", isLoggedIn)
 	if isLoggedIn {
-		c.Set("sduserid", sduserid)
+		c.Set("sduserid", int32(sduserid))
 	} else {
 		c.Set("sduserid", nil)
 	}

@@ -16,6 +16,7 @@
         {{if $.IsLoggedIn}}
         &VerticalBar; <a href="/senseedit/{{ $wordSearchQueryRecord.Id }}">
             <span class="glyphicon glyphicon-edit"></span></a>
+        &VerticalBar; <i>Variant</i>: {{ $wordSearchQueryRecord.Variantid }}
         {{end}}
         &VerticalBar; <i>Language</i>: {{ $wordSearchQueryRecord.Languageslug }} </p>
     <p><b>{{ $wordSearchQueryRecord.Word }}</b>

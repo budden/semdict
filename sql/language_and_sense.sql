@@ -1,4 +1,4 @@
---/*
+/*
 \connect sduser_db
 \set ON_ERROR_STOP on
 drop table if exists tlanguage cascade;
@@ -153,5 +153,6 @@ language plpgsql as $$
 $$;
 
 select ensuresensevariant(4,1);
+update tsense set phrase = 'updated sense' where id=5;
 
 \echo *** language_and_sense.sql Done
