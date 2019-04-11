@@ -7,7 +7,7 @@
 -- Origin: 
 -- https://www.depesz.com/2009/08/20/getting-session-variables-without-touching-postgresql-conf/#comment-27980
 
-CREATE OR REPLACE FUNCTION set_var(name varchar(128), val integer) RETURNS integer
+CREATE OR REPLACE FUNCTION set_session_var(name varchar(128), val integer) RETURNS integer
 LANGUAGE pltcl AS $_$
 global sess
 if {[string is alnum $1]} {
@@ -18,7 +18,7 @@ if {[string is alnum $1]} {
 $_$
 ;
 
-CREATE OR REPLACE FUNCTION get_var(varchar(128)) RETURNS integer
+CREATE OR REPLACE FUNCTION get_session_var(varchar(128)) RETURNS integer
 LANGUAGE pltcl AS $_$
 global sess
 if {[string is alnum $1]} {
