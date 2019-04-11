@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/budden/semdict/pkg/privilegecode"
 	"github.com/budden/semdict/pkg/sddb"
 
 	"github.com/budden/semdict/pkg/apperror"
@@ -100,7 +101,15 @@ func LoginFormSubmitPostHandler(c *gin.Context) {
 	endSessionIfThereIsOne(c)
 
 	// Check if the username/password combination is valid
-	if isUserValid(nickname, password) {
+	sduserid := isUserValid(nickname, password)
+	if sduserid != 0 {
+		// check if the use have the login privilege
+		if !isUserHavePrivilege(sduserid, privilegecode.Login) {
+			c.HTML(http.StatusBadRequest, "general.html",
+				shared.GeneralTemplateParams{Message: fmt.Sprintf("Sorry, %s, but you have no login privilege", nickname)})
+			return
+		}
+
 		// If the username/password is valid set the token in a cookie
 		token := generateSessionToken()
 
@@ -117,7 +126,8 @@ func LoginFormSubmitPostHandler(c *gin.Context) {
 	}
 }
 
-func isUserValid(nickname, password string) bool {
+// isUserValid checks that the user is valid, in this case non-zero sduserid is returned
+func isUserValid(nickname, password string) (sduserid int32) {
 	if !isNicknameInValidFormat(nickname) {
 		apperror.Panic500If(apperror.ErrDummy, "Nickname has an illegal format (e.g. invalid characters)")
 	}
@@ -129,7 +139,12 @@ func isUserValid(nickname, password string) bool {
 	var sud SDUserData
 	getSDUserDataFromDb(nickname, &sud)
 
-	return CheckPasswordAgainstSaltAndHash(password, sud.Salt, sud.Hash)
+	if CheckPasswordAgainstSaltAndHash(password, sud.Salt, sud.Hash) {
+		sduserid = sud.ID
+	} else {
+		sduserid = 0
+	}
+	return
 }
 
 // function could be general, but it's error messages are login process specific. FIXME
@@ -148,6 +163,22 @@ func getSDUserDataFromDb(nickname string, sud *SDUserData) {
 		apperror.Panic500AndErrorIf(err, "Attempt to log on as a non-existing user «%s»", nickname)
 	}
 	return
+}
+
+func isUserHavePrivilege(sduserid int32, privilegekind privilegecode.Enum) (granted bool) {
+	params := map[string]interface{}{"sduserid": sduserid, "privilegekind": privilegekind}
+	res, err := sddb.NamedReadQuery("select isuserhaveprivilege(:sduserid, :privilegekind)", params)
+	apperror.GracefullyExitAppIf(err, "Error obtaining user privilege: «%s»", err)
+	dataFound := false
+	for res.Next() {
+		err1 := res.Scan(&granted)
+		apperror.GracefullyExitAppIf(err1, "Failed to read sduser's record: «%s»", err1)
+		dataFound = true
+	}
+	if !dataFound {
+		apperror.GracefullyExitAppIf(apperror.ErrDummy, "got no data from isuserhaveprivilege")
+	}
+	return granted
 }
 
 func generateSessionToken() string {

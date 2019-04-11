@@ -45,7 +45,7 @@ func processRegistrationConfirmationWithSDUsersDbStage1(rd *RegistrationData) {
 		reply, err1 = trans.Tx.NamedQuery(
 			`select * from process_registrationconfirmation(:confirmationkey, :nickname)`,
 			rd)
-		apperror.Panic500If(err1, "Failed to confirm registration, sorry")
+		apperror.Panic500AndErrorIf(err1, "Failed to confirm registration, sorry")
 		for reply.Next() {
 			err1 = reply.Scan(&rd.UserID)
 			//fmt.Printf("UserID = %v\n", rd.UserID)
