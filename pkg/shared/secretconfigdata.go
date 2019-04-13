@@ -14,6 +14,7 @@ type SecretConfigDataT struct {
 	PostgresqlServerURL string
 	TLSCertFile         string
 	TLSKeyFile          string
+	UserAlwaysLoggedIn  int
 }
 
 // SecretConfigDataTComment is actually a documentation for SecretConfigData, which is placed to a config sample file

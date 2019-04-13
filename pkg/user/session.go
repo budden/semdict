@@ -89,21 +89,28 @@ func setUserStatusFn(c *gin.Context) {
 }
 
 func getAndValidateToken(c *gin.Context) (tokenPresent, tokenValid bool, sduserid int) {
-	var token string
-	token, tokenPresent = getSessionToken(c)
-	if !tokenPresent {
-		return
+	if shared.SecretConfigData.UserAlwaysLoggedIn != 0 {
+		// special case for debugging
+		tokenPresent = true
+		tokenValid = true
+		sduserid = 1
+	} else {
+		var token string
+		token, tokenPresent = getSessionToken(c)
+		if !tokenPresent {
+			return
+		}
+		params := map[string]interface{}{"token": token}
+		res, err := sddb.NamedReadQuery(`select sduserid from session
+				where eid=:token and expireat > current_timestamp limit 1`,
+			params)
+		apperror.Panic500AndErrorIf(err, "Failed to check validity of your session, sorry. Please logout and retry")
+		for res.Next() {
+			err1 := res.Scan(&sduserid)
+			apperror.GracefullyExitAppIf(err1, "Failed to check if session is present, error is «%#v»", err1)
+		}
+		tokenValid = (sduserid != 0)
 	}
-	params := map[string]interface{}{"token": token}
-	res, err := sddb.NamedReadQuery(`select sduserid from session 
-		where eid=:token and expireat > current_timestamp limit 1`,
-		params)
-	apperror.Panic500AndErrorIf(err, "Failed to check validity of your session, sorry. Please logout and retry")
-	for res.Next() {
-		err1 := res.Scan(&sduserid)
-		apperror.GracefullyExitAppIf(err1, "Failed to check if session is present, error is «%#v»", err1)
-	}
-	tokenValid = (sduserid != 0)
 	return
 }
 
