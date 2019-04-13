@@ -121,15 +121,28 @@ create or replace function fnonepersonalsense(p_sduserid bigint, p_originid bigi
     where orig.id = p_originid and orig.originid is null); end;
 $$;
 
--- fnSavePersonalSense saves the sense.
-create or replace function fnsavepersonalsense(p_originid bigint, p_phrase text, p_word text, p_evenifidentical bool)
-  returns table (r_variantid bigint)
+-- fnSavePersonalSense saves the sense. p_evenifidentical must be false for now
+create or replace function fnsavepersonalsense(
+    p_sduserid bigint, p_originid bigint, p_phrase text, p_word text, p_evenifidentical bool)
+  returns table (success bool)
   language plpgsql as $$
+  declare v_variantid bigint;
+  declare update_count int;
   begin
+  if p_evenifidentical then
+    raise exception 'invalid parameter p_evenifidentical'; end if;
+  if exists (select 1 from tsense where id = p_originid and word = p_word and phrase = p_phrase) then
+    -- nothing differs from the official version, delete our variant
+    delete from tsense where originid = p_originid and owner = p_sduserid;
+    return query(select true); end if; 
+  select ensuresensevariant(p_originid, p_sduserid) into v_variantid;
   update tsense set 
   phrase = p_phrase,
   word = p_word
-  where id = p_originid;
+  where id = v_variantid;
+  get diagnostics update_count = row_count;
+  if update_count != 1 then
+    raise exception 'expected to update just one record, which didn''t hapen'; end if;
   end;
 $$;
 
@@ -156,7 +169,7 @@ as select
 */
 
 -- EnsureSenseVariant ensures that a user has his own variant of a sense
-create or replace function ensuresensevariant(p_senseid bigint, p_sduserid bigint)
+create or replace function ensuresensevariant(p_sduserid bigint, p_senseid bigint)
 returns table (variantsenseid bigint) 
 language plpgsql as $$
   declare r_senseid bigint;
@@ -178,7 +191,7 @@ language plpgsql as $$
   end;
 $$;
 
-select ensuresensevariant(4,1);
+select ensuresensevariant(1,4);
 update tsense set phrase = 'updated sense' where id=5;
 
 \echo *** language_and_sense.sql Done

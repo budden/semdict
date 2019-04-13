@@ -16,12 +16,11 @@ import (
 )
 
 type articlePostDataType struct {
-	ID         int32
+	ID         int32 // originId
 	Languageid int32
 	Phrase     string
 	Word       string
 	Deleted    bool
-	Originid   int32
 	Ownerid    int32
 }
 
@@ -72,12 +71,13 @@ func extractDataFromRequest(c *gin.Context, pad *articlePostDataType) {
 	pad.ID = extractIdFromRequest(c)
 	pad.Phrase = c.PostForm("phrase")
 	pad.Word = c.PostForm("word")
+	pad.Ownerid = user.GetSDUserIdOrZero(c)
 }
 
 func writeToDb(pad *articlePostDataType) {
 	if pad.ID != 0 {
 		res, err1 := sddb.NamedExec(
-			`select fnsavepersonalsense(:id, :phrase, :word, true)`, pad)
+			`select fnsavepersonalsense(:ownerid, :id, :phrase, :word, false)`, pad)
 		_ = res
 		/* res, err1 := sddb.NamedExec(
 		`update tsense set phrase = :phrase, word = :word where id=:id`, pad) */
