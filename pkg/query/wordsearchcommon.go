@@ -54,7 +54,7 @@ func readWordSearchQueryFromDb(frp *wordSearchQueryParams) (
 			where word like :wordpattern
 			order by word, languageslug, id offset :offset limit :limit`
 	} else {
-		queryText = `select ts.id, ts.languageid, ts.languageslug, ts.word, ts.phrase, 
+		queryText = `select ps.r_originid as id, ts.languageid, ts.languageslug, ts.word, ts.phrase, 
 			coalesce(ps.r_variantid,0) as variantid
 			from 
 			fnpersonalsenses(:sduserid) ps 

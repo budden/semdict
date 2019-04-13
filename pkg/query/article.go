@@ -53,7 +53,7 @@ func SenseViewDirHandler(c *gin.Context) {
 func readSenseFromDb(avdhp *senseViewDirHandlerParams) (dataFound bool, ad *senseDataForEditType) {
 	reply, err1 := sddb.NamedReadQuery(
 		`select 
-			s.id as senseid
+			ops.r_originid as senseid
 			,s.phrase
 			,s.word
 			,s.deleted 

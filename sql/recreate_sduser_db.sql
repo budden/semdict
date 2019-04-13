@@ -1,3 +1,4 @@
+\set ON_ERROR_STOP on
 DROP DATABASE IF EXISTS sduser_db;
 CREATE DATABASE sduser_db;
 \connect sduser_db

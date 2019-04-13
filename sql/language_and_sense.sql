@@ -134,8 +134,9 @@ create or replace function fnsavepersonalsense(
   if exists (select 1 from tsense where id = p_originid and word = p_word and phrase = p_phrase) then
     -- nothing differs from the official version, delete our variant
     delete from tsense where originid = p_originid and owner = p_sduserid;
-    return query(select true); end if; 
-  select ensuresensevariant(p_originid, p_sduserid) into v_variantid;
+    return query(select true); 
+    return; end if; 
+  select ensuresensevariant(p_sduserid, p_originid) into v_variantid;
   update tsense set 
   phrase = p_phrase,
   word = p_word
@@ -179,7 +180,8 @@ language plpgsql as $$
       where originid = p_senseid and ownerid = p_sduserid
       into r_senseid;
     if r_senseid is not null then 
-      return query (select r_senseid); end if;
+      return query (select r_senseid); 
+      return; end if;
     insert into tsense (languageid, phrase, word, originid, ownerid)
       select languageid, phrase, word, id, p_sduserid 
       from tsense where id = p_senseid returning id into r_senseid;
