@@ -3,6 +3,8 @@ package query
 // Общая часть для /wordsearchquery и /wordsearchresultform
 
 import (
+	"database/sql"
+
 	"github.com/budden/semdict/pkg/apperror"
 	"github.com/budden/semdict/pkg/sddb"
 	"github.com/budden/semdict/pkg/user"
@@ -19,12 +21,14 @@ type wordSearchQueryParams struct {
 }
 
 type wordSearchQueryRecord struct {
-	Id           int32
-	Languageid   int32
-	Languageslug string
-	Phrase       string
-	Word         string
-	Variantid    int32 // fixme
+	Id              int32
+	Languageid      int32
+	Languageslug    string
+	Phrase          string
+	Word            string
+	Variantid       sql.NullInt64 // is non-null when this record is a variant.
+	Countofvariants int32
+	Addedbyme       bool
 }
 
 func wordSearchCommonPart(c *gin.Context) (frp *wordSearchQueryParams, fd []*wordSearchQueryRecord) {
@@ -47,20 +51,14 @@ func wordSearchCommonPart(c *gin.Context) (frp *wordSearchQueryParams, fd []*wor
 func readWordSearchQueryFromDb(frp *wordSearchQueryParams) (
 	fd []*wordSearchQueryRecord) {
 	var queryText string
-	if frp.Sduserid == 0 {
-		queryText = `select id, languageid, languageslug, word, phrase
-			, cast(0 as bigint) as variantid
-			from vsense 
-			where word like :wordpattern
-			order by word, languageslug, id offset :offset limit :limit`
-	} else {
-		queryText = `select ps.r_originid as id, ts.languageid, ts.languageslug, ts.word, ts.phrase, 
-			coalesce(ps.r_variantid,0) as variantid
-			from 
-			fnpersonalsenses(:sduserid) ps 
-			left join vsense ts on coalesce(ps.r_variantid, ps.r_originid) = ts.id
-			order by word, languageslug, id offset :offset limit :limit`
-	}
+	queryText = `select ps.r_originid as id, ts.languageid, ts.languageslug, ts.word, ts.phrase, 
+		ps.r_variantid as variantid,
+		ps.r_countofvariants as countofvariants,
+		ps.r_addedbyme as addedbyme
+		from 
+		fnpersonalsenses(:sduserid) ps 
+		left join vsense ts on coalesce(ps.r_variantid, ps.r_originid) = ts.id
+		order by word, languageslug, id offset :offset limit :limit`
 	reply, err1 := sddb.NamedReadQuery(
 		queryText, frp)
 	apperror.Panic500AndErrorIf(err1, "Db query failed")

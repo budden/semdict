@@ -95,17 +95,29 @@ insert into tsense (languageid, phrase, word)
 
 create type senseforkstatus AS ENUM ('single', 'has variants', 'a variant');
 
--- fnPersonalSenses returns all personal senses for the user. One might want
+-- fnPersonalSenses returns all personal senses for the user. If the user is 0 or null,
+-- then common senses are returned as well as unparallel personal
 -- to copy-paste or complicate this one to have a good select plan for searches.
 create or replace function fnpersonalsenses(p_sduserid bigint) 
-  returns table(r_originid bigint, r_variantid bigint)
+  returns table(r_originid bigint, r_variantid bigint, r_countofvariants bigint, r_addedbyme bool)
   language plpgsql as $$
   begin
-  return query(
-    select cast(orig.id as bigint) as r_originid, cast(vari.id as bigint) as r_variantid 
-    from tsense orig 
-    left join tsense vari on orig.id = vari.originid and vari.ownerid = p_sduserid 
-    where orig.originid is null); end;
+  if coalesce(p_sduserid, 0) = 0 then
+    return query(
+      select cast(orig.id as bigint) as r_originid
+      ,cast(null as bigint) as r_variantid
+      ,1 + (select count(1) from tsense varic where varic.originid = orig.id) as r_countofvariants
+      ,false as r_addedbyme
+      from tsense orig where orig.originid is null and orig.ownerid is null); 
+  else
+    return query(
+      select cast(orig.id as bigint) as r_originid
+      ,cast(vari.id as bigint) as r_variantid
+      ,1 + (select count(1) from tsense varic where varic.originid = orig.id) as r_countofvariants
+      ,case when orig.ownerid = p_sduserid then true else false end as r_addedbyme
+      from tsense orig 
+      left join tsense vari on orig.id = vari.originid and vari.ownerid = p_sduserid 
+      where orig.originid is null); end if; end;
 $$;
 
 
@@ -169,13 +181,19 @@ as select
   where commonsense.ownerid is null; 
 */
 
--- EnsureSenseVariant ensures that a user has his own variant of a sense
+-- EnsureSenseVariant ensures that a user has his own variant of a sense. One should not
+-- make a variant of user's unparallel sense.
 create or replace function ensuresensevariant(p_sduserid bigint, p_senseid bigint)
 returns table (variantsenseid bigint) 
 language plpgsql as $$
   declare r_senseid bigint;
+  declare v_ownerid bigint;
   begin
     lock table themutex;
+    select ownerid from tsense where id = p_senseid into v_ownerid;
+    if v_ownerid is not null then
+      raise exception 
+      'You can''t make a variant of user''s new sense, until it is accepted to the language'; end if;
     select min(id) from tsense 
       where originid = p_senseid and ownerid = p_sduserid
       into r_senseid;
