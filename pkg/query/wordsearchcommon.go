@@ -57,7 +57,7 @@ func readWordSearchQueryFromDb(frp *wordSearchQueryParams) (
 		queryText = `select ts.id, ts.languageid, ts.languageslug, ts.word, ts.phrase, 
 			coalesce(ps.r_variantid,0) as variantid
 			from 
-			fnpersonalsense(:sduserid) ps 
+			fnpersonalsenses(:sduserid) ps 
 			left join vsense ts on coalesce(ps.r_variantid, ps.r_originid) = ts.id
 			order by word, languageslug, id offset :offset limit :limit`
 	}

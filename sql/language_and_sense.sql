@@ -1,4 +1,4 @@
-/*
+--/*
 \connect sduser_db
 \set ON_ERROR_STOP on
 drop table if exists tlanguage cascade;
@@ -95,9 +95,9 @@ insert into tsense (languageid, phrase, word)
 
 create type senseforkstatus AS ENUM ('single', 'has variants', 'a variant');
 
--- fnPersonalSense returns all personal senses for the user. One might want
+-- fnPersonalSenses returns all personal senses for the user. One might want
 -- to copy-paste or complicate this one to have a good select plan for searches.
-create or replace function fnpersonalsense(p_sduserid bigint) 
+create or replace function fnpersonalsenses(p_sduserid bigint) 
   returns table(r_originid bigint, r_variantid bigint)
   language plpgsql as $$
   begin
@@ -106,6 +106,31 @@ create or replace function fnpersonalsense(p_sduserid bigint)
     from tsense orig 
     left join tsense vari on orig.id = vari.originid and vari.ownerid = p_sduserid 
     where orig.originid is null); end;
+$$;
+
+
+-- fnOnePersonalSense returns a personal or common sense for the specific sense id
+create or replace function fnonepersonalsense(p_sduserid bigint, p_originid bigint) 
+  returns table(r_originid bigint, r_variantid bigint)
+  language plpgsql as $$
+  begin
+  return query(
+    select cast(orig.id as bigint) as r_originid, cast(vari.id as bigint) as r_variantid 
+    from tsense orig 
+    left join tsense vari on orig.id = vari.originid and vari.ownerid = p_sduserid 
+    where orig.id = p_originid and orig.originid is null); end;
+$$;
+
+-- fnSavePersonalSense saves the sense.
+create or replace function fnsavepersonalsense(p_originid bigint, p_phrase text, p_word text, p_evenifidentical bool)
+  returns table (r_variantid bigint)
+  language plpgsql as $$
+  begin
+  update tsense set 
+  phrase = p_phrase,
+  word = p_word
+  where id = p_originid;
+  end;
 $$;
 
 /*
@@ -127,7 +152,8 @@ as select
       then cast('has variants' as senseforkstatus)
       else cast('single' as senseforkstatus) end as forkstatus
   from tsense as commonsense
-  where commonsense.ownerid is null; */
+  where commonsense.ownerid is null; 
+*/
 
 -- EnsureSenseVariant ensures that a user has his own variant of a sense
 create or replace function ensuresensevariant(p_senseid bigint, p_sduserid bigint)

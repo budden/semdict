@@ -16,11 +16,13 @@ import (
 )
 
 type articlePostDataType struct {
-	ID           int32
-	LanguageSlug string // unprocessed
-	DialectSlug  string // unprocessed
-	Phrase       string
-	Word         string
+	ID         int32
+	Languageid int32
+	Phrase     string
+	Word       string
+	Deleted    bool
+	Originid   int32
+	Ownerid    int32
 }
 
 // SenseEditFormSubmitPostHandler posts an sense data
@@ -75,10 +77,14 @@ func extractDataFromRequest(c *gin.Context, pad *articlePostDataType) {
 func writeToDb(pad *articlePostDataType) {
 	if pad.ID != 0 {
 		res, err1 := sddb.NamedExec(
-			`update tsense set phrase = :phrase, word = :word where id=:id`, pad)
+			`select fnsavepersonalsense(:id, :phrase, :word, true)`, pad)
+		_ = res
+		/* res, err1 := sddb.NamedExec(
+		`update tsense set phrase = :phrase, word = :word where id=:id`, pad) */
 		apperror.Panic500AndErrorIf(err1, "Failed to update an article")
-		count, err2 := res.RowsAffected()
-		sddb.FatalDatabaseErrorIf(err2, "Unable to check if the record was updated")
+		// count, err2 := res.RowsAffected()
+		// sddb.FatalDatabaseErrorIf(err2, "Unable to check if the record was updated")
+		count := 1
 		if count == 0 {
 			apperror.Panic500AndErrorIf(apperror.ErrDummy, "Sense with id = %v not found", pad.ID)
 		}

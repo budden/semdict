@@ -15,16 +15,17 @@ import (
 
 // params for a query for a word
 type senseViewDirHandlerParams struct {
-	Id int32 // it is actually a number!
+	Id       int32
+	Sduserid int32
 }
 
 // FIXME shall we create a record for each query?
 type senseDataForEditType struct {
-	Senseid      int32
+	Senseid      int32 // it is an origin id, not variant id
 	Languageslug string
-	Dialectslug  string
 	Phrase       string
 	Word         string
+	Deleted      bool
 }
 
 type senseEditTemplateParams struct {
@@ -33,10 +34,11 @@ type senseEditTemplateParams struct {
 
 // SenseViewDirHandler ...
 func SenseViewDirHandler(c *gin.Context) {
-	var avdhp senseViewDirHandlerParams
-
-	avdhp.Id = extractIdFromRequest(c)
-	dataFound, ad := readArticleFromDb(&avdhp)
+	avdhp := &senseViewDirHandlerParams{
+		Id:       extractIdFromRequest(c),
+		Sduserid: user.GetSDUserIdOrZero(c)}
+	// fixme - there must be a way to show variant by id, not just "mine" variant.
+	dataFound, ad := readSenseFromDb(avdhp)
 
 	if dataFound {
 		c.HTML(http.StatusOK,
@@ -47,15 +49,17 @@ func SenseViewDirHandler(c *gin.Context) {
 	}
 }
 
-func readArticleFromDb(avdhp *senseViewDirHandlerParams) (dataFound bool, ad *senseDataForEditType) {
+// read the sense appropriate for edit. That is, either mine or a common one.
+func readSenseFromDb(avdhp *senseViewDirHandlerParams) (dataFound bool, ad *senseDataForEditType) {
 	reply, err1 := sddb.NamedReadQuery(
 		`select 
 			s.id as senseid
-			,phrase
-			,word 
-			,languageslug
-			from vsense as s
-			where s.id = :id
+			,s.phrase
+			,s.word
+			,s.deleted 
+			,s.languageslug
+			from fnonepersonalsense(:sduserid, :id) ops
+			left join vsense as s on s.id = coalesce(ops.r_variantid, ops.r_originid)
 			limit 1`, &avdhp)
 	apperror.Panic500AndErrorIf(err1, "Failed to extract an article, sorry")
 	ad = &senseDataForEditType{}
@@ -67,13 +71,15 @@ func readArticleFromDb(avdhp *senseViewDirHandlerParams) (dataFound bool, ad *se
 	return
 }
 
-// SenseEditDirHandler is a handler to open edit page
+// SenseEditDirHandler is a handler to open a user's variant, or an original record if there
+// is no user's variant
 func SenseEditDirHandler(c *gin.Context) {
 	user.EnsureLoggedIn(c)
-	var avdhp senseViewDirHandlerParams
+	avdhp := &senseViewDirHandlerParams{
+		Id:       extractIdFromRequest(c),
+		Sduserid: user.GetSDUserIdOrZero(c)}
 
-	avdhp.Id = extractIdFromRequest(c)
-	dataFound, ad := readArticleFromDb(&avdhp)
+	dataFound, ad := readSenseFromDb(avdhp)
 
 	if !dataFound {
 		c.HTML(http.StatusBadRequest,
