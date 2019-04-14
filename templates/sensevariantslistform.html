@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+{{ template "header-start.html" .}}
+<title>Word search result</title>
+{{ template "header-end.html" .}}
+
+<body>
+
+ 	VariantId int64
+	Phrase    string
+	Word      string
+	OwnerId   int64
+
+    <p><a href="menu">Menu</a></p>
+    {{range $index, $senseVariantsListQueryRecord := .Records}}
+    <hr>
+    <p><i>Sense #</i><a href="/senseview/{{ $senseVariantsListQueryRecord.VariantId }}"> {{ $senseVariantsListQueryRecord.VariantId }}</a>
+        {{if $.IsLoggedIn}}
+            &VerticalBar; Write me... <span class="glyphicon glyphicon-edit"></span>
+        {{end}}
+        {{if $senseVariantsListQueryRecord.MySense }} (MY) {{ end }}
+        {{if $senseVariantsListQueryRecord.CommonSense}} (COMMON) {{ end }}
+        &VerticalBar; <i>Language</i>:  $senseVariantsListQueryRecord.Languageslug 
+        <p><b>{{ $senseVariantsListQueryRecord.Word }}</b>
+        &VerticalBar; <i>Phrase:</i>{{ castAsHTML $senseVariantsListQueryRecord.Phrase }}</p>
+        &VerticalBar; <i>Owner:</i>{{ $senseVariantsListQueryRecord.OwnerId }}</p>
+    {{end}}
+
+</body>
+
+</html>

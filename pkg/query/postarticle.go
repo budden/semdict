@@ -16,7 +16,7 @@ import (
 )
 
 type articlePostDataType struct {
-	ID         int32 // originId
+	ID         int64 // originId
 	Languageid int32
 	Phrase     string
 	Word       string
@@ -52,15 +52,15 @@ func sanitizeData(pad *articlePostDataType) {
 	}
 }
 
-func extractIdFromRequest(c *gin.Context) (id int32) {
+func extractIdFromRequest(c *gin.Context) (id int64) {
 	idAsString := c.PostForm("senseid")
 	if idAsString == "" {
 		idAsString = c.Param("senseid")
 	}
 	if idAsString != "" {
-		padID, err := strconv.Atoi(idAsString)
+		padID, err := strconv.ParseInt(idAsString, 10, 64)
 		apperror.Panic500AndErrorIf(err, "Wrong sense ID")
-		id = int32(padID)
+		id = padID
 	} else {
 		apperror.Panic500AndErrorIf(apperror.ErrDummy, "No sense ID given")
 	}

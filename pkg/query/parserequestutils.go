@@ -10,7 +10,7 @@ import (
 // GetZeroOrOneNonNegativeIntFormValue extracts an (unique) integer value by the key
 // from the request query (URL or form)
 func GetZeroOrOneNonNegativeIntFormValue(c *gin.Context, key string) (
-	value int) {
+	value int64) {
 	values, ok1 := c.GetQueryArray(key)
 	if !ok1 || len(values) == 0 {
 		return
@@ -23,7 +23,7 @@ func GetZeroOrOneNonNegativeIntFormValue(c *gin.Context, key string) (
 		return
 	}
 	var err error
-	value, err = strconv.Atoi(valueS)
+	value, err = strconv.ParseInt(valueS, 10, 64)
 	apperror.Panic500AndLogAttackIf(err, c, "Non-integer value of «%s»", key)
 	if value < 0 {
 		apperror.Panic500AndLogAttackIf(apperror.ErrDummy, c, "Negative value of parameter «%s»", key)

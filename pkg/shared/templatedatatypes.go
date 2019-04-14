@@ -9,7 +9,7 @@ type GeneralTemplateParams struct {
 
 // SenseViewParams are params for templates/senseview.html
 type SenseViewParams struct {
-	Id     int32
+	Id     int64
 	Word   string
 	Phrase template.HTML
 }

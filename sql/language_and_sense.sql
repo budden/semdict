@@ -159,28 +159,6 @@ create or replace function fnsavepersonalsense(
   end;
 $$;
 
-/*
-create view vpersonalsense
-as select 
-    personalsense.originid as originid
-    ,id as versionid
-    ,languageid, phrase, word, deleted, ownerid
-    ,get_language_slug(personalsense.languageid) as languageslug
-    ,cast('a variant' as senseforkstatus) as forkstatus
-  from tsense as personalsense
-  where personalsense.ownerid is not null
-  union all select
-    id as originid
-    ,cast(null as bigint) as versionid
-    ,languageid, phrase, word, deleted, ownerid
-    ,get_language_slug(commonsense.languageid) as languageslug
-    ,case when exists (select 1 from tsense as variants where variants.originid=commonsense.id)
-      then cast('has variants' as senseforkstatus)
-      else cast('single' as senseforkstatus) end as forkstatus
-  from tsense as commonsense
-  where commonsense.ownerid is null; 
-*/
-
 -- EnsureSenseVariant ensures that a user has his own variant of a sense. One should not
 -- make a variant of user's unparallel sense.
 create or replace function ensuresensevariant(p_sduserid bigint, p_senseid bigint)

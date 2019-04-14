@@ -124,6 +124,7 @@ func initRouter() *gin.Engine {
 	engine.Static("/static", *TemplateBaseDir+"static")
 
 	engine.POST("/senseeditformsubmit", query.SenseEditFormSubmitPostHandler)
+	engine.GET("/sensevariantslistform/:senseid", query.SenseVariantsListFormRouteHandler)
 
 	//engine.GET("/captcha/:imagefilename", ReverseProxy)
 	return engine

@@ -15,13 +15,13 @@ import (
 
 // params for a query for a word
 type senseViewDirHandlerParams struct {
-	Id       int32
+	Id       int64
 	Sduserid int32
 }
 
 // FIXME shall we create a record for each query?
 type senseDataForEditType struct {
-	Senseid      int32 // it is an origin id, not variant id
+	Senseid      int64 // it is an origin id, not variant id
 	Languageslug string
 	Phrase       string
 	Word         string

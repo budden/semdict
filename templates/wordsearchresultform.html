@@ -17,10 +17,10 @@
             &VerticalBar; <a href="/senseedit/{{ $wordSearchQueryRecord.Id }}">
                 <span class="glyphicon glyphicon-edit"></span></a>
             &VerticalBar; <i>Variant</i>: {{ $wordSearchQueryRecord.Variantid }}
-            {{ if $wordSearchQueryRecord.Addedbyme }}Added by me{{end}}
-        {{end}}
+            {{ if $wordSearchQueryRecord.Addedbyme }}Added by me{{end}}{{end}}
         &VerticalBar; <i>Language</i>: {{ $wordSearchQueryRecord.Languageslug }}
-        {{if gt $wordSearchQueryRecord.Countofvariants 1}}&VerticalBar; <a href=>{{ $wordSearchQueryRecord.Countofvariants }} variants</a>{{end}}
+        {{if gt $wordSearchQueryRecord.Countofvariants 1}}
+            &VerticalBar; <a href=/sensevariantslistform/{{ $wordSearchQueryRecord.Id }}>{{ $wordSearchQueryRecord.Countofvariants }} variants</a>{{end}}
         <p><b>{{ $wordSearchQueryRecord.Word }}</b>
         &VerticalBar; <i>Phrase:</i>{{ castAsHTML $wordSearchQueryRecord.Phrase }}</p>
     {{end}}
