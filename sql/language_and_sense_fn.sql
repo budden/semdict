@@ -160,7 +160,7 @@ begin
   r_kindofchange = case
     when p_ownerid is null then '' -- common - irrelevant
     when p_originid is null then 'addition'
-    when p_delete then 'deletion'
+    when p_deleted then 'deletion'
     else 'change' end;
   return query(select r_commonorproposal, r_whos, r_kindofchange); end;
 $$;
@@ -214,10 +214,9 @@ language plpgsql as $$
       ,essvp.kindofchange
       from vsense as s 
       -- inner join does not work here, I don't know why...
-      left join explainSenseStatusVsProposals(
-        v_senseorproposalid, v_originid, p_sduserid, v_ownerid, v_deleted) as essvp 
-        on 1=1
-      where s.id = v_senseorproposalid
+      left join (select * from explainSenseStatusVsProposals(
+        v_senseorproposalid, v_originid, p_sduserid, v_ownerid, v_deleted)) as essvp 
+        on s.id = v_senseorproposalid
       limit 1); end;
 $$;
 
