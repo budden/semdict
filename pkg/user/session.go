@@ -93,7 +93,7 @@ func getAndValidateToken(c *gin.Context) (tokenPresent, tokenValid bool, sduseri
 		// special case for debugging
 		tokenPresent = true
 		tokenValid = true
-		sduserid = 1
+		sduserid = shared.SecretConfigData.UserAlwaysLoggedIn
 	} else {
 		var token string
 		token, tokenPresent = getSessionToken(c)

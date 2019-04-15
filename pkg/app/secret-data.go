@@ -38,17 +38,20 @@ var TemplateBaseDir *string
 // As a side effect, semdict.config.json.example is created
 func SaveSecretConfigDataExample(fileName *string) (scd *shared.SecretConfigDataT, err error) {
 	scd = &shared.SecretConfigDataT{
-		Comment:             shared.SecretConfigDataTComment,
-		SiteRoot:            "localhost",
-		UnderAProxy:         0,
-		ServerPort:          "8085",
-		SenderEMail:         "den@example.net",
-		SMTPServer:          "smtp.example.net",
-		SMTPUser:            "Кирилл",
-		SMTPPassword:        "bla-bla-bla",
-		TLSCertFile:         "example.pem",
-		TLSKeyFile:          "example.key",
-		PostgresqlServerURL: "postgresql://localhost:5432"}
+		Comment:                     shared.SecretConfigDataTComment,
+		SiteRoot:                    "localhost",
+		UnderAProxy:                 0,
+		ServerPort:                  "8085",
+		SMTPServer:                  "smtp.example.net",
+		SMTPUser:                    "Кирилл",
+		SMTPPassword:                "bla-bla-bla",
+		SenderEMail:                 "den@example.net",
+		PostgresqlServerURL:         "postgresql://localhost:5432",
+		TLSCertFile:                 "example.pem",
+		TLSKeyFile:                  "example.key",
+		UserAlwaysLoggedIn:          0,
+		HideGinStartupDebugMessages: 1,
+		GinDebugMode:                0}
 	err = saveSecretDataConfigTToFile(scd, fileName)
 	return
 }

@@ -14,7 +14,13 @@ type SecretConfigDataT struct {
 	PostgresqlServerURL string
 	TLSCertFile         string
 	TLSKeyFile          string
-	UserAlwaysLoggedIn  int
+	// If set to non-zero, acts as if a user with this id is always logged in,
+	// useful for debugging of user-based routes
+	UserAlwaysLoggedIn int
+	// Some gin messages are annoying, set this switch to 1 to hush them
+	HideGinStartupDebugMessages int
+	// Set GinDebugMode to 1 to enable gin debug mode
+	GinDebugMode int
 }
 
 // SecretConfigDataTComment is actually a documentation for SecretConfigData, which is placed to a config sample file

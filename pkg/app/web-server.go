@@ -48,7 +48,11 @@ func playWithServer() {
 
 	// https://stackoverflow.com/a/52830435/9469533
 	// FIXME conditionalize
-	//gin.SetMode(gin.ReleaseMode)
+	if shared.SecretConfigData.GinDebugMode != 0 {
+		gin.SetMode(gin.DebugMode)
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	//This will disable hot template reloading, so we'll try to disable any messaging for a whil
 
 	engine := initRouter()
@@ -94,11 +98,12 @@ func actualFatalDatabaseErrorHandler(err error, c *sddb.ConnectionType, format s
 
 func initRouter() *gin.Engine {
 
-	// we send this annoying startup messages to dev/null
-	oldStderr := os.Stderr
-	devNull := unsorted.OpenDevNullForWrite()
-	os.Stderr = devNull
-	defer func() { os.Stderr = oldStderr; devNull.Close() }()
+	if shared.SecretConfigData.HideGinStartupDebugMessages != 0 {
+		oldStderr := os.Stderr
+		devNull := unsorted.OpenDevNullForWrite()
+		os.Stderr = devNull
+		defer func() { os.Stderr = oldStderr; devNull.Close() }()
+	}
 
 	engine := gin.New()
 
@@ -138,7 +143,7 @@ func setupTemplates(engine *gin.Engine) {
 	funcMap := template.FuncMap{
 		"castAsHTML": castAsHTML}
 	engine.SetFuncMap(funcMap)
-	templatesGlob := *TemplateBaseDir + "templates/*"
+	templatesGlob := *TemplateBaseDir + "templates/*.t.html"
 	engine.LoadHTMLGlob(templatesGlob)
 }
 
