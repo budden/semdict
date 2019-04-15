@@ -10,19 +10,19 @@ import (
 )
 
 // параметры, к-рые нужны для выполнения запроса
-type senseVariantsListQueryParams struct {
+type senseProposalsListQueryParams struct {
 	Sduserid int64 // 0 для незарег. польз.
 	Senseid  int64
 }
 
-type senseVariantsListQueryHeader struct {
+type senseProposalsListQueryHeader struct {
 	Senseid      int64
 	Languageid   int64
 	Languageslug string
 }
 
-type senseVariantsListQueryRecord struct {
-	VariantId   int64
+type senseProposalsListQueryRecord struct {
+	ProposalId  int64
 	Phrase      string
 	Word        string
 	OwnerId     int64
@@ -30,47 +30,47 @@ type senseVariantsListQueryRecord struct {
 	CommonSense bool
 }
 
-// SenseVariantsListFormRouteHandler ...
-func SenseVariantsListFormRouteHandler(c *gin.Context) {
-	var svlqp *senseVariantsListQueryParams
-	var records []*senseVariantsListQueryRecord
-	svlqp, records = senseVariantsListInner(c)
+// SenseProposalsListFormRouteHandler ...
+func SenseProposalsListFormRouteHandler(c *gin.Context) {
+	var svlqp *senseProposalsListQueryParams
+	var records []*senseProposalsListQueryRecord
+	svlqp, records = senseProposalsListInner(c)
 
 	// Параметры шаблона
-	type senseVariantsListFormTemplateParamsType struct {
-		P              *senseVariantsListQueryParams
-		Header         *senseVariantsListQueryHeader
-		Records        []*senseVariantsListQueryRecord
+	type senseProposalsListFormTemplateParamsType struct {
+		P              *senseProposalsListQueryParams
+		Header         *senseProposalsListQueryHeader
+		Records        []*senseProposalsListQueryRecord
 		IsLoggedIn     bool
 		LoggedInUserId int64
 	}
 
 	c.HTML(http.StatusOK,
-		"sensevariantslistform.t.html",
-		senseVariantsListFormTemplateParamsType{P: svlqp,
+		"senseproposalslistform.t.html",
+		senseProposalsListFormTemplateParamsType{P: svlqp,
 			Records:        records,
 			IsLoggedIn:     user.IsLoggedIn(c),
 			LoggedInUserId: int64(user.GetSDUserIdOrZero(c))})
 }
 
-func senseVariantsListInner(c *gin.Context) (svlqp *senseVariantsListQueryParams, records []*senseVariantsListQueryRecord) {
-	svlqp = &senseVariantsListQueryParams{}
+func senseProposalsListInner(c *gin.Context) (svlqp *senseProposalsListQueryParams, records []*senseProposalsListQueryRecord) {
+	svlqp = &senseProposalsListQueryParams{}
 
 	svlqp.Senseid = extractIdFromRequest(c)
 	svlqp.Sduserid = int64(user.GetSDUserIdOrZero(c))
 
-	records = readSenseVariantsListQueryFromDb(svlqp)
+	records = readSenseProposalsListQueryFromDb(svlqp)
 	return
 }
 
-func readSenseVariantsListQueryFromDb(svlqp *senseVariantsListQueryParams) (
-	records []*senseVariantsListQueryRecord) {
-	reply, err1 := sddb.NamedReadQuery(`select vari.id as variantid
+func readSenseProposalsListQueryFromDb(svlqp *senseProposalsListQueryParams) (
+	records []*senseProposalsListQueryRecord) {
+	reply, err1 := sddb.NamedReadQuery(`select vari.id as proposalid
 	,vari.phrase, vari.word, vari.ownerid
 	,false as commonsense 
 	,case when ownerid = :sduserid then true else false end as mysense
 	from tsense vari where originid = :senseid
-	union all select s.id as variantid
+	union all select s.id as proposalid
 	,s.phrase, s.word, cast(0 as bigint) as ownerid
 	,true as commonsense
 	,false as mysense
@@ -79,12 +79,12 @@ func readSenseVariantsListQueryFromDb(svlqp *senseVariantsListQueryParams) (
 	`, svlqp)
 	apperror.Panic500AndErrorIf(err1, "Db query failed")
 	defer sddb.CloseRows(reply)
-	records = make([]*senseVariantsListQueryRecord, 0)
+	records = make([]*senseProposalsListQueryRecord, 0)
 	var last int
 	for last = 0; reply.Next(); last++ {
-		wsqr := &senseVariantsListQueryRecord{}
+		wsqr := &senseProposalsListQueryRecord{}
 		err1 = reply.StructScan(wsqr)
-		sddb.FatalDatabaseErrorIf(err1, "Error obtaining variants of sense: %#v", err1)
+		sddb.FatalDatabaseErrorIf(err1, "Error obtaining proposals of sense: %#v", err1)
 		records = append(records, wsqr)
 	}
 	return

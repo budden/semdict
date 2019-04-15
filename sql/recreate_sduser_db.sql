@@ -10,7 +10,8 @@ CREATE DATABASE sduser_db;
 \i :thisdir/forward_declarations.sql
 \i :thisdir/mutex.sql
 \i :thisdir/user_registration_session.sql
-\i :thisdir/language_and_sense.sql
+\i :thisdir/language_and_sense_tbl.sql
+\i :thisdir/language_and_sense_fn.sql
 \i :thisdir/privilege.sql
 
 \echo *** recreate_sduser_db.sql Done

@@ -17,11 +17,14 @@ import (
 type senseViewDirHandlerParams struct {
 	Id       int64
 	Sduserid int32
+	/// if true, we show current user's proposal, if there is one. If there is no one, we show common sense
+	/// if false, we show just exact Id given, regardless of whether it is a common sense or proposal
+	Proposalifexists bool
 }
 
 // FIXME shall we create a record for each query?
 type senseDataForEditType struct {
-	Senseid      int64 // it is an origin id, not variant id
+	Senseid      int64 // it is an origin id, not proposal id
 	Languageslug string
 	Phrase       string
 	Word         string
@@ -35,9 +38,9 @@ type senseEditTemplateParams struct {
 // SenseViewDirHandler ...
 func SenseViewDirHandler(c *gin.Context) {
 	avdhp := &senseViewDirHandlerParams{
-		Id:       extractIdFromRequest(c),
-		Sduserid: user.GetSDUserIdOrZero(c)}
-	// fixme - there must be a way to show variant by id, not just "mine" variant.
+		Id:               extractIdFromRequest(c),
+		Sduserid:         user.GetSDUserIdOrZero(c),
+		Proposalifexists: false}
 	dataFound, ad := readSenseFromDb(avdhp)
 
 	if dataFound {
@@ -59,7 +62,7 @@ func readSenseFromDb(avdhp *senseViewDirHandlerParams) (dataFound bool, ad *sens
 			,s.deleted 
 			,s.languageslug
 			from fnonepersonalsense(:sduserid, :id) ops
-			left join vsense as s on s.id = coalesce(ops.r_variantid, ops.r_originid)
+			left join vsense as s on s.id = coalesce(ops.r_proposalid, ops.r_originid)
 			limit 1`, &avdhp)
 	apperror.Panic500AndErrorIf(err1, "Failed to extract an article, sorry")
 	ad = &senseDataForEditType{}
@@ -71,8 +74,8 @@ func readSenseFromDb(avdhp *senseViewDirHandlerParams) (dataFound bool, ad *sens
 	return
 }
 
-// SenseEditDirHandler is a handler to open a user's variant, or an original record if there
-// is no user's variant
+// SenseEditDirHandler is a handler to open a user's proposal, or an original record if there
+// is no user's proposal
 func SenseEditDirHandler(c *gin.Context) {
 	user.EnsureLoggedIn(c)
 	avdhp := &senseViewDirHandlerParams{

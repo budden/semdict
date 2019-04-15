@@ -21,14 +21,14 @@ type wordSearchQueryParams struct {
 }
 
 type wordSearchQueryRecord struct {
-	Id              int32
-	Languageid      int32
-	Languageslug    string
-	Phrase          string
-	Word            string
-	Variantid       sql.NullInt64 // is non-null when this record is a variant.
-	Countofvariants int32
-	Addedbyme       bool
+	Id               int32
+	Languageid       int32
+	Languageslug     string
+	Phrase           string
+	Word             string
+	Proposalid       sql.NullInt64 // is non-null when this record is a proposal.
+	Countofproposals int32
+	Addedbyme        bool
 }
 
 func wordSearchCommonPart(c *gin.Context) (frp *wordSearchQueryParams, fd []*wordSearchQueryRecord) {
@@ -52,12 +52,12 @@ func readWordSearchQueryFromDb(frp *wordSearchQueryParams) (
 	fd []*wordSearchQueryRecord) {
 	var queryText string
 	queryText = `select ps.r_originid as id, ts.languageid, ts.languageslug, ts.word, ts.phrase, 
-		ps.r_variantid as variantid,
-		ps.r_countofvariants as countofvariants,
+		ps.r_proposalid as proposalid,
+		ps.r_countofproposals as countofproposals,
 		ps.r_addedbyme as addedbyme
 		from 
 		fnpersonalsenses(:sduserid) ps 
-		left join vsense ts on coalesce(ps.r_variantid, ps.r_originid) = ts.id
+		left join vsense ts on coalesce(ps.r_proposalid, ps.r_originid) = ts.id
 		order by word, languageslug, id offset :offset limit :limit`
 	reply, err1 := sddb.NamedReadQuery(
 		queryText, frp)
