@@ -65,7 +65,6 @@ func senseVariantsListInner(c *gin.Context) (svlqp *senseVariantsListQueryParams
 
 func readSenseVariantsListQueryFromDb(svlqp *senseVariantsListQueryParams) (
 	records []*senseVariantsListQueryRecord) {
-
 	reply, err1 := sddb.NamedReadQuery(`select vari.id as variantid
 	,vari.phrase, vari.word, vari.ownerid
 	,false as commonsense 
@@ -78,7 +77,6 @@ func readSenseVariantsListQueryFromDb(svlqp *senseVariantsListQueryParams) (
 	from tsense s where id = :senseid
 	order by commonsense desc, mysense desc
 	`, svlqp)
-
 	apperror.Panic500AndErrorIf(err1, "Db query failed")
 	defer sddb.CloseRows(reply)
 	records = make([]*senseVariantsListQueryRecord, 0)
