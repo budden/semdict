@@ -50,14 +50,14 @@ create or replace function fnpersonalsenses(p_sduserid bigint)
     return query(
       select cast(orig.id as bigint) as r_originid
       ,cast(null as bigint) as r_proposalid
-      ,1 + (select count(1) from tsense varic where varic.originid = orig.id) as r_countofproposals
+      ,(select count(1) from tsense varic where varic.originid = orig.id) as r_countofproposals
       ,false as r_addedbyme
       from tsense orig where orig.originid is null and orig.ownerid is null); 
   else
     return query(
       select cast(orig.id as bigint) as r_originid
       ,cast(vari.id as bigint) as r_proposalid
-      ,1 + (select count(1) from tsense varic where varic.originid = orig.id) as r_countofproposals
+      ,(select count(1) from tsense varic where varic.originid = orig.id) as r_countofproposals
       ,case when orig.ownerid = p_sduserid then true else false end as r_addedbyme
       from tsense orig 
       left join tsense vari on orig.id = vari.originid and vari.ownerid = p_sduserid 
@@ -137,34 +137,88 @@ $$;
 select ensuresenseproposal(1,4);
 update tsense set phrase = 'updated sense' where id=5;
 
+-- end of mess
+
+create or replace function explainSenseStatusVsProposals(
+    p_id bigint, p_originid bigint, p_sduserid bigint, p_ownerid bigint, p_deleted bool) 
+  returns
+  table (commonorproposal varchar(128), whos varchar(512), kindofchange varchar(128))
+  language plpgsql strict as $$
+  declare r_commonorproposal varchar(128);
+  declare r_whos varchar(512);
+  declare r_kindofchange varchar(128);
+begin
+  r_commonorproposal = case
+    when p_ownerid is null then 'common' 
+    else 'proposal' end;
+  r_whos = case 
+    when p_ownerid is null then '' -- common - irrelevant
+    when p_sduserid = p_ownerid then '<my>' 
+    else 
+      coalesce((select nickname from sduser where id = p_ownerid)
+        ,'owner not found') end;
+  r_kindofchange = case
+    when p_ownerid is null then '' -- common - irrelevant
+    when p_originid is null then 'addition'
+    when p_delete then 'deletion'
+    else 'change' end;
+  return query(select r_commonorproposal, r_whos, r_kindofchange); end;
+$$;
+
+
 create or replace function fnsenseorproposalforview(p_sduserid bigint, p_id bigint, p_proposalifexists bool)
-returns table (originid bigint, senseorproposalid bigint, phrase text, word varchar(512), deleted bool, languageslug text)
+returns table (senseorproposalid bigint
+  ,originid bigint
+  ,phrase text
+  ,word varchar(512)
+  ,deleted bool
+  ,languageslug text
+  ,commonorproposal varchar(128)
+  ,whos varchar(512)
+  ,kindofchange varchar(128)
+  )
 language plpgsql as $$
- begin
- if p_proposalifexists then
+  declare v_senseorproposalid bigint;
+  declare v_originid bigint;
+  declare v_ownerid bigint;
+  declare v_deleted bool;
+  begin
+  if p_proposalifexists then
+    select cast(s.id as bigint) as senseorproposalid
+      ,cast(s.originid as bigint) as originid
+      ,s.ownerid
+  	  ,s.deleted 
+	    from fnonepersonalsense(p_sduserid, p_id) ops
+		  left join tsense as s on s.id = coalesce(ops.r_proposalid, ops.r_originid)
+      limit 1
+      into v_senseorproposalid, v_originid, v_ownerid, v_deleted;
+  else
+    select cast(s.id as bigint) senseorproposalid
+      ,cast(s.originid as bigint) as originid
+      ,s.ownerid
+    	,s.deleted 
+  	  from tsense as s where s.id = p_id
+			limit 1  
+      into v_senseorproposalid, v_originid, v_ownerid, v_deleted; end if;
+  -- raise exception using message='keys: '||coalesce(v_originid,-1)||','||coalesce(v_senseorproposalid,-2);
   return query(
    select 
-			 ops.r_originid as originid
-      ,cast(ops.r_proposalid as bigint) as senseorproposalid
-			 ,s.phrase
-			 ,s.word
-			 ,s.deleted 
-			 ,s.languageslug
-			 from fnonepersonalsense(p_sduserid, p_id) ops
-			 left join vsense as s on s.id = coalesce(ops.r_proposalid, ops.r_originid)
-			 limit 1);
- else
-  return query(
-   select
-    cast(coalesce(s.originid, 0) as bigint) as originid
-    ,s.id as senseorproposalid
-			 ,s.phrase
-			 ,s.word
-			 ,s.deleted 
-			 ,s.languageslug
-			 from vsense as s where s.id = p_id
-			 limit 1); end if;
- end;
+      v_senseorproposalid
+			,coalesce(v_originid, cast(0 as bigint))
+			,s.phrase
+			,s.word
+			,v_deleted 
+			,s.languageslug
+      ,essvp.commonorproposal
+      ,essvp.whos
+      ,essvp.kindofchange
+      from vsense as s 
+      -- inner join does not work here, I don't know why...
+      left join explainSenseStatusVsProposals(
+        v_senseorproposalid, v_originid, p_sduserid, v_ownerid, v_deleted) as essvp 
+        on 1=1
+      where s.id = v_senseorproposalid
+      limit 1); end;
 $$;
 
 -- tests
@@ -180,7 +234,8 @@ begin
 end;
 $$;
 
--- select test_fnsensorproposalforview();
+select test_fnsensorproposalforview();
+
 
 
 \echo *** language_and_sense.sql Done

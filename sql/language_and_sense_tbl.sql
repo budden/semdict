@@ -88,6 +88,9 @@ insert into tsense (languageid, phrase, word)
   VALUES
   (1,'Язык программирования, созданный google в 2000-х годах','go');
 
-create type senseforkstatus AS ENUM ('single', 'has proposals', 'a proposal');
+-- create type senseforkstatus AS ENUM ('single', 'has proposals', 'a proposal');
+
+
+
 
 \echo *** language_and_sense_tbl.sql Done
