@@ -12,14 +12,14 @@
     <p></p>
     {{range $index, $wordSearchQueryRecord := .Records}}
     <hr>
-    <p><i>Sense #</i><a href="/senseview/{{ $wordSearchQueryRecord.Id }}"> {{ $wordSearchQueryRecord.Id }}</a>
+    <p><i>Sense #</i><a href="/sensebyoriginidview/{{ $wordSearchQueryRecord.Id }}"> {{ $wordSearchQueryRecord.Id }}</a>
         {{if $.IsLoggedIn}}
-            &VerticalBar; <a href="/senseedit/{{ $wordSearchQueryRecord.Id }}">
+            &VerticalBar; <a href="/sensebyoriginidedit/{{ $wordSearchQueryRecord.Id }}">
                 <span class="glyphicon glyphicon-edit"></span></a>
             &VerticalBar; <i>Proposal</i>: {{ $wordSearchQueryRecord.Proposalid }}
             {{ if $wordSearchQueryRecord.Addedbyme }}Added by me{{end}}{{end}}
         &VerticalBar; <i>Language</i>: {{ $wordSearchQueryRecord.Languageslug }}
-        {{if gt $wordSearchQueryRecord.Countofproposals 1}}
+        {{if gt $wordSearchQueryRecord.Countofproposals 0}}
             &VerticalBar; <a href=/senseproposalslistform/{{ $wordSearchQueryRecord.Id }}>{{ $wordSearchQueryRecord.Countofproposals }} proposals</a>{{end}}
         <p><b>{{ $wordSearchQueryRecord.Word }}</b>
         &VerticalBar; <i>Phrase:</i>{{ castAsHTML $wordSearchQueryRecord.Phrase }}</p>

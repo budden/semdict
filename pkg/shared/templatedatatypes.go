@@ -1,17 +1,8 @@
 package shared
 
-import "html/template"
-
 // GeneralTemplateParams are params for templates/general.t.html
 type GeneralTemplateParams struct {
 	Message string
-}
-
-// SenseViewParams are params for templates/senseview.t.html
-type SenseViewParams struct {
-	Id     int64
-	Word   string
-	Phrase template.HTML
 }
 
 // LoginFormParams are params for templates/loginform.t.html

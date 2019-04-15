@@ -115,10 +115,9 @@ func initRouter() *gin.Engine {
 	engine.GET("/wordsearchform", query.WordSearchFormRouteHandler)
 	engine.GET("/wordsearchresultform", query.WordSearchResultRouteHandler)
 	engine.GET("/wordsearchquery", query.WordSearchQueryRouteHandler)
-	// FIXME - change a way of addressing articles to be adequate!
-	engine.GET("/senseview/:senseid", query.SenseViewDirHandler)
-	// engine.GET("/senseorproposalview/:senseid", query.SenseOrProposalViewDirHandler)
-	engine.GET("/senseedit/:senseid", query.SenseEditDirHandler)
+	engine.GET("/sensebyidview/:senseid", query.SenseByIdViewDirHandler)
+	engine.GET("/sensebyoriginidview/:senseid", query.SenseByOriginIdViewDirHandler)
+	engine.GET("/sensebyoriginidedit/:senseid", query.SenseByOriginIdEditDirHandler)
 
 	engine.GET("/registrationform", user.RegistrationFormPageHandler)
 	engine.POST("/registrationformsubmit", user.RegistrationFormSubmitPostHandler)

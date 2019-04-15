@@ -143,7 +143,7 @@ create or replace function explainSenseStatusVsProposals(
     p_id bigint, p_originid bigint, p_sduserid bigint, p_ownerid bigint, p_deleted bool) 
   returns
   table (commonorproposal varchar(128), whos varchar(512), kindofchange varchar(128))
-  language plpgsql strict as $$
+  language plpgsql CALLED ON NULL INPUT as $$
   declare r_commonorproposal varchar(128);
   declare r_whos varchar(512);
   declare r_kindofchange varchar(128);
@@ -200,7 +200,7 @@ language plpgsql as $$
   	  from tsense as s where s.id = p_id
 			limit 1  
       into v_senseorproposalid, v_originid, v_ownerid, v_deleted; end if;
-  -- raise exception using message='keys: '||coalesce(v_originid,-1)||','||coalesce(v_senseorproposalid,-2);
+   --raise exception using message='keys: '||coalesce(v_originid,-1)||','||coalesce(v_senseorproposalid,-2);
   return query(
    select 
       v_senseorproposalid
@@ -209,15 +209,8 @@ language plpgsql as $$
 			,s.word
 			,v_deleted 
 			,s.languageslug
-      ,essvp.commonorproposal
-      ,essvp.whos
-      ,essvp.kindofchange
-      from vsense as s 
-      -- inner join does not work here, I don't know why...
-      left join (select * from explainSenseStatusVsProposals(
-        v_senseorproposalid, v_originid, p_sduserid, v_ownerid, v_deleted)) as essvp 
-        on s.id = v_senseorproposalid
-      limit 1); end;
+      ,(explainSenseStatusVsProposals(v_senseorproposalid, v_originid, p_sduserid, v_ownerid, v_deleted)).*
+      from vsense as s where s.id = v_senseorproposalid); end;
 $$;
 
 -- tests
