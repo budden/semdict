@@ -46,7 +46,7 @@ func SenseVariantsListFormRouteHandler(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK,
-		"sensevariantslistform.html",
+		"sensevariantslistform.t.html",
 		senseVariantsListFormTemplateParamsType{P: svlqp,
 			Records:        records,
 			IsLoggedIn:     user.IsLoggedIn(c),

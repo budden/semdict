@@ -17,5 +17,5 @@ func menuPageHandler(c *gin.Context) {
 	mtp := menuTemplateParams{
 		IsLoggedIn: user.IsLoggedIn(c),
 		Nickname:   "MyFriend"}
-	c.HTML(http.StatusOK, "menu.html", mtp)
+	c.HTML(http.StatusOK, "menu.t.html", mtp)
 }

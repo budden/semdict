@@ -26,7 +26,7 @@ func WordSearchResultRouteHandler(c *gin.Context) {
 	wpu := url.QueryEscape(frp.Wordpattern)
 
 	c.HTML(http.StatusOK,
-		"wordsearchresultform.html",
+		"wordsearchresultform.t.html",
 		wordSearchResultFormTemplateParamsType{P: frp,
 			Wordpatternurlencoded: wpu,
 			Records:               fd,

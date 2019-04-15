@@ -26,7 +26,7 @@ import (
 )
 
 func homePageHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "general.html", shared.GeneralTemplateParams{Message: "Welcome to semantic dictionary"})
+	c.HTML(http.StatusOK, "general.t.html", shared.GeneralTemplateParams{Message: "Welcome to semantic dictionary"})
 }
 
 const connectionLimit = 500
@@ -40,7 +40,7 @@ func handleDirStrippingPrefix(dir string, handlerFunc http.HandlerFunc) {
 // ThisHTTPServer is a main http server
 var ThisHTTPServer *http.Server
 
-// https://golang.hotexamples.com/examples/golang.org.x.net.netutil/-/LimitListener/golang-limitlistener-function-examples.html
+// https://golang.hotexamples.com/examples/golang.org.x.net.netutil/-/LimitListener/golang-limitlistener-function-examples.t.html
 // https://habr.com/ru/post/197468/
 func playWithServer() {
 	port := ":" + shared.SecretConfigData.ServerPort

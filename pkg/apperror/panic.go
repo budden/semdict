@@ -54,7 +54,7 @@ func HandlePanicInRequestHandler() gin.HandlerFunc {
 				case *Exception500:
 					{
 						c.HTML(http.StatusInternalServerError,
-							"general.html",
+							"general.t.html",
 							shared.GeneralTemplateParams{Message: et.Message})
 						return
 					}

@@ -129,7 +129,7 @@ func LoginFormSubmitPostHandler(c *gin.Context) {
 	if sduserid != 0 {
 		// check if the use have the login privilege
 		if !isUserHavePrivilege(sduserid, privilegecode.Login) {
-			c.HTML(http.StatusBadRequest, "general.html",
+			c.HTML(http.StatusBadRequest, "general.t.html",
 				shared.GeneralTemplateParams{Message: fmt.Sprintf("Sorry, %s, but you have no login privilege", nickname)})
 			return
 		}
@@ -141,11 +141,11 @@ func LoginFormSubmitPostHandler(c *gin.Context) {
 
 		c.SetCookie("token", token, 3600, "", "", false, true)
 
-		c.HTML(http.StatusOK, "general.html",
+		c.HTML(http.StatusOK, "general.t.html",
 			shared.GeneralTemplateParams{Message: fmt.Sprintf("Welcome, %s!", nickname)})
 
 	} else {
-		c.HTML(http.StatusBadRequest, "general.html",
+		c.HTML(http.StatusBadRequest, "general.t.html",
 			shared.GeneralTemplateParams{Message: "Go away, stranger!"})
 	}
 }
@@ -263,6 +263,6 @@ func endSessionIfThereIsOne(c *gin.Context) {
 func LoginFormPageHandler(c *gin.Context) {
 	EnsureNotLoggedIn(c)
 	c.HTML(http.StatusOK,
-		"loginform.html",
+		"loginform.t.html",
 		shared.LoginFormParams{ /*CaptchaID: "100500"*/ })
 }

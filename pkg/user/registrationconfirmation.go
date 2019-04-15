@@ -21,7 +21,7 @@ func RegistrationConfirmationPageHandler(c *gin.Context) {
 	// promote the user to Sd Db. If we crash here, user will be able to login,
 	// (and unable to register again), but wil be missing from the main content db
 	c.HTML(http.StatusMovedPermanently,
-		"registrationconfirmation.html",
+		"registrationconfirmation.t.html",
 		gin.H{})
 }
 

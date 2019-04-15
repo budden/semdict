@@ -18,7 +18,7 @@ import (
 func RegistrationFormPageHandler(c *gin.Context) {
 	EnsureNotLoggedIn(c)
 	c.HTML(http.StatusOK,
-		"registrationform.html",
+		"registrationform.t.html",
 		shared.GeneralTemplateParams{Message: "Search Form"})
 }
 
@@ -33,12 +33,12 @@ func RegistrationFormSubmitPostHandler(c *gin.Context) {
 	appErr := doRegistrationFormSubmit(c, &rd)
 	if appErr == nil {
 		c.HTML(http.StatusOK,
-			"general.html",
+			"general.t.html",
 			shared.GeneralTemplateParams{
 				Message: "Check your E-Mail for a confirmation code, which will be valid for 10 minutes"})
 	} else {
 		c.HTML(http.StatusOK,
-			"general.html",
+			"general.t.html",
 			shared.GeneralTemplateParams{Message: appErr.Message})
 	}
 }

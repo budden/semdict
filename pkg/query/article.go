@@ -42,7 +42,7 @@ func SenseViewDirHandler(c *gin.Context) {
 
 	if dataFound {
 		c.HTML(http.StatusOK,
-			"senseview.html",
+			"senseview.t.html",
 			shared.SenseViewParams{Id: ad.Senseid, Word: ad.Word, Phrase: template.HTML(ad.Phrase)})
 	} else {
 		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Sorry, no sense (yet?) with id = «%d»", avdhp.Id)
@@ -83,13 +83,13 @@ func SenseEditDirHandler(c *gin.Context) {
 
 	if !dataFound {
 		c.HTML(http.StatusBadRequest,
-			"general.html",
+			"general.t.html",
 			shared.GeneralTemplateParams{Message: fmt.Sprintf("Sorry, no sense (yet?) for «%d»", avdhp.Id)})
 		return
 	}
 
 	aetp := &senseEditTemplateParams{Ad: ad}
 	c.HTML(http.StatusOK,
-		"senseedit.html",
+		"senseedit.t.html",
 		aetp)
 }

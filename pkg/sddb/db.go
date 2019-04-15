@@ -146,7 +146,7 @@ func OpenDb(url, logFriendlyName string, withMutex bool) *ConnectionType {
 	apperror.ExitAppIf(err, 6, "Failed to open «%s» database", logFriendlyName)
 	err = db.Ping()
 	apperror.ExitAppIf(err, 7, "Failed to ping «%s» database", logFriendlyName)
-	// http://go-database-sql.org/connection-pool.html
+	// http://go-database-sql.org/connection-pool.t.html
 	db.SetMaxOpenConns(maxOpenConns)
 	db.SetMaxIdleConns(maxIdleConns)
 	db.SetConnMaxLifetime(connMaxLifetime)
