@@ -178,39 +178,28 @@ returns table (senseorproposalid bigint
   ,kindofchange varchar(128)
   )
 language plpgsql as $$
-  declare v_senseorproposalid bigint;
-  declare v_originid bigint;
-  declare v_ownerid bigint;
-  declare v_deleted bool;
   begin
   if p_proposalifexists then
-    select cast(s.id as bigint) as senseorproposalid
-      ,cast(s.originid as bigint) as originid
-      ,s.ownerid
-  	  ,s.deleted 
-	    from fnonepersonalsense(p_sduserid, p_id) ops
-		  left join tsense as s on s.id = coalesce(ops.r_proposalid, ops.r_originid)
-      limit 1
-      into v_senseorproposalid, v_originid, v_ownerid, v_deleted;
+    return query(
+      select cast(s.id as bigint) as senseorproposalid
+        ,cast(coalesce(s.originid,0) as bigint) as originid
+        ,s.phrase, s.word
+  	    ,s.deleted 
+        ,s.languageslug
+        ,(explainSenseStatusVsProposals(s.id, s.originid, p_sduserid, s.ownerid, s.deleted)).*
+	      from fnonepersonalsense(p_sduserid, p_id) ops
+  		  left join vsense as s on s.id = coalesce(ops.r_proposalid, ops.r_originid)
+        limit 1);
   else
-    select cast(s.id as bigint) senseorproposalid
-      ,cast(s.originid as bigint) as originid
-      ,s.ownerid
-    	,s.deleted 
-  	  from tsense as s where s.id = p_id
-			limit 1  
-      into v_senseorproposalid, v_originid, v_ownerid, v_deleted; end if;
-   --raise exception using message='keys: '||coalesce(v_originid,-1)||','||coalesce(v_senseorproposalid,-2);
-  return query(
-   select 
-      v_senseorproposalid
-			,coalesce(v_originid, cast(0 as bigint))
-			,s.phrase
-			,s.word
-			,v_deleted 
-			,s.languageslug
-      ,(explainSenseStatusVsProposals(v_senseorproposalid, v_originid, p_sduserid, v_ownerid, v_deleted)).*
-      from vsense as s where s.id = v_senseorproposalid); end;
+    return query(
+      select cast(s.id as bigint) senseorproposalid
+        ,cast(coalesce(s.originid,0) as bigint) as originid
+        ,s.phrase, s.word
+    	  ,s.deleted 
+        ,s.languageslug
+        ,(explainSenseStatusVsProposals(s.id, s.originid, p_sduserid, s.ownerid, s.deleted)).*
+  	    from vsense as s where s.id = p_id
+			  limit 1); end if; end;
 $$;
 
 -- tests
