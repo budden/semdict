@@ -79,20 +79,27 @@ $$;
 
 -- fnSavePersonalSense saves the sense. p_evenifidentical must be false for now
 create or replace function fnsavepersonalsense(
-    p_sduserid bigint, p_originid bigint, p_phrase text, p_word text, p_evenifidentical bool)
+    p_sduserid bigint, p_proposalid bigint, p_originid bigint, p_phrase text, p_word text, p_evenifidentical bool)
   returns table (success bool)
   language plpgsql as $$
-  declare v_proposalid bigint;
+  declare v_deleted bool;
   declare update_count int;
   begin
   if p_evenifidentical then
     raise exception 'invalid parameter p_evenifidentical'; end if;
-  if exists (select 1 from tsense where id = p_originid and word = p_word and phrase = p_phrase) then
+  if p_proposalid is not null then
+  select originid, deleted 
+  from tsense where id = p_proposalid into v_originid, v_deleted;
+  if exists (select 1 from tsense where 
+    id = v_originid 
+    and word = p_word 
+    and phrase = p_phrase 
+    and deleted = v_deleted) then
     -- nothing differs from the official version, delete our proposal
-    delete from tsense where originid = p_originid and owner = p_sduserid;
+    delete from tsense where id = p_proposalid;
     return query(select true); 
     return; end if; 
-  select ensuresenseproposal(p_sduserid, p_originid) into v_proposalid;
+  select ensuresenseproposal(p_sduserid, v_originid) into v_proposalid;
   update tsense set 
   phrase = p_phrase,
   word = p_word

@@ -16,7 +16,8 @@ import (
 )
 
 type articlePostDataType struct {
-	ID         int64 // originId
+	Proposalid int64 // must be here
+	Originid   int64 // can be 0 if no origin (adding proposal)
 	Languageid int32
 	Phrase     string
 	Word       string
@@ -36,7 +37,7 @@ func SenseEditFormSubmitPostHandler(c *gin.Context) {
 
 	// https://github.com/gin-gonic/gin/issues/444
 	c.Redirect(http.StatusFound,
-		"/senseview/"+strconv.Itoa(int(pad.ID)))
+		"/sensebyidview/"+strconv.Itoa(int(pad.Proposalid)))
 	//// https://stackoverflow.com/a/43429641/9469533
 	//url.PathEscape(pad.Word))
 }
@@ -52,56 +53,41 @@ func sanitizeData(pad *articlePostDataType) {
 	}
 }
 
-func extractIdFromRequest(c *gin.Context) (id int64) {
-	idAsString := c.PostForm("senseid")
+func extractIdFromRequest(c *gin.Context, paramName string) (id int64) {
+	idAsString := c.PostForm(paramName)
 	if idAsString == "" {
-		idAsString = c.Param("senseid")
+		idAsString = c.Param(paramName)
 	}
 	if idAsString != "" {
 		padID, err := strconv.ParseInt(idAsString, 10, 64)
-		apperror.Panic500AndErrorIf(err, "Wrong sense ID")
+		apperror.Panic500AndErrorIf(err, "Wrong "+paramName)
 		id = padID
 	} else {
-		apperror.Panic500AndErrorIf(apperror.ErrDummy, "No sense ID given")
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "No "+paramName+" given")
 	}
 	return
 }
 
 func extractDataFromRequest(c *gin.Context, pad *articlePostDataType) {
-	pad.ID = extractIdFromRequest(c)
+	pad.Proposalid = extractIdFromRequest(c, "proposalid")
+	pad.Originid = extractIdFromRequest(c, "originid")
 	pad.Phrase = c.PostForm("phrase")
 	pad.Word = c.PostForm("word")
 	pad.Ownerid = user.GetSDUserIdOrZero(c)
 }
 
 func writeToDb(pad *articlePostDataType) {
-	if pad.ID != 0 {
-		res, err1 := sddb.NamedExec(
-			`select fnsavepersonalsense(:ownerid, :id, :phrase, :word, false)`, pad)
-		_ = res
-		/* res, err1 := sddb.NamedExec(
-		`update tsense set phrase = :phrase, word = :word where id=:id`, pad) */
-		apperror.Panic500AndErrorIf(err1, "Failed to update an article")
-		// count, err2 := res.RowsAffected()
-		// sddb.FatalDatabaseErrorIf(err2, "Unable to check if the record was updated")
-		count := 1
-		if count == 0 {
-			apperror.Panic500AndErrorIf(apperror.ErrDummy, "Sense with id = %v not found", pad.ID)
-		}
-	} else {
-		reply, err := sddb.NamedUpdateQuery(
-			`insert into tsense (dialectid, phrase, word) values (1, :phrase, :word) returning id`,
-			pad)
-		apperror.Panic500AndErrorIf(err, "Failed to insert an article")
-		dataFound := false
-		for reply.Next() {
-			dataFound = true
-			err1 := reply.Scan(&pad.ID)
-			sddb.FatalDatabaseErrorIf(err1, "Error obtaining id of a new article, err = %#v", err1)
-		}
-		if !dataFound {
-			sddb.FatalDatabaseErrorIf(apperror.ErrDummy, "Id of a new sense is not returned")
-		}
+	res, err1 := sddb.NamedExec(
+		`select fnsavepersonalsense(:ownerid, :proposalid, :originid, :phrase, :word, false)`, pad)
+	_ = res
+	/* res, err1 := sddb.NamedExec(
+	`update tsense set phrase = :phrase, word = :word where id=:id`, pad) */
+	apperror.Panic500AndErrorIf(err1, "Failed to update an article")
+	// count, err2 := res.RowsAffected()
+	// sddb.FatalDatabaseErrorIf(err2, "Unable to check if the record was updated")
+	count := 1
+	if count == 0 {
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Sense with id = %v not found", pad.Proposalid)
 	}
 }
 

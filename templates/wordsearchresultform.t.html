@@ -8,7 +8,11 @@
 <body>
     <p><a href="menu">Menu</a></p>
     <p>Word search results: «{{.P.Wordpattern}}»</p>
-    {{if .IsLoggedIn}}<p><a href="/senseaddform">Add new «{{.P.Wordpattern}}»</a></p>{{end}}
+    {{if .IsLoggedIn}}
+    <form class="form" action="/senseproposaladdform?wordpattern={{.P.Wordpattern}}" method="POST">
+    <button type="submit" class="btn btn-primary">Add new «{{.P.Wordpattern}}»</button>
+    </form>
+    {{end}}
     <p></p>
     {{range $index, $wordSearchQueryRecord := .Records}}
     <hr>

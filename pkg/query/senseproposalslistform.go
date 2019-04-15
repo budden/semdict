@@ -56,7 +56,7 @@ func SenseProposalsListFormRouteHandler(c *gin.Context) {
 func senseProposalsListInner(c *gin.Context) (svlqp *senseProposalsListQueryParams, records []*senseProposalsListQueryRecord) {
 	svlqp = &senseProposalsListQueryParams{}
 
-	svlqp.Senseid = extractIdFromRequest(c)
+	svlqp.Senseid = extractIdFromRequest(c, "originid")
 	svlqp.Sduserid = int64(user.GetSDUserIdOrZero(c))
 
 	records = readSenseProposalsListQueryFromDb(svlqp)
