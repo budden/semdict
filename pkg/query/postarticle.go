@@ -17,7 +17,7 @@ import (
 
 type articlePostDataType struct {
 	Proposalid int64 // must be here
-	commonid   int64 // can be 0 if no origin (adding proposal)
+	Commonid   int64 // can be 0 if no origin (adding proposal)
 	Languageid int32
 	Phrase     string
 	Word       string
@@ -70,7 +70,7 @@ func extractIdFromRequest(c *gin.Context, paramName string) (id int64) {
 
 func extractDataFromRequest(c *gin.Context, pad *articlePostDataType) {
 	pad.Proposalid = extractIdFromRequest(c, "proposalid")
-	pad.commonid = extractIdFromRequest(c, "commonid")
+	pad.Commonid = extractIdFromRequest(c, "commonid")
 	pad.Phrase = c.PostForm("phrase")
 	pad.Word = c.PostForm("word")
 	pad.Ownerid = user.GetSDUserIdOrZero(c)
