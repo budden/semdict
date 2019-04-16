@@ -21,14 +21,17 @@ type wordSearchQueryParams struct {
 }
 
 type wordSearchQueryRecord struct {
-	Id               int32
-	Languageid       int32
-	Languageslug     string
-	Phrase           string
-	Word             string
-	Proposalid       sql.NullInt64 // is non-null when this record is a proposal.
+	Personalid   sql.NullInt64 // Id of the data visible to some user only
+	Commonid     sql.NullInt64 // Id of the corresponding common data
+	Languageid   int32
+	Languageslug string
+	Phrase       string
+	Word         string
+	// Proposalid       sql.NullInt64 // is non-null when this record is a proposal.
 	Countofproposals int32
-	Addedbyme        bool
+	Commonorproposal string
+	Whos             string
+	Kindofchange     string
 }
 
 func wordSearchCommonPart(c *gin.Context) (frp *wordSearchQueryParams, fd []*wordSearchQueryRecord) {
@@ -54,9 +57,8 @@ func readWordSearchQueryFromDb(frp *wordSearchQueryParams) (
 	queryText = `select ps.r_originid as id, ts.languageid, ts.languageslug, ts.word, ts.phrase, 
 		ps.r_proposalid as proposalid,
 		ps.r_countofproposals as countofproposals,
-		ps.r_addedbyme as addedbyme
-		from 
-		fnpersonalsenses(:sduserid) ps 
+		(explainSenseStatusVsProposals(ts.id, ts.originid, :sduserid, ts.ownerid, ts.deleted)).*
+		from fnpersonalsenses(:sduserid) ps 
 		left join vsense ts on coalesce(ps.r_proposalid, ps.r_originid) = ts.id
 		order by word, languageslug, id offset :offset limit :limit`
 	reply, err1 := sddb.NamedReadQuery(
