@@ -56,7 +56,7 @@ func SenseProposalsListFormRouteHandler(c *gin.Context) {
 func senseProposalsListInner(c *gin.Context) (svlqp *senseProposalsListQueryParams, records []*senseProposalsListQueryRecord) {
 	svlqp = &senseProposalsListQueryParams{}
 
-	svlqp.Senseid = extractIdFromRequest(c, "originid")
+	svlqp.Senseid = extractIdFromRequest(c, "commonid")
 	svlqp.Sduserid = int64(user.GetSDUserIdOrZero(c))
 
 	records = readSenseProposalsListQueryFromDb(svlqp)
@@ -69,7 +69,7 @@ func readSenseProposalsListQueryFromDb(svlqp *senseProposalsListQueryParams) (
 	,vari.phrase, vari.word, vari.ownerid
 	,false as commonsense 
 	,case when ownerid = :sduserid then true else false end as mysense
-	from tsense vari where originid = :senseid
+	from tsense vari where commonid = :senseid
 	union all select s.id as proposalid
 	,s.phrase, s.word, cast(0 as bigint) as ownerid
 	,true as commonsense

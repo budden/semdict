@@ -116,8 +116,8 @@ func initRouter() *gin.Engine {
 	engine.GET("/wordsearchresultform", query.WordSearchResultRouteHandler)
 	engine.GET("/wordsearchquery", query.WordSearchQueryRouteHandler)
 	engine.GET("/sensebyidview/:senseid", query.SenseByIdViewDirHandler)
-	engine.GET("/sensebyoriginidview/:originid", query.SenseByOriginIdViewDirHandler)
-	engine.GET("/sensebyoriginidedit/:originid", query.SenseByOriginIdEditDirHandler)
+	engine.GET("/sensebycommonidview/:commonid", query.SenseBycommonidViewDirHandler)
+	engine.GET("/sensebycommonidedit/:commonid", query.SenseBycommonidEditDirHandler)
 	engine.POST("/senseproposaladdform", query.SenseProposalAddFormPageHandler)
 
 	engine.GET("/registrationform", user.RegistrationFormPageHandler)
@@ -130,7 +130,7 @@ func initRouter() *gin.Engine {
 	engine.Static("/static", *TemplateBaseDir+"static")
 
 	engine.POST("/senseeditformsubmit/:proposalid", query.SenseEditFormSubmitPostHandler)
-	engine.GET("/senseproposalslistform/:originid", query.SenseProposalsListFormRouteHandler)
+	engine.GET("/senseproposalslistform/:commonid", query.SenseProposalsListFormRouteHandler)
 
 	//engine.GET("/captcha/:imagefilename", ReverseProxy)
 	return engine

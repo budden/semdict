@@ -17,7 +17,7 @@ import (
 
 type articlePostDataType struct {
 	Proposalid int64 // must be here
-	Originid   int64 // can be 0 if no origin (adding proposal)
+	commonid   int64 // can be 0 if no origin (adding proposal)
 	Languageid int32
 	Phrase     string
 	Word       string
@@ -70,7 +70,7 @@ func extractIdFromRequest(c *gin.Context, paramName string) (id int64) {
 
 func extractDataFromRequest(c *gin.Context, pad *articlePostDataType) {
 	pad.Proposalid = extractIdFromRequest(c, "proposalid")
-	pad.Originid = extractIdFromRequest(c, "originid")
+	pad.commonid = extractIdFromRequest(c, "commonid")
 	pad.Phrase = c.PostForm("phrase")
 	pad.Word = c.PostForm("word")
 	pad.Ownerid = user.GetSDUserIdOrZero(c)
@@ -78,7 +78,7 @@ func extractDataFromRequest(c *gin.Context, pad *articlePostDataType) {
 
 func writeToDb(pad *articlePostDataType) {
 	res, err1 := sddb.NamedExec(
-		`select fnsavepersonalsense(:ownerid, :proposalid, :originid, :phrase, :word, false)`, pad)
+		`select fnsavepersonalsense(:ownerid, :proposalid, :commonid, :phrase, :word, false)`, pad)
 	_ = res
 	/* res, err1 := sddb.NamedExec(
 	`update tsense set phrase = :phrase, word = :word where id=:id`, pad) */

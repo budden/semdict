@@ -1,6 +1,7 @@
 package query
 
 import (
+	"database/sql"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -15,24 +16,24 @@ import (
 
 // params to show a sense with the specific id
 type senseViewParamsType struct {
-	SenseId  int64 // just an id of sense
+	SenseId  int64 // == coalesce(proposalid, commonid)
 	Sduserid int64
 }
 
 //fnsenseorproposalforview(p_sduserid bigint, p_id bigint, p_proposalifexists bool)
-//returns table (originid bigint, senseorproposalid bigint, phrase text, word varchar(512), deleted bool, languageslug text)
+//returns table (commonid bigint, senseorproposalid bigint, phrase text, word varchar(512), deleted bool, languageslug text)
 
 // senseDataForEditType is also used for a view.
 type senseDataForEditType struct {
-	Senseorproposalid int64 // it is just the id of the record we see
-	Originid          int64 // it is an origin id, 0 for additions and common sense
-	Phrase            string
-	Word              string
-	Deleted           bool
-	Languageslug      string
-	Commonorproposal  string
-	Whos              string
-	Kindofchange      string
+	ProposalId       sql.NullInt64
+	Commonid         sql.NullInt64
+	Phrase           string
+	Word             string
+	Deleted          bool
+	Languageslug     string
+	Commonorproposal string
+	Whos             string
+	Kindofchange     string
 }
 
 type senseEditTemplateParams struct {
@@ -46,8 +47,8 @@ type SenseViewParams struct {
 	Phrase template.HTML
 }
 
-// SenseByOriginIdViewDirHandler ...
-func SenseByOriginIdViewDirHandler(c *gin.Context) {
+// SenseByCommonidViewDirHandler ...
+func SenseByCommonidViewDirHandler(c *gin.Context) {
 	senseOrProposalDirHandlerCommon(c, true)
 }
 
@@ -56,17 +57,17 @@ func SenseByIdViewDirHandler(c *gin.Context) {
 	senseOrProposalDirHandlerCommon(c, false)
 }
 
-func senseOrProposalDirHandlerCommon(c *gin.Context, byOriginId bool) {
+func senseOrProposalDirHandlerCommon(c *gin.Context, byCommonid bool) {
 	var paramName string
-	if byOriginId {
-		paramName = "originid"
+	if byCommonid {
+		paramName = "commonid"
 	} else {
 		paramName = "senseid"
 	}
 	svp := &senseViewParamsType{
 		Id:         extractIdFromRequest(c, paramName),
 		Sduserid:   int64(user.GetSDUserIdOrZero(c)),
-		Byoriginid: byOriginId}
+		ByCommonid: byCommonid}
 	dataFound, senseDataForEdit := readSenseFromDb(svp)
 
 	if dataFound {
@@ -82,7 +83,7 @@ func senseOrProposalDirHandlerCommon(c *gin.Context, byOriginId bool) {
 // read the sense appropriate for edit. That is, either mine or a common one.
 func readSenseFromDb(svp *senseViewParamsType) (dataFound bool, ad *senseDataForEditType) {
 	reply, err1 := sddb.NamedReadQuery(
-		`select * from fnsenseorproposalforview(:sduserid, :id, :byoriginid)`, &svp)
+		`select * from fnsenseorproposalforview(:sduserid, :id, :bycommonid)`, &svp)
 	apperror.Panic500AndErrorIf(err1, "Failed to extract an article, sorry")
 	ad = &senseDataForEditType{}
 	for reply.Next() {
@@ -93,14 +94,14 @@ func readSenseFromDb(svp *senseViewParamsType) (dataFound bool, ad *senseDataFor
 	return
 }
 
-// SenseByOriginIdEditDirHandler is a handler to open a user's proposal, or an original record if there
+// SenseByCommonidEditDirHandler is a handler to open a user's proposal, or an original record if there
 // is no user's proposal
-func SenseByOriginIdEditDirHandler(c *gin.Context) {
+func SenseByCommonidEditDirHandler(c *gin.Context) {
 	user.EnsureLoggedIn(c)
 	svp := &senseViewParamsType{
-		Id:         extractIdFromRequest(c, "originid"),
+		Id:         extractIdFromRequest(c, "commonid"),
 		Sduserid:   int64(user.GetSDUserIdOrZero(c)),
-		Byoriginid: true}
+		ByCommonid: true}
 
 	dataFound, ad := readSenseFromDb(svp)
 
