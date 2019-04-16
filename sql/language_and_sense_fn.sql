@@ -35,8 +35,8 @@ $$;
 
 -- see also vsense_wide
 create or replace view vsense as select s.*,
-  ,case when s.ownerid is not null then s.originid else s.id end as commonid,
-  ,case when s.ownerid is not null then s.id else null end as personalid
+  ,case when s.ownerid is not null then s.commonid else s.id end as commonid,
+  ,case when s.ownerid is not null then s.id else null end as proposalid
   from tsense s;
 
 
@@ -46,66 +46,66 @@ create or replace view vsense as select s.*,
 -- then common senses are returned as well as unparallel personal
 -- to copy-paste or complicate this one to have a good select plan for searches.
 create or replace function fnpersonalsenses(p_sduserid bigint) 
-  returns table(r_originid bigint, r_proposalid bigint, r_countofproposals bigint, r_addedbyme bool)
+  returns table(r_commonid bigint, r_proposalid bigint, r_countofproposals bigint, r_addedbyme bool)
   language plpgsql as $$
   begin
   if coalesce(p_sduserid, 0) = 0 then
     return query(
-      select cast(orig.id as bigint) as r_originid
+      select cast(orig.id as bigint) as r_commonid
       ,cast(null as bigint) as r_proposalid
-      ,(select count(1) from tsense varic where varic.originid = orig.id) as r_countofproposals
+      ,(select count(1) from tsense varic where varic.commonid = orig.id) as r_countofproposals
       ,false as r_addedbyme
-      from tsense orig where orig.originid is null and orig.ownerid is null); 
+      from tsense orig where orig.commonid is null and orig.ownerid is null); 
   else
     return query(
-      select cast(orig.id as bigint) as r_originid
+      select cast(orig.id as bigint) as r_commonid
       ,cast(vari.id as bigint) as r_proposalid
-      ,(select count(1) from tsense varic where varic.originid = orig.id) as r_countofproposals
+      ,(select count(1) from tsense varic where varic.commonid = orig.id) as r_countofproposals
       ,case when orig.ownerid = p_sduserid then true else false end as r_addedbyme
       from tsense orig 
-      left join tsense vari on orig.id = vari.originid and vari.ownerid = p_sduserid 
-      where orig.originid is null); end if; end;
+      left join tsense vari on orig.id = vari.commonid and vari.ownerid = p_sduserid 
+      where orig.commonid is null); end if; end;
 $$;
 
 
 -- fnOnePersonalSense returns a personal or common sense for the specific sense id
-create or replace function fnonepersonalsense(p_sduserid bigint, p_originid bigint) 
-  returns table(r_originid bigint, r_proposalid bigint)
+create or replace function fnonepersonalsense(p_sduserid bigint, p_commonid bigint) 
+  returns table(r_commonid bigint, r_proposalid bigint)
   language plpgsql as $$
   begin
   return query(
-    select cast(orig.id as bigint) as r_originid, cast(vari.id as bigint) as r_proposalid 
+    select cast(orig.id as bigint) as r_commonid, cast(vari.id as bigint) as r_proposalid 
     from tsense orig 
-    left join tsense vari on orig.id = vari.originid and vari.ownerid = p_sduserid 
-    where orig.id = p_originid and orig.originid is null); end;
+    left join tsense vari on orig.id = vari.commonid and vari.ownerid = p_sduserid 
+    where orig.id = p_commonid and orig.commonid is null); end;
 $$;
 
 -- fnSavePersonalSense saves the sense. p_evenifidentical must be false for now
 -- Use cases:
-/* originid is not null, proposalid is null:
+/* commonid is not null, proposalid is null:
     We are adding proposal to the existing sense
-   originid is not null, proposalid is not null
+   commonid is not null, proposalid is not null
     We are updating a pre-existing proposal */
 create or replace function fnsavepersonalsense(
-    p_sduserid bigint, p_proposalid bigint, p_originid bigint, p_phrase text, p_word text, p_evenifidentical bool)
+    p_sduserid bigint, p_proposalid bigint, p_commonid bigint, p_phrase text, p_word text, p_evenifidentical bool)
   returns table (success bool)
   language plpgsql as $$
   declare v_deleted bool;
   declare update_count int;
-  declare v_originid bigint;
+  declare v_commonid bigint;
   declare v_proposalid bigint;
   begin
-  if p_originid is null then
-    raise exception 'p_originid must not be null'; end if;
+  if p_commonid is null then
+    raise exception 'p_commonid must not be null'; end if;
   if p_evenifidentical then
     raise exception 'invalid parameter p_evenifidentical'; end if;
   if p_proposalid is not null then
-    select originid, deleted 
-    from tsense where id = p_proposalid into v_originid, v_deleted;
-    if coalesce(v_originid, 0) <> p_originid then
+    select commonid, deleted 
+    from tsense where id = p_proposalid into v_commonid, v_deleted;
+    if coalesce(v_commonid, 0) <> p_commonid then
       raise exception 'origin mismatch'; end if;
     if exists (select 1 from tsense where 
-      id = v_originid 
+      id = v_commonid 
       and word = p_word 
       and phrase = p_phrase 
       and deleted = v_deleted) then
@@ -114,7 +114,7 @@ create or replace function fnsavepersonalsense(
       return query(select true); return; end if;
     v_proposalid = p_proposalid;
   else -- hence p_proposalid is null
-    select ensuresenseproposal(p_sduserid, v_originid) into v_proposalid; end if;
+    select ensuresenseproposal(p_sduserid, v_commonid) into v_proposalid; end if;
   
   update tsense set 
     phrase = p_phrase,
@@ -141,12 +141,12 @@ language plpgsql as $$
       raise exception 
       'You can''t make a proposal of user''s new sense, until it is accepted to the language'; end if;
     select min(id) from tsense 
-      where originid = p_senseid and ownerid = p_sduserid
+      where commonid = p_senseid and ownerid = p_sduserid
       into r_senseid;
     if r_senseid is not null then 
       return query (select r_senseid); 
       return; end if;
-    insert into tsense (languageid, phrase, word, originid, ownerid)
+    insert into tsense (languageid, phrase, word, commonid, ownerid)
       select languageid, phrase, word, id, p_sduserid 
       from tsense where id = p_senseid returning id into r_senseid;
     if r_senseid is null then
@@ -164,7 +164,7 @@ update tsense set phrase = 'updated sense' where id=5;
 -- end of mess
 
 create or replace function explainSenseStatusVsProposals(
-    p_commonid bigint, p_personalid bigint, p_sduserid bigint, p_ownerid bigint, p_deleted bool) 
+    p_commonid bigint, p_proposalid bigint, p_sduserid bigint, p_ownerid bigint, p_deleted bool) 
   returns
   table (commonorproposal varchar(128), whos varchar(512), kindofchange varchar(128))
   language plpgsql CALLED ON NULL INPUT as $$
@@ -173,7 +173,7 @@ create or replace function explainSenseStatusVsProposals(
   declare r_kindofchange varchar(128);
 begin
   r_commonorproposal = case
-    when coalesce(p_personalid,0) = 0 then 'common' 
+    when coalesce(p_proposalid,0) = 0 then 'common' 
     else 'proposal' end;
   r_whos = case 
     when coalesce(p_ownerid,0) = 0 then '' -- common - irrelevant
@@ -190,9 +190,9 @@ begin
 $$;
 
 
-create or replace function fnsenseorproposalforview(p_sduserid bigint, p_id bigint, p_byoriginid bool)
+create or replace function fnsenseorproposalforview(p_sduserid bigint, p_id bigint, p_bycommonid bool)
 returns table (senseorproposalid bigint
-  ,originid bigint
+  ,commonid bigint
   ,phrase text
   ,word varchar(512)
   ,deleted bool
@@ -203,25 +203,25 @@ returns table (senseorproposalid bigint
   )
 language plpgsql as $$
   begin
-  if p_byoriginid then
+  if p_bycommonid then
     return query(
       select cast(s.id as bigint) as senseorproposalid
-        ,cast(coalesce(s.originid,0) as bigint) as originid
+        ,cast(coalesce(s.commonid,0) as bigint) as commonid
         ,s.phrase, s.word
   	    ,s.deleted 
         ,s.languageslug
-        ,(explainSenseStatusVsProposals(s.id, s.originid, p_sduserid, s.ownerid, s.deleted)).*
+        ,(explainSenseStatusVsProposals(s.id, s.commonid, p_sduserid, s.ownerid, s.deleted)).*
 	      from fnonepersonalsense(p_sduserid, p_id) ops
-  		  left join vsense as s on s.id = coalesce(ops.r_proposalid, ops.r_originid)
+  		  left join vsense as s on s.id = coalesce(ops.r_proposalid, ops.r_commonid)
         limit 1);
   else
     return query(
       select cast(s.id as bigint) senseorproposalid
-        ,cast(coalesce(s.originid,0) as bigint) as originid
+        ,cast(coalesce(s.commonid,0) as bigint) as commonid
         ,s.phrase, s.word
     	  ,s.deleted 
         ,s.languageslug
-        ,(explainSenseStatusVsProposals(s.id, s.originid, p_sduserid, s.ownerid, s.deleted)).*
+        ,(explainSenseStatusVsProposals(s.id, s.commonid, p_sduserid, s.ownerid, s.deleted)).*
   	    from vsense as s where s.id = p_id
 			  limit 1); end if; end;
 $$;
@@ -230,11 +230,11 @@ $$;
 create or replace function test_fnsensorproposalforview() returns void
 language plpgsql strict as $$
 begin
- if not exists (select originid, senseorproposalid from fnsenseorproposalforview(1,1,true) 
-  where originid = 0 and senseorproposalid = 1) THEN
+ if not exists (select commonid, senseorproposalid from fnsenseorproposalforview(1,1,true) 
+  where commonid = 0 and senseorproposalid = 1) THEN
    raise exception 'test_fnsensorproposalforview failure 1'; end if; 
- if not exists (select originid, senseorproposalid from fnsenseorproposalforview(1,1,false) 
-  where originid = 0 and senseorproposalid = 1) THEN
+ if not exists (select commonid, senseorproposalid from fnsenseorproposalforview(1,1,false) 
+  where commonid = 0 and senseorproposalid = 1) THEN
    raise exception 'test_fnsensorproposalforview failure 2'; end if; 
 end;
 $$;
@@ -243,8 +243,8 @@ select test_fnsensorproposalforview();
 
 -- see also vsense
 create or replace view vsense_wide as select s.*,
-  ,case when s.ownerid is not null then s.originid else s.id end as commonid,
-  ,case when s.ownerid is not null then s.id else null end as personalid,
+  ,case when s.ownerid is not null then s.commonid else s.id end as commonid,
+  ,case when s.ownerid is not null then s.id else null end as proposalid,
   ,u.nickname as sduser_nickname
   -- FIXME suboptimal!
   ,get_language_slug(s.languageid) as languageslug

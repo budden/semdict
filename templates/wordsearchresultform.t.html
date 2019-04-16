@@ -16,9 +16,9 @@
     <p></p>
     {{range $index, $wordSearchQueryRecord := .Records}}
     <hr>
-    <p><i>Sense #</i><a href="/sensebyoriginidview/{{ $wordSearchQueryRecord.Id }}"> {{ $wordSearchQueryRecord.Id }}</a>
+    <p><i>Sense #</i><a href="/sensebycommonidview/{{ $wordSearchQueryRecord.Id }}"> {{ $wordSearchQueryRecord.Id }}</a>
         {{if $.IsLoggedIn}}
-            &VerticalBar; <a href="/sensebyoriginidedit/{{ $wordSearchQueryRecord.Id }}">
+            &VerticalBar; <a href="/sensebycommonidedit/{{ $wordSearchQueryRecord.Id }}">
                 <span class="glyphicon glyphicon-edit"></span></a>
             &VerticalBar; <i>Proposal</i>: {{ $wordSearchQueryRecord.Proposalid }}
             {{ if $wordSearchQueryRecord.Addedbyme }}Added by me{{end}}{{end}}
