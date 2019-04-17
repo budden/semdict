@@ -46,7 +46,7 @@ cd $GOPATH/src/github.com/budden/semdict
 # FIXME use vendoring instead!
 go get ./...
 go get github.com/stretchr/testify/assert
-
+go generate
 go build
 ```
 
