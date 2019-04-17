@@ -189,7 +189,7 @@ select ensuresenseproposal(1,4);
 update tsense set phrase = 'updated sense' where id=5;
 
 -- end of mess
-
+-- FIXME - addition is shown incorrectly
 create or replace function explainSenseStatusVsProposals(
     p_sduserid bigint, p_commonid bigint, p_proposalid bigint, p_ownerid bigint, p_deleted bool) 
   returns
@@ -209,8 +209,8 @@ begin
       coalesce((select nickname from sduser where id = p_ownerid)
         ,'owner not found') end;
   r_kindofchange = case
-    when p_ownerid is null then '' -- common - irrelevant
-    when p_commonid is null then 'addition'
+    when coalesce(p_ownerid,0)=0 then '' -- common - irrelevant
+    when coalesce(p_commonid,0)=0 then 'addition'
     when p_deleted then 'deletion'
     else 'change' end;
   return query(select r_commonorproposal, r_whos, r_kindofchange); end;
