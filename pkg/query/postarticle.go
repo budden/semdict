@@ -31,15 +31,10 @@ func SenseEditFormSubmitPostHandler(c *gin.Context) {
 	pad := &articlePostDataType{}
 	extractDataFromRequest(c, pad)
 	sanitizeData(pad)
-	writeToDb(pad)
-	// promote the user to Sd Db. If we crash here, user will be able to login,
-	// (and unable to register again), but wil be missing from the main content db
-
+	newProposalId := writeToDb(pad)
 	// https://github.com/gin-gonic/gin/issues/444
 	c.Redirect(http.StatusFound,
-		"/sensebyidview/"+strconv.Itoa(int(pad.Proposalid)))
-	//// https://stackoverflow.com/a/43429641/9469533
-	//url.PathEscape(pad.Word))
+		"/sensebyidview/"+strconv.FormatInt(newProposalId, 10))
 }
 
 func sanitizeData(pad *articlePostDataType) {
@@ -76,19 +71,19 @@ func extractDataFromRequest(c *gin.Context, pad *articlePostDataType) {
 	pad.Ownerid = user.GetSDUserIdOrZero(c)
 }
 
-func writeToDb(pad *articlePostDataType) {
-	res, err1 := sddb.NamedExec(
+func writeToDb(pad *articlePostDataType) (newProposalid int64) {
+	res, err1 := sddb.NamedUpdateQuery(
 		`select fnsavepersonalsense(:ownerid, :commonid, :proposalid, :phrase, :word, false)`, pad)
-	_ = res
-	/* res, err1 := sddb.NamedExec(
-	`update tsense set phrase = :phrase, word = :word where id=:id`, pad) */
-	apperror.Panic500AndErrorIf(err1, "Failed to update an article")
-	// count, err2 := res.RowsAffected()
-	// sddb.FatalDatabaseErrorIf(err2, "Unable to check if the record was updated")
-	count := 1
-	if count == 0 {
-		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Sense with id = %v not found", pad.Proposalid)
+	apperror.Panic500AndErrorIf(err1, "Failed to update a sense")
+	dataFound := false
+	for res.Next() {
+		err1 = res.Scan(&newProposalid)
+		dataFound = true
 	}
+	if !dataFound {
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "No proposal id from server")
+	}
+	return
 }
 
 /* Example of nested records in the template:

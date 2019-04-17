@@ -104,11 +104,9 @@ func readSenseFromDb(svp *senseViewParamsType) (dataFound bool, ad *senseDataFor
 func SenseEditDirHandler(c *gin.Context) {
 	user.EnsureLoggedIn(c)
 	Proposalid := extractIdFromRequest(c, "proposalid")
-	var Commonid int64
+	Commonid := extractIdFromRequest(c, "commonid")
 	if Proposalid != 0 {
 		Commonid = 0
-	} else {
-		Commonid = extractIdFromRequest(c, "proposalid")
 	}
 	svp := &senseViewParamsType{
 		Sduserid:   int64(user.GetSDUserIdOrZero(c)),

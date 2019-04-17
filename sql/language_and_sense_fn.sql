@@ -106,33 +106,34 @@ $$;
     We are updating a pre-existing proposal */
 create or replace function fnsavepersonalsense(
     p_sduserid bigint, p_commonid bigint, p_proposalid bigint, p_phrase text, p_word text, p_evenifidentical bool)
-  returns table (success bool)
+  returns table (r_proposalid bigint)
   language plpgsql as $$
   declare v_deleted bool;
   declare update_count int;
   declare v_commonid bigint;
   declare v_proposalid bigint;
   begin
-  if p_commonid is null then
-    raise exception 'p_commonid must not be null'; end if;
+  p_proposalid = coalesce(p_proposalid,0);
+  p_commonid = coalesce(p_commonid,0);
   if p_evenifidentical then
     raise exception 'invalid parameter p_evenifidentical'; end if;
-  if p_proposalid is not null then
+  if p_proposalid <> 0 then
     select originid, deleted 
-    from tsense where id = p_proposalid into v_commonid, v_deleted;
+      from tsense where id = p_proposalid 
+      into v_commonid, v_deleted;
     if coalesce(v_commonid, 0) <> p_commonid then
       raise exception 'origin mismatch'; end if;
     if exists (select 1 from tsense where 
-      id = v_commonid 
-      and word = p_word 
-      and phrase = p_phrase 
-      and deleted = v_deleted) then
+        id = v_commonid 
+        and word = p_word 
+        and phrase = p_phrase 
+        and deleted = v_deleted) then
     -- nothing differs from the official version, delete our proposal
       delete from tsense where id = p_proposalid;
       return query(select true); return; end if;
     v_proposalid = p_proposalid;
-  else -- hence p_proposalid is null
-    select ensuresenseproposal(p_sduserid, v_commonid) into v_proposalid; end if;
+  else -- hence p_proposalid=0
+    select ensuresenseproposal(p_sduserid, p_commonid) into v_proposalid; end if;
   
   update tsense set 
     phrase = p_phrase,
@@ -142,7 +143,7 @@ create or replace function fnsavepersonalsense(
   get diagnostics update_count = row_count;
   if update_count != 1 then
     raise exception 'expected to update just one record, which didn''t hapen'; end if;
-  return query(select true); return; end;
+  return query(select v_proposalid); return; end;
 $$;
 
 -- EnsureSenseProposal ensures that a user has his own proposal of a sense. One should not
@@ -152,10 +153,18 @@ returns table (proposalid bigint)
 language plpgsql as $$
   declare r_proposalid bigint;
   declare v_ownerid bigint;
+  declare v_row_count int;
   begin
     lock table themutex;
+    if coalesce(p_commonid,0) = 0 then
+      raise exception 'p_commonid must be specified'; end if;
+    if coalesce(p_sduserid,0) = 0 then
+      raise exception 'p_sduserid must be specified'; end if;
     select ownerid from tsense where id = p_commonid into v_ownerid;
-    if v_ownerid is not null then
+    get diagnostics v_row_count = row_count;
+    if v_row_count != 1 then
+      raise exception 'Common sense not found'; end if;
+    if nullif(v_ownerid,0) is not null then
       raise exception 
       'You can''t make a proposal of user''s new sense, until it is accepted to the language'; end if;
     select min(id) from tsense 

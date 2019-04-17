@@ -12,6 +12,7 @@ func setupRoutes(engine *gin.Engine) {
 	engine.GET("/wordsearchform", query.WordSearchFormRouteHandler)
 	engine.GET("/wordsearchresultform", query.WordSearchResultRouteHandler)
 	engine.GET("/wordsearchquery", query.WordSearchQueryRouteHandler)
+	// FIXME add reference from proposal to the origin
 	engine.GET("/sensebyidview/:senseid", query.SenseByIdViewDirHandler)
 	engine.GET("/sensebycommonidview/:commonid", query.SenseByCommonidViewDirHandler)
 	engine.GET("/senseedit/:commonid/:proposalid", query.SenseEditDirHandler)
@@ -26,6 +27,6 @@ func setupRoutes(engine *gin.Engine) {
 	engine.GET("/logout", user.Logout)
 	engine.Static("/static", *TemplateBaseDir+"static")
 
-	engine.POST("/senseeditformsubmit/:commonid/:proposalid", query.SenseEditFormSubmitPostHandler)
+	engine.POST("/senseeditformsubmit", query.SenseEditFormSubmitPostHandler)
 	engine.GET("/senseproposalslistform/:commonid", query.SenseAndProposalsListFormRouteHandler)
 }
