@@ -41,16 +41,16 @@ $$;
  - proposalid is an id, if this sense is a proposal
  */
 create or replace view vsense as select s.*
-  ,cast(s.id as bigint) as senseid
   ,coalesce(case when s.ownerid is not null then s.originid else cast(s.id as bigint) end,0) as commonid
   ,coalesce(case when s.ownerid is not null then cast(s.id as bigint) else null end,0) as proposalid
+  ,cast(s.id as bigint) as senseid
   from tsense s;
 
 -- see also vsense
 create or replace view vsense_wide as select s.*
-  ,cast(s.id as bigint) as senseid
   ,coalesce(case when s.ownerid is not null then s.originid else cast(s.id as bigint) end,0) as commonid
   ,coalesce(case when s.ownerid is not null then cast(s.id as bigint) else null end,0) as proposalid
+  ,cast(s.id as bigint) as senseid
   ,u.nickname as sduser_nickname
   -- FIXME suboptimal!
   ,get_language_slug(s.languageid) as languageslug
@@ -86,11 +86,13 @@ $$;
 
 -- fnOnePersonalSense returns a personal or common sense for the specific sense id
 create or replace function fnonepersonalsense(p_sduserid bigint, p_commonid bigint) 
-  returns table(r_commonid bigint, r_proposalid bigint)
+  returns table(r_commonid bigint, r_proposalid bigint, r_senseid bigint)
   language plpgsql as $$
   begin
   return query(
-    select cast(orig.id as bigint) as r_commonid, cast(vari.id as bigint) as r_proposalid 
+    select cast(orig.id as bigint) as r_commonid
+      ,cast(vari.id as bigint) as r_proposalid
+      ,cast(coalesce(vari.id, orig.id) as bigint) as r_senseid
     from tsense orig 
     left join tsense vari on orig.id = vari.originid and vari.ownerid = p_sduserid 
     where orig.id = p_commonid and orig.originid is null); end;
@@ -103,7 +105,7 @@ $$;
    commonid is not null, proposalid is not null
     We are updating a pre-existing proposal */
 create or replace function fnsavepersonalsense(
-    p_sduserid bigint, p_proposalid bigint, p_commonid bigint, p_phrase text, p_word text, p_evenifidentical bool)
+    p_sduserid bigint, p_commonid bigint, p_proposalid bigint, p_phrase text, p_word text, p_evenifidentical bool)
   returns table (success bool)
   language plpgsql as $$
   declare v_deleted bool;
@@ -180,7 +182,7 @@ update tsense set phrase = 'updated sense' where id=5;
 -- end of mess
 
 create or replace function explainSenseStatusVsProposals(
-    p_commonid bigint, p_proposalid bigint, p_sduserid bigint, p_ownerid bigint, p_deleted bool) 
+    p_sduserid bigint, p_commonid bigint, p_proposalid bigint, p_ownerid bigint, p_deleted bool) 
   returns
   table (commonorproposal varchar(128), whos varchar(512), kindofchange varchar(128))
   language plpgsql CALLED ON NULL INPUT as $$
@@ -229,9 +231,9 @@ language plpgsql as $$
       select s.commonid, s.proposalid, s.senseid
         ,s.phrase, s.word, s.deleted 
         ,s.languageslug
-        ,(explainSenseStatusVsProposals(s.id, s.commonid, p_sduserid, s.ownerid, s.deleted)).*
+        ,(explainSenseStatusVsProposals(p_sduserid, s.commonid, s.proposalid, s.ownerid, s.deleted)).*
 	      from fnonepersonalsense(p_sduserid, p_commonid) ops
-  		  left join vsense_wide as s on s.id = p_commonid
+  		  left join vsense_wide as s on s.id = ops.r_senseid
         limit 1);
   else
     someid = coalesce(p_proposalid,p_senseid);
@@ -239,7 +241,7 @@ language plpgsql as $$
       select s.commonid, s.proposalid, s.senseid
         ,s.phrase, s.word, s.deleted 
         ,s.languageslug
-        ,(explainSenseStatusVsProposals(s.id, s.commonid, p_sduserid, s.ownerid, s.deleted)).*
+        ,(explainSenseStatusVsProposals(p_sduserid, s.commonid, s.proposalid, s.ownerid, s.deleted)).*
   	    from vsense_wide as s where s.id = someid
 			  limit 1); end if; end;
 $$;
@@ -255,11 +257,14 @@ begin
   where commonid = 1 and proposalid = 0 and senseid = 1) THEN
    raise exception 'test_fnsensorproposalforview failure 2'; end if; 
  if not exists (select 1 from fnsenseorproposalforview(1,4,null,null) 
-  where commonid = 4 and proposalid = 0 and senseid = 4) THEN
+  where commonid = 4 and proposalid = 5 and senseid = 5) THEN
    raise exception 'test_fnsensorproposalforview failure 3'; end if; 
  if not exists (select 1 from fnsenseorproposalforview(1,null,5,null) 
   where commonid = 4 and proposalid = 5 and senseid = 5) THEN
-   raise exception 'test_fnsensorproposalforview failure 3'; end if; 
+   raise exception 'test_fnsensorproposalforview failure 4'; end if; 
+ if not exists (select 1 from fnsenseorproposalforview(1,null,null,5) 
+  where commonid = 4 and proposalid = 5 and senseid = 5) THEN
+   raise exception 'test_fnsensorproposalforview failure 5'; end if; 
 end;
 $$;
 
