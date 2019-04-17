@@ -60,7 +60,7 @@ create table tsense (
   phrase text not null,
   word varchar(512) not null,
   deleted bool not null default false,
-  commonid bigint references tsense, 
+  originid bigint references tsense, 
   ownerid bigint references sduser
 );
 
@@ -69,7 +69,7 @@ There can be multiple records for the same word. API path is based on the id, li
 comment on column tsense.phrase is 'Phrase in the dialect that describes the sense of the word';
 comment on column tsense.word is 'Word or word combination in the dialect denoting the sense';
 comment on column tsense.deleted is 'We can''t delete records due to versioning, so we mark them deleted';
-comment on column tsense.commonid is 'Non-empty commonid means that this is a verion. In this case, ownerid must be non-null';
+comment on column tsense.originid is 'Non-empty originid means that this is a verion. In this case, ownerid must be non-null';
 comment on column tsense.ownerid is 'In case of forked sense, owner of a fork';
 
 insert into tsense (languageid, phrase, word)
