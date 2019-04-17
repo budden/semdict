@@ -16,6 +16,7 @@ func setupRoutes(engine *gin.Engine) {
 	engine.GET("/sensebyidview/:senseid", query.SenseByIdViewDirHandler)
 	engine.GET("/sensebycommonidview/:commonid", query.SenseByCommonidViewDirHandler)
 	engine.GET("/senseedit/:commonid/:proposalid", query.SenseEditDirHandler)
+	engine.POST("/senseproposaldelete/:proposalid", query.SenseProposalDeleteRequestHandler)
 	engine.POST("/senseproposaladdform", query.SenseProposalAddFormPageHandler)
 
 	engine.GET("/registrationform", user.RegistrationFormPageHandler)

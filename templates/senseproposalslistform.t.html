@@ -14,7 +14,10 @@
         {{if $.IsLoggedIn}}
             &VerticalBar; Write me... <span class="glyphicon glyphicon-edit"></span>
         {{end}}
-        {{if $senseAndProposalsListQueryRecord.Ismine }} (MY) {{ end }}
+        {{if $senseAndProposalsListQueryRecord.Ismine }} (MY) 
+        <form class="form" action="/senseproposaldelete/{{ $senseAndProposalsListQueryRecord.Senseid }}" method="POST">
+        <button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-remove"></span></button>
+        </form>{{ end }}
         {{if $senseAndProposalsListQueryRecord.Iscommon }} (COMMON) {{ end }}
         <p><b>{{ $senseAndProposalsListQueryRecord.Word }}</b>
         &VerticalBar; <i>Phrase:</i>{{ castAsHTML $senseAndProposalsListQueryRecord.Phrase }}</p>

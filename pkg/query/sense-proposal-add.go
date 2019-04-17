@@ -16,11 +16,8 @@ type senseAddParamsType struct {
 	Word     string
 }
 
-// SenseProposalAddFormPageHandler handles POST senseproposaladdform
+// SenseProposalAddFormPageHandler handles POST senseproposaldelete
 func SenseProposalAddFormPageHandler(c *gin.Context) {
-	// FIXME handle empty drafts, like calling this page many times and never calling post.
-	// Like have timeout for a draft, or a draft status, or even not add into the db until the
-	// first save
 	user.EnsureLoggedIn(c)
 	svp := &senseAddParamsType{
 		Sduserid: int64(user.GetSDUserIdOrZero(c)),
@@ -41,7 +38,7 @@ func convertWordpatternToNewWork(pattern string) string {
 }
 
 func makeNewSenseidInDb(sap *senseAddParamsType) (id int64) {
-	reply, err1 := sddb.NamedReadQuery(
+	reply, err1 := sddb.NamedUpdateQuery(
 		`insert into tsense (ownerid, word, languageid, phrase) 
 			values (:sduserid, :word, 1/*language engligh*/, '') 
 			returning id`, &sap)
