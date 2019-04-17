@@ -10,7 +10,7 @@
  <script type="text/javascript" src="/static/ckeditor_4.11.3_basic/ckeditor.js"></script>
  <p><a href="menu">Menu</a></p>
  <p>Edit article</p>
- <form class="form" action="/senseeditformsubmit" method="POST">
+ <form class="form" action="/senseeditformsubmit/{{.Ad.Commonid}}/{{.Ad.Proposalid}}" method="POST">
   <div class="form-group">
    <label for="commonid">Common sense id</label>
    <input type="text" class="form-control" id="commonid" name="commonid" value="{{.Ad.Commonid}}" readonly>

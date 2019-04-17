@@ -1,6 +1,7 @@
 package query
 
 import (
+	"database/sql"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -32,6 +33,7 @@ type senseDataForEditType struct {
 	Phrase           string
 	Word             string
 	Deleted          bool
+	Sdusernickname   sql.NullString
 	Languageslug     string
 	Commonorproposal string
 	Whos             string

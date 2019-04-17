@@ -22,58 +22,60 @@ type senseAndProposalsListQueryHeader struct {
 }
 
 type senseAndProposalsListQueryRecord struct {
-	Commonid       int64
-	Proposalid     int64
-	Senseid        int64
-	Phrase         string
-	Word           string
-	Deleted        bool
-	OwnerId        int64
-	Sdusernickname string
-	Languageslug   string
-	Whos           string
-	Kindofchange   string
-	Iscommon       bool
-	Ismine         bool
+	Commonid         int64
+	Proposalid       int64
+	Senseid          int64
+	Phrase           string
+	Word             string
+	Deleted          bool
+	OwnerId          int64
+	Sdusernickname   string
+	Languageslug     string
+	Commonorproposal string
+	Whos             string
+	Kindofchange     string
+	Iscommon         bool
+	Ismine           bool
+}
+
+// Параметры шаблона
+type senseAndProposalsListFormTemplateParamsType struct {
+	P              *senseAndProposalsListQueryParams
+	Header         *senseAndProposalsListQueryHeader
+	Records        []*senseAndProposalsListQueryRecord
+	IsLoggedIn     bool
+	LoggedInUserId int64
 }
 
 // SenseAndProposalsListFormRouteHandler ...
 func SenseAndProposalsListFormRouteHandler(c *gin.Context) {
-	var svlqp *senseAndProposalsListQueryParams
-	var records []*senseAndProposalsListQueryRecord
-	svlqp, records = senseAndProposalsListInner(c)
+	sduserid := int64(user.GetSDUserIdOrZero(c))
+	commonid := extractIdFromRequest(c, "commonid")
+	svlqp := &senseAndProposalsListQueryParams{Sduserid: sduserid, Commonid: commonid}
 
-	// Параметры шаблона
-	type senseAndProposalsListFormTemplateParamsType struct {
-		P              *senseAndProposalsListQueryParams
-		Header         *senseAndProposalsListQueryHeader
-		Records        []*senseAndProposalsListQueryRecord
-		IsLoggedIn     bool
-		LoggedInUserId int64
+	var records []*senseAndProposalsListQueryRecord
+	records = readCommonSenseAndProposalsListQueryFromDb(svlqp)
+
+	svp := &senseViewParamsType{Sduserid: sduserid, Senseid: commonid}
+	dataFound, header1 := readSenseFromDb(svp)
+	if !dataFound {
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "No common sense found - unable to get proposals")
 	}
+	header := &senseAndProposalsListQueryHeader{Commonid: commonid, Languageslug: header1.Languageslug}
 
 	c.HTML(http.StatusOK,
 		"senseproposalslistform.t.html",
 		senseAndProposalsListFormTemplateParamsType{P: svlqp,
+			Header:         header,
 			Records:        records,
 			IsLoggedIn:     user.IsLoggedIn(c),
 			LoggedInUserId: int64(user.GetSDUserIdOrZero(c))})
 }
 
-func senseAndProposalsListInner(c *gin.Context) (svlqp *senseAndProposalsListQueryParams, records []*senseAndProposalsListQueryRecord) {
-	svlqp = &senseAndProposalsListQueryParams{}
-
-	svlqp.Commonid = extractIdFromRequest(c, "commonid")
-	svlqp.Sduserid = int64(user.GetSDUserIdOrZero(c))
-
-	records = readCommonSenseAndProposalsListQueryFromDb(svlqp)
-	return
-}
-
 // reads both common sense and proposals
 func readCommonSenseAndProposalsListQueryFromDb(svlqp *senseAndProposalsListQueryParams) (
 	records []*senseAndProposalsListQueryRecord) {
-	reply, err1 := sddb.NamedReadQuery("select fncommonsenseandproposals(:sduserid, :commonid)", svlqp)
+	reply, err1 := sddb.NamedReadQuery("select * from fncommonsenseandproposals(:sduserid, :commonid)", svlqp)
 	apperror.Panic500AndErrorIf(err1, "Db query failed")
 	defer sddb.CloseRows(reply)
 	records = make([]*senseAndProposalsListQueryRecord, 0)

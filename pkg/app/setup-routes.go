@@ -26,6 +26,6 @@ func setupRoutes(engine *gin.Engine) {
 	engine.GET("/logout", user.Logout)
 	engine.Static("/static", *TemplateBaseDir+"static")
 
-	engine.POST("/senseeditformsubmit/:proposalid", query.SenseEditFormSubmitPostHandler)
+	engine.POST("/senseeditformsubmit/:commonid/:proposalid", query.SenseEditFormSubmitPostHandler)
 	engine.GET("/senseproposalslistform/:commonid", query.SenseAndProposalsListFormRouteHandler)
 }
