@@ -23,7 +23,7 @@ check_files_exist ()
 echo "Obtaining directory for semdict.service"
 SYSTEMD_DIR=`pkg-config systemd --variable=systemdsystemunitdir`
 
-check_files_exist semdict semdict.service semdict.config.json.example templates/general.html
+check_files_exist semdict semdict.service semdict.config.json.example templates/general.t.html
 
 ensure_dirs /etc/semdict /usr/share/semdict/templates
 
