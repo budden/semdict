@@ -117,7 +117,7 @@ var mapViolatedConstraintNameToMessage = map[string]string{
 	"i_registrationattempt__registrationemail": "Someone is already trying to register with the same E-mail",
 	"i_registrationattempt__nickname":          "Someone is already trying to register with the same Nickname",
 	"i_sduser_registrationemail":               "There is already a user with the same E-mail",
-	"i_sduser_nickname":                        "There is already a user with the same nickname"}
+	"i_sdusernickname":                        "There is already a user with the same nickname"}
 
 func deleteExpiredRegistrationAttempts(trans *sddb.TransactionType) error {
 	tx := trans.Tx

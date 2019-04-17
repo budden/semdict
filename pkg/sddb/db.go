@@ -264,3 +264,12 @@ func CloseRows(r *sqlx.Rows) func() {
 		FatalDatabaseErrorIf(err, "Failed to close rows, «%s»")
 	}
 }
+
+// UncoalesceInt64 converts 0 to an invalid sql.NullInt64
+func UncoalesceInt64(i int64) sql.NullInt64 {
+	if i == 0 {
+		return sql.NullInt64{Int64: 0, Valid: false}
+	} else {
+		return sql.NullInt64{Int64: i, Valid: true}
+	}
+}

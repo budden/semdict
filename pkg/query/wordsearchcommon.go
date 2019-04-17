@@ -21,12 +21,14 @@ type wordSearchQueryParams struct {
 }
 
 type wordSearchQueryRecord struct {
-	Proposalid   sql.NullInt64 // Id of the data visible to some user only
-	Commonid     sql.NullInt64 // Id of the corresponding common data
-	Languageid   int32
-	Languageslug string
-	Phrase       string
-	Word         string
+	Commonid       int64
+	Proposalid     int64
+	Senseid        int64
+	Languageid     int32
+	Languageslug   string
+	Sdusernickname sql.NullString
+	Phrase         string
+	Word           string
 	// Proposalid       sql.NullInt64 // is non-null when this record is a proposal.
 	Countofproposals int32
 	Commonorproposal string
@@ -54,15 +56,15 @@ func wordSearchCommonPart(c *gin.Context) (frp *wordSearchQueryParams, fd []*wor
 func readWordSearchQueryFromDb(frp *wordSearchQueryParams) (
 	fd []*wordSearchQueryRecord) {
 	var queryText string
-	queryText = `select ps.r_commonid as id, ts.languageid, ts.languageslug, ts.word, ts.phrase, 
-		ps.r_proposalid as proposalid,
-		ps.r_countofproposals as countofproposals,
-		(explainSenseStatusVsProposals(ts.id, ts.commonid, :sduserid, ts.ownerid, ts.deleted)).*
+	queryText = `select ts.commonid,	ts.proposalid, ts.senseid
+		,ts.languageid, ts.languageslug, ts.word, ts.phrase
+		,ps.r_countofproposals as countofproposals
+		,ts.sdusernickname
+		,(explainSenseStatusVsProposals(:sduserid, ts.commonid, ts.proposalid, ts.ownerid, ts.deleted)).*
 		from fnpersonalsenses(:sduserid) ps 
-		left join vsense ts on coalesce(ps.r_proposalid, ps.r_commonid) = ts.id
-		order by word, languageslug, id offset :offset limit :limit`
-	reply, err1 := sddb.NamedReadQuery(
-		queryText, frp)
+		left join vsense_wide ts on coalesce(nullif(ps.r_proposalid,0), ps.r_commonid) = ts.id
+		order by word, languageslug, senseid offset :offset limit :limit`
+	reply, err1 := sddb.NamedReadQuery(queryText, frp)
 	apperror.Panic500AndErrorIf(err1, "Db query failed")
 	defer sddb.CloseRows(reply)
 	fd = make([]*wordSearchQueryRecord, frp.Limit)

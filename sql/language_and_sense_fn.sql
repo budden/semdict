@@ -51,7 +51,7 @@ create or replace view vsense_wide as select s.*
   ,coalesce(case when s.ownerid is not null then s.originid else cast(s.id as bigint) end,0) as commonid
   ,coalesce(case when s.ownerid is not null then cast(s.id as bigint) else null end,0) as proposalid
   ,cast(s.id as bigint) as senseid
-  ,u.nickname as sduser_nickname
+  ,u.nickname as sdusernickname
   -- FIXME suboptimal!
   ,get_language_slug(s.languageid) as languageslug
   from tsense s left join sduser u on s.ownerid=u.id;
@@ -207,6 +207,51 @@ begin
   return query(select r_commonorproposal, r_whos, r_kindofchange); end;
 $$;
 
+create or replace function explainCommonAndMine(
+    p_sduserid bigint, p_commonid bigint, p_proposalid bigint, p_ownerid bigint, p_deleted bool)
+  returns
+  table (iscommon bool, ismine bool)
+  language plpgsql CALLED ON NULL INPUT as $$
+begin
+  return query(select
+  	case when coalesce(p_proposalid,0) = 0 then true 
+      else false end as iscommon
+  	,case when coalesce(p_sduserid,0) = 0 then false 
+      when coalesce(p_ownerid,0) = p_sduserid then true 
+      else false end as ismine); end;
+$$;
+
+create or replace function fncommonsenseandproposals(p_sduserid bigint, p_commonid bigint) 
+  returns table (commonid bigint
+  ,proposalid bigint
+  ,senseid bigint
+  ,phrase text
+  ,word varchar(512)
+  ,deleted bool
+  ,ownerid bigint
+  ,sdusernickname varchar(128)
+  ,languageslug text
+  ,commonorproposal varchar(128)
+  ,whos varchar(512)
+  ,kindofchange varchar(128)
+  ,iscommon bool
+  ,ismine bool
+  ) language plpgsql as $$ 
+begin
+return query(
+  select vari.commonid, vari.proposalid, vari.senseid
+  	,vari.phrase, vari.word, vari.deleted, vari.ownerid, vari.sdusernickname, vari.languageslug
+  	,(explainSenseStatusVsProposals(p_sduserid,vari.commonid,vari.proposalid,vari.ownerid,vari.deleted)).*
+    ,(explainCommonAndMine(p_sduserid,vari.commonid,vari.proposalid,vari.ownerid,vari.deleted)).*
+  	from vsense_wide as vari where vari.originid = p_commonid 
+	union all 
+  	select s.commonid, s.proposalid, s.senseid
+  	,s.phrase, s.word, s.deleted, cast(0 as bigint) as ownerid, '<common>' as sdusernickname, s.languageslug
+  	,(explainSenseStatusVsProposals(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.deleted)).*
+    ,(explainCommonAndMine(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.deleted)).*
+  	from vsense_wide s where id = p_commonid
+	order by iscommon desc, ismine desc); end;
+$$;
 
 create or replace function fnsenseorproposalforview(p_sduserid bigint
   ,p_commonid bigint
@@ -218,6 +263,7 @@ returns table (commonid bigint
   ,phrase text
   ,word varchar(512)
   ,deleted bool
+  ,sdusernickname varchar(256)
   ,languageslug text
   ,commonorproposal varchar(128)
   ,whos varchar(512)
@@ -230,16 +276,18 @@ language plpgsql as $$
     return query(
       select s.commonid, s.proposalid, s.senseid
         ,s.phrase, s.word, s.deleted 
+        ,s.sdusernickname
         ,s.languageslug
         ,(explainSenseStatusVsProposals(p_sduserid, s.commonid, s.proposalid, s.ownerid, s.deleted)).*
 	      from fnonepersonalsense(p_sduserid, p_commonid) ops
   		  left join vsense_wide as s on s.id = ops.r_senseid
         limit 1);
   else
-    someid = coalesce(p_proposalid,p_senseid);
+    someid = coalesce(nullif(p_proposalid,0),p_senseid);
     return query(
       select s.commonid, s.proposalid, s.senseid
         ,s.phrase, s.word, s.deleted 
+        ,s.sdusernickname
         ,s.languageslug
         ,(explainSenseStatusVsProposals(p_sduserid, s.commonid, s.proposalid, s.ownerid, s.deleted)).*
   	    from vsense_wide as s where s.id = someid
@@ -281,9 +329,21 @@ end;
 $$;
 
 
+create or replace function test_fncommonsenseandproposals() returns void
+language plpgsql as $$
+begin
+ if (select count(1) from fncommonsenseandproposals(1,1)) <> 1 then
+   raise exception 'test_fncommonsenseandproposals failure 1'; end if; 
+ if (select count(1) from fncommonsenseandproposals(1,4)) <> 2 then
+   raise exception 'test_fncommonsenseandproposals failure 1'; end if; 
+end;
+$$;
+
+
 select test_fnsensorproposalforview();
 
 select test_fnonepersonalsense();
 
+select test_fncommonsenseandproposals();
 
 \echo *** language_and_sense.sql Done

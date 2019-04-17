@@ -16,15 +16,21 @@
     <p></p>
     {{range $index, $wordSearchQueryRecord := .Records}}
     <hr>
-    <p><i>Sense #</i><a href="/sensebycommonidview/{{ $wordSearchQueryRecord.Id }}"> {{ $wordSearchQueryRecord.Id }}</a>
+    <p><i>Common Id:</i>
+        {{if eq $wordSearchQueryRecord.Commonid 0 }}
+            -
+        {{else}}
+            <a href="/sensebyidview/{{ $wordSearchQueryRecord.Commonid }}">{{ $wordSearchQueryRecord.Commonid }}</a>{{end}}
+        {{if not (eq $wordSearchQueryRecord.Proposalid 0) }}
+            &VerticalBar; <i>Proposal Id</i>
+            <a href="/sensebyidview/{{ $wordSearchQueryRecord.Proposalid }}">{{ $wordSearchQueryRecord.Proposalid }}</a>
+            <i>by </i>{{ coalesce $wordSearchQueryRecord.Sdusernickname ""}}{{end}}
         {{if $.IsLoggedIn}}
-            &VerticalBar; <a href="/sensebycommonidedit/{{ $wordSearchQueryRecord.Id }}">
-                <span class="glyphicon glyphicon-edit"></span></a>
-            &VerticalBar; <i>Proposal</i>: {{ $wordSearchQueryRecord.Proposalid }}
-            {{ if $wordSearchQueryRecord.Addedbyme }}Added by me{{end}}{{end}}
+            &VerticalBar; <a href="/senseedit/{{ $wordSearchQueryRecord.Commonid }}/{{ $wordSearchQueryRecord.Proposalid }}">
+                <span class="glyphicon glyphicon-edit"></span></a>{{end}}
         &VerticalBar; <i>Language</i>: {{ $wordSearchQueryRecord.Languageslug }}
         {{if gt $wordSearchQueryRecord.Countofproposals 0}}
-            &VerticalBar; <a href=/senseproposalslistform/{{ $wordSearchQueryRecord.Id }}>{{ $wordSearchQueryRecord.Countofproposals }} proposals</a>{{end}}
+            &VerticalBar; <a href=/senseproposalslistform/{{ $wordSearchQueryRecord.Commonid }}>{{ $wordSearchQueryRecord.Countofproposals }} proposals</a>{{end}}
         <p><b>{{ $wordSearchQueryRecord.Word }}</b>
         &VerticalBar; <i>Phrase:</i>{{ castAsHTML $wordSearchQueryRecord.Phrase }}</p>
     {{end}}

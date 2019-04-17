@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"database/sql"
 	"html/template"
 	"log"
 	"net"
@@ -19,7 +20,6 @@ import (
 	"github.com/budden/semdict/pkg/apperror"
 	"github.com/budden/semdict/pkg/user"
 
-	"github.com/budden/semdict/pkg/query"
 	"github.com/budden/semdict/pkg/shared"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/net/netutil"
@@ -110,27 +110,7 @@ func initRouter() *gin.Engine {
 	engine.Use(gin.Logger(), user.SetUserStatus(), apperror.HandlePanicInRequestHandler())
 
 	setupTemplates(engine)
-	engine.GET("/", homePageHandler)
-	engine.GET("/menu", menuPageHandler)
-	engine.GET("/wordsearchform", query.WordSearchFormRouteHandler)
-	engine.GET("/wordsearchresultform", query.WordSearchResultRouteHandler)
-	engine.GET("/wordsearchquery", query.WordSearchQueryRouteHandler)
-	engine.GET("/sensebyidview/:senseid", query.SenseByIdViewDirHandler)
-	engine.GET("/sensebycommonidview/:commonid", query.SenseBycommonidViewDirHandler)
-	engine.GET("/sensebycommonidedit/:commonid", query.SenseBycommonidEditDirHandler)
-	engine.POST("/senseproposaladdform", query.SenseProposalAddFormPageHandler)
-
-	engine.GET("/registrationform", user.RegistrationFormPageHandler)
-	engine.POST("/registrationformsubmit", user.RegistrationFormSubmitPostHandler)
-	engine.GET("/registrationconfirmation", user.RegistrationConfirmationPageHandler)
-
-	engine.GET("/loginform", user.LoginFormPageHandler)
-	engine.POST("/loginformsubmit", user.LoginFormSubmitPostHandler) // FIXME rename handler
-	engine.GET("/logout", user.Logout)
-	engine.Static("/static", *TemplateBaseDir+"static")
-
-	engine.POST("/senseeditformsubmit/:proposalid", query.SenseEditFormSubmitPostHandler)
-	engine.GET("/senseproposalslistform/:commonid", query.SenseProposalsListFormRouteHandler)
+	setupRoutes(engine)
 
 	//engine.GET("/captcha/:imagefilename", ReverseProxy)
 	return engine
@@ -140,9 +120,33 @@ func castAsHTML(s string) template.HTML {
 	return template.HTML(s)
 }
 
+// Coalesce is a bit similar to sql's coalesce, and intended to be used with the sql.NullString and sql.NullInt64
+func Coalesce(o interface{}, defaultValue interface{}) interface{} {
+	switch e := o.(type) {
+	case sql.NullString:
+		if e.Valid {
+			return e.String
+		} else {
+			return defaultValue
+		}
+	case sql.NullInt64:
+		if e.Valid {
+			return e.Int64
+		} else {
+			return defaultValue
+		}
+	default:
+		{
+			apperror.GracefullyExitAppIf(apperror.ErrDummy, "unknown type for app.coalesce")
+			return "can't reach this point"
+		}
+	}
+}
+
 func setupTemplates(engine *gin.Engine) {
 	funcMap := template.FuncMap{
-		"castAsHTML": castAsHTML}
+		"castAsHTML": castAsHTML,
+		"coalesce":   Coalesce}
 	engine.SetFuncMap(funcMap)
 	templatesGlob := *TemplateBaseDir + "templates/*.t.html"
 	engine.LoadHTMLGlob(templatesGlob)

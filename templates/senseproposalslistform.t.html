@@ -7,18 +7,18 @@
 
 <body>
     <p><a href="menu">Menu</a></p>
-    {{range $index, $senseProposalsListQueryRecord := .Records}}
+    {{range $index, $senseAndProposalsListQueryRecord := .Records}}
     <hr>
-    <p><i>Sense #</i><a href="/sensebyidview/{{ $senseProposalsListQueryRecord.ProposalId }}"> {{ $senseProposalsListQueryRecord.ProposalId }}</a>
+    <p><i>Sense #</i><a href="/sensebyidview/{{ $senseAndProposalsListQueryRecord.Proposalid }}"> {{ $senseAndProposalsListQueryRecord.Proposalid }}</a>
         {{if $.IsLoggedIn}}
             &VerticalBar; Write me... <span class="glyphicon glyphicon-edit"></span>
         {{end}}
-        {{if $senseProposalsListQueryRecord.MySense }} (MY) {{ end }}
-        {{if $senseProposalsListQueryRecord.CommonSense}} (COMMON) {{ end }}
-        &VerticalBar; <i>Language</i>: $senseProposalsListQueryRecord.Languageslug
-        <p><b>{{ $senseProposalsListQueryRecord.Word }}</b>
-        &VerticalBar; <i>Phrase:</i>{{ castAsHTML $senseProposalsListQueryRecord.Phrase }}</p>
-        &VerticalBar; <i>Owner:</i>{{ $senseProposalsListQueryRecord.OwnerId }}</p>
+        {{if $senseAndProposalsListQueryRecord.MySense }} (MY) {{ end }}
+        {{if $senseAndProposalsListQueryRecord.CommonSense}} (COMMON) {{ end }}
+        &VerticalBar; <i>Language</i>: $senseAndProposalsListQueryRecord.Languageslug
+        <p><b>{{ $senseAndProposalsListQueryRecord.Word }}</b>
+        &VerticalBar; <i>Phrase:</i>{{ castAsHTML $senseAndProposalsListQueryRecord.Phrase }}</p>
+        &VerticalBar; <i>Owner:</i>{{ $senseAndProposalsListQueryRecord.OwnerId }}</p>
     {{end}}
 
 </body>

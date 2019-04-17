@@ -25,9 +25,9 @@ func SenseProposalAddFormPageHandler(c *gin.Context) {
 	svp := &senseAddParamsType{
 		Sduserid: int64(user.GetSDUserIdOrZero(c)),
 		Word:     convertWordpatternToNewWork(c.PostForm("wordpattern"))}
-	ProposalID := makeNewSenseIdInDb(svp)
+	ProposalID := makeNewSenseidInDb(svp)
 	ad := &senseDataForEditType{}
-	ad.Senseorproposalid = ProposalID
+	ad.Proposalid = ProposalID
 	ad.Word = svp.Word
 	// FIXME set language and edit it
 	aetp := &senseEditTemplateParams{Ad: ad}
@@ -40,7 +40,7 @@ func convertWordpatternToNewWork(pattern string) string {
 	return strings.Replace(pattern, "%", "", -1)
 }
 
-func makeNewSenseIdInDb(sap *senseAddParamsType) (id int64) {
+func makeNewSenseidInDb(sap *senseAddParamsType) (id int64) {
 	reply, err1 := sddb.NamedReadQuery(
 		`insert into tsense (ownerid, word, languageid, phrase) 
 			values (:sduserid, :word, 1/*language engligh*/, '') 

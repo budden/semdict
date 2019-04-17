@@ -23,7 +23,7 @@ create unique index
  on sduser(lower(registrationemail));
 
 create unique index
- i_sduser_nickname
+ i_sdusernickname
  on sduser(lower(nickname));
 
 CREATE TABLE registrationattempt (
@@ -105,7 +105,7 @@ returns void as $$
   where registrationemail = p_registrationemail and nickname = p_nickname and status = 'new';
 
   if exists (select 1 from sduser ra where lower(ra.nickname)=lower(p_nickname)) THEN
-    raise unique_violation using table = 'sduser', column = 'nickname', constraint = 'i_sduser_nickname';
+    raise unique_violation using table = 'sduser', column = 'nickname', constraint = 'i_sdusernickname';
   end if;
   if exists (select 1 from sduser ra where lower(ra.registrationemail)=lower(p_registrationemail)) THEN
     raise unique_violation using table = 'sduser', column = 'registrationemail', constraint = 'i_sduser_registrationemail';

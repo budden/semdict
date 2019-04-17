@@ -78,7 +78,7 @@ func extractDataFromRequest(c *gin.Context, pad *articlePostDataType) {
 
 func writeToDb(pad *articlePostDataType) {
 	res, err1 := sddb.NamedExec(
-		`select fnsavepersonalsense(:ownerid, :proposalid, :commonid, :phrase, :word, false)`, pad)
+		`select fnsavepersonalsense(:ownerid, :commonid, :proposalid, :phrase, :word, false)`, pad)
 	_ = res
 	/* res, err1 := sddb.NamedExec(
 	`update tsense set phrase = :phrase, word = :word where id=:id`, pad) */
