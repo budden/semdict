@@ -28,8 +28,7 @@ Time will tell if it is really so good.
 [Здесь](https://bitbucket.org/budden/ppr/src/master/док/словарь.md?at=master&fileviewer=file-view-default)
 
 ## State
-Pre-alpha. You can register at the [https://semantic-dict.ru](https://semantic-dict.ru) already, but at any time I can 
-recreate a database with a different structure and your registration is gone. 
+Pre-alpha, no deployment.  
 
 ## Technology
 
