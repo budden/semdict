@@ -34,7 +34,7 @@ CREATE TABLE registrationattempt (
  hash text NOT NULL,
  confirmationkey text not null,
  registrationtimestamp timestamptz not null default current_timestamp,
- status registrationattempt_status default 'new'
+ rastatus registrationattempt_status default 'new'
 );
 
 comment on table registrationattempt is 'registrationattempt gets a new record at each valid registration attempt. We keep registration attemps separated from users table for the case of registration flooding attack';
@@ -100,9 +100,9 @@ returns void as $$
  BEGIN
   lock table themutex;
 
-  --- if a previous attempt failed at the stage of sending e-mail, status will be 'new'
+  --- if a previous attempt failed at the stage of sending e-mail, rastatus will be 'new'
   delete from registrationattempt 
-  where registrationemail = p_registrationemail and nickname = p_nickname and status = 'new';
+  where registrationemail = p_registrationemail and nickname = p_nickname and rastatus = 'new';
 
   if exists (select 1 from sduser ra where lower(ra.nickname)=lower(p_nickname)) THEN
     raise unique_violation using table = 'sduser', column = 'nickname', constraint = 'i_sdusernickname';
@@ -119,7 +119,7 @@ create or replace function note_registrationconfirmation_email_sent(p_nickname t
 returns void as $$
   BEGIN
   lock table themutex;
-  update registrationattempt set status='e-mail sent' WHERE
+  update registrationattempt set rastatus='e-mail sent' WHERE
   nickname = p_nickname and confirmationkey = p_confirmationkey;
   end;
 $$ language plpgsql;
@@ -132,7 +132,7 @@ returns setof integer as $$
     insert into sduser (nickname, registrationemail, salt, hash, registrationtimestamp)
      select nickname, registrationemail, salt, hash, registrationtimestamp from registrationattempt 
      where confirmationkey = p_confirmationkey and nickname = p_nickname 
-     and status='e-mail sent' returning id into v_id;
+     and rastatus='e-mail sent' returning id into v_id;
     if v_id is null THEN
      -- there is no no_data condition_name, so we resort
      -- to sqlstate

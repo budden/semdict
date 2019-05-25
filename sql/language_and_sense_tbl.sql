@@ -53,15 +53,18 @@ create or replace function get_language_slug(p_languageid int) returns text
   end;
 $$;
 
+CREATE TYPE enum_proposalstatus AS ENUM ('draft', 'proposal', 'n/a');
 
 create table tsense (
   id serial primary KEY,
+  proposalstatus enum_proposalstatus not null default 'n/a',
   languageid int not null references tlanguage,
   phrase text not null,
   word varchar(512) not null,
   deleted bool not null default false,
+  ownerid bigint references sduser,
   originid bigint references tsense, 
-  ownerid bigint references sduser
+  deletionproposed bool not null default false -- we suggest to delete
 );
 
 comment on table tsense is 'tsense stored a record for a specific sense of a word. 
@@ -69,8 +72,9 @@ There can be multiple records for the same word. API path is based on the id, li
 comment on column tsense.phrase is 'Phrase in the dialect that describes the sense of the word';
 comment on column tsense.word is 'Word or word combination in the dialect denoting the sense';
 comment on column tsense.deleted is 'We can''t delete records due to versioning, so we mark them deleted';
-comment on column tsense.originid is 'Non-empty originid means that this is a verion. In this case, ownerid must be non-null';
-comment on column tsense.ownerid is 'In case of forked sense, owner of a fork';
+comment on column tsense.ownerid is 'If ownerid is non-empty, this sense is a proposal';
+comment on column tsense.originid is 'Change or deletion of a sense denoted by originid is suggested';
+
 
 insert into tsense (languageid, phrase, word)
   VALUES
