@@ -9,7 +9,8 @@
         <p><a href="/menu">Menu</a></p>
         <p>{{ .Sdfe.Commonorproposal }} 
                 {{ if ne .Sdfe.Whos "" }} &VerticalBar; <i>Author:</i> {{ .Sdfe.Whos }} {{end}}
-                {{ if ne .Sdfe.Kindofchange "" }} &VerticalBar; <i>Kind of proposal:</i> {{ .Sdfe.Kindofchange }} {{end}}</p> 
+                {{ if ne .Sdfe.Kindofchange "" }} &VerticalBar; <i>Kind of proposal:</i> {{ .Sdfe.Kindofchange }} {{end}}
+            &VerticalBar; <i>Status:</i> {{ .Sdfe.Proposalstatus }}</p> 
         <p><b>{{ .Sdfe.Word}}</b></p>
         <hr>
         <p>Phrase:</p>

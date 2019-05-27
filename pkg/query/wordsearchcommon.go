@@ -24,6 +24,7 @@ type wordSearchQueryRecord struct {
 	Commonid       int64
 	Proposalid     int64
 	Senseid        int64
+	Proposalstatus string
 	Languageid     int32
 	Languageslug   string
 	Sdusernickname sql.NullString
@@ -57,6 +58,7 @@ func readWordSearchQueryFromDb(frp *wordSearchQueryParams) (
 	fd []*wordSearchQueryRecord) {
 	var queryText string
 	queryText = `select ts.commonid,	ts.proposalid, ts.senseid
+	 ,ts.proposalstatus
 		,ts.languageid, ts.languageslug, ts.word, ts.phrase
 		,ps.r_countofproposals as countofproposals
 		,ts.sdusernickname

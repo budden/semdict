@@ -10,22 +10,22 @@
  <script type="text/javascript" src="/static/ckeditor_4.11.3_basic/ckeditor.js"></script>
  <p><a href="menu">Menu</a></p>
  <p>Edit article</p>
+ <p>Common Id: {{.Ad.Commonid}} | ProposalId: {{.Ad.Proposalid}}</p>
  <form class="form" action="/senseeditformsubmit" method="POST">
+  <input type="text" class="form-control" id="commonid" name="commonid" value="{{.Ad.Commonid}}" readonly>
+  <input type="text" class="form-control" id="proposalid" name="proposalid" value="{{.Ad.Proposalid}}" readonly>
   <div class="form-group">
-   <label for="commonid">Common sense id</label>
-   <input type="text" class="form-control" id="commonid" name="commonid" value="{{.Ad.Commonid}}" readonly>
-  </div>
-  <div class="form-group">
-   <label for="proposalid">ID of proposal</label>
-   <input type="text" class="form-control" id="proposalid" name="proposalid" value="{{.Ad.Proposalid}}" readonly>
-  </div>
+    <label for="proposalstatus">Proposal status</label>
+    <select id="proposalstatus" name="proposalstatus" value="{{.Ad.Proposalstatus}}">
+      <option value="draft">Draft (I will edit it more)</option>
+      <option value="proposal">Proposal (I want it to be merged into the language)</option>
+    </select></div>
   <div class="form-group">
    <label for="phrase">Phrase</label>
    <textarea rows="10" cols="80" class="form-control" id="phrase" name="phrase"
     placeholder="Express the sense in detail as a phrase in the same language">
     {{.Ad.Phrase}}
-    </textarea>
-  </div>
+    </textarea></div>
   <div class="form-group">
    <label for="word">Word</label>
    <input type="text" name="word" class="form-control" id="word"

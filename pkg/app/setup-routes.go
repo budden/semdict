@@ -11,6 +11,7 @@ func setupRoutes(engine *gin.Engine) {
 	engine.GET("/menu", menuPageHandler)
 	engine.GET("/wordsearchform", query.WordSearchFormRouteHandler)
 	engine.GET("/wordsearchresultform", query.WordSearchResultRouteHandler)
+	engine.GET("/languageproposalslistform/:languageid", query.LanguageProposalsListFormRouteHandler)
 	engine.GET("/wordsearchquery", query.WordSearchQueryRouteHandler)
 	// FIXME add reference from proposal to the origin
 	engine.GET("/sensebyidview/:senseid", query.SenseByIdViewDirHandler)

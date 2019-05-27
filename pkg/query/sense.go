@@ -22,14 +22,12 @@ type senseViewParamsType struct {
 	Senseid    int64 // We want to see sense by id, regardless of it is a common sense or a proposal
 }
 
-//fnsenseorproposalforview(p_sduserid bigint, p_id bigint, p_proposalifexists bool)
-//returns table (commonid bigint, senseorproposalid bigint, phrase text, word varchar(512), deleted bool, languageslug text)
-
 // senseDataForEditType is also used for a view.
 type senseDataForEditType struct {
 	Commonid         int64
 	Proposalid       int64
 	Senseid          int64
+	Proposalstatus   string
 	Phrase           string
 	Word             string
 	Deleted          bool

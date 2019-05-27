@@ -39,8 +39,8 @@ func convertWordpatternToNewWork(pattern string) string {
 
 func makeNewSenseidInDb(sap *senseAddParamsType) (id int64) {
 	reply, err1 := sddb.NamedUpdateQuery(
-		`insert into tsense (ownerid, word, languageid, phrase) 
-			values (:sduserid, :word, 1/*language engligh*/, '') 
+		`insert into tsense (ownerid, word, proposalstatus, languageid, phrase) 
+			values (:sduserid, :word, 'draft', 1/*language engligh*/, '') 
 			returning id`, &sap)
 	apperror.Panic500AndErrorIf(err1, "Failed to insert an article, sorry")
 	var dataFound bool

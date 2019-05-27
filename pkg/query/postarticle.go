@@ -16,13 +16,14 @@ import (
 )
 
 type articlePostDataType struct {
-	Proposalid int64 // must be here
-	Commonid   int64 // can be 0 if no origin (adding proposal)
-	Languageid int32
-	Phrase     string
-	Word       string
-	Deleted    bool
-	Ownerid    int32
+	Proposalid     int64 // must be here
+	Commonid       int64 // can be 0 if no origin (adding proposal)
+	Languageid     int32
+	Proposalstatus string
+	Phrase         string
+	Word           string
+	Deleted        bool
+	Ownerid        int32
 }
 
 // SenseEditFormSubmitPostHandler posts an sense data
@@ -40,6 +41,7 @@ func SenseEditFormSubmitPostHandler(c *gin.Context) {
 func sanitizeData(pad *articlePostDataType) {
 	// example just from the title page of https://github.com/microcosm-cc/bluemonday
 	p := bluemonday.UGCPolicy()
+	pad.Proposalstatus = p.Sanitize(pad.Proposalstatus)
 	pad.Phrase = p.Sanitize(pad.Phrase)
 	matched, err := regexp.Match(`^[0-9a-zA-Z\p{L} ]+$`, []byte(pad.Word))
 	if (err != nil) || !matched {
@@ -66,6 +68,7 @@ func extractIdFromRequest(c *gin.Context, paramName string) (id int64) {
 func extractDataFromRequest(c *gin.Context, pad *articlePostDataType) {
 	pad.Proposalid = extractIdFromRequest(c, "proposalid")
 	pad.Commonid = extractIdFromRequest(c, "commonid")
+	pad.Proposalstatus = c.PostForm("proposalstatus")
 	pad.Phrase = c.PostForm("phrase")
 	pad.Word = c.PostForm("word")
 	pad.Ownerid = user.GetSDUserIdOrZero(c)
@@ -73,7 +76,7 @@ func extractDataFromRequest(c *gin.Context, pad *articlePostDataType) {
 
 func writeToDb(pad *articlePostDataType) (newProposalid int64) {
 	res, err1 := sddb.NamedUpdateQuery(
-		`select fnsavepersonalsense(:ownerid, :commonid, :proposalid, :phrase, :word, false)`, pad)
+		`select fnsavepersonalsense(:ownerid, :commonid, :proposalid, :proposalstatus, :phrase, :word, false)`, pad)
 	apperror.Panic500AndErrorIf(err1, "Failed to update a sense")
 	dataFound := false
 	for res.Next() {
