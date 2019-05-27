@@ -1,6 +1,5 @@
 
---
-/*
+--/*
 \connect sduser_db
 \set ON_ERROR_STOP on
 drop table if exists tprivilegekind cascade;

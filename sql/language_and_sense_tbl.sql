@@ -3,7 +3,7 @@
 \set ON_ERROR_STOP on
 drop table if exists tlanguage cascade;
 drop table if exists tsense cascade;
-drop type if exists senseforkstatus cascade;
+drop type if exists enum_proposalstatus cascade;
 --*/ 
 
 create table tlanguage (
@@ -91,10 +91,6 @@ insert into tsense (languageid, phrase, word)
 insert into tsense (languageid, phrase, word)
   VALUES
   (1,'Язык программирования, созданный google в 2000-х годах','go');
-
--- create type senseforkstatus AS ENUM ('single', 'has proposals', 'a proposal');
-
-
 
 
 \echo *** language_and_sense_tbl.sql Done

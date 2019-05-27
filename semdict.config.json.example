@@ -18,5 +18,8 @@
  "SenderEMail": "den@example.net",
  "PostgresqlServerURL": "postgresql://localhost:5432",
  "TLSCertFile": "example.pem",
- "TLSKeyFile": "example.key"
+ "TLSKeyFile": "example.key",
+ "UserAlwaysLoggedIn": 0,
+ "HideGinStartupDebugMessages": 1,
+ "GinDebugMode": 0
 }
