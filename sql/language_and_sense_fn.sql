@@ -271,6 +271,13 @@ return query(
 	order by iscommon desc, ismine desc); end;
 $$;
 
+-- fnProposalAndCommonSenseForComparison
+create or replace function fnproposalandcommonsenseforcomparison(p_sduserid bigint, p_proposalid bigint)
+-- скопируй тело с fncommonsenseandproposal. верни первую запись для proposal и вторую для 
+-- common sense, если он есть.
+$$
+
+
 create or replace function fnlanguageproposals(p_sduserid bigint, p_commonid bigint) 
   returns table (commonid bigint
   ,proposalid bigint

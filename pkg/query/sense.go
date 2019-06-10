@@ -22,6 +22,12 @@ type senseViewParamsType struct {
 	Senseid    int64 // We want to see sense by id, regardless of it is a common sense or a proposal
 }
 
+// Params for SenseProposalAcceptOrRejectDirHandler
+type senseProposalAcceptOrRejectParamsType struct {
+	Sduserid   int64
+	Proposalid int64
+}
+
 // senseDataForEditType is also used for a view.
 type senseDataForEditType struct {
 	Commonid         int64
@@ -52,6 +58,15 @@ type SenseViewParams struct {
 // SenseByCommonidViewDirHandler ...
 func SenseByCommonidViewDirHandler(c *gin.Context) {
 	senseOrProposalDirHandlerCommon(c, "commonid")
+}
+
+// SenseProposalAcceptOrRejectDirHandler ...
+func SenseProposalAcceptOrRejectDirHandler(c *gin.Context) {
+	pt := &senseProposalAcceptOrRejectParamsType{Sduserid: int64(user.GetSDUserIdOrZero(c))}
+	pt.Proposalid = extractIdFromRequest(c, "proposalid")
+	fnproposalandcommonsenseforcomparison
+	блаблабла
+	apperror.Panic500AndErrorIf(apperror.ErrDummy, "SenseProposalAcceptOrRejectDirHandler - writeme = «%d»", pt.Proposalid)
 }
 
 // SenseByIdViewDirHandler ...
