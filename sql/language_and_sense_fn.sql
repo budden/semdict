@@ -1,6 +1,7 @@
 --/*
 \connect sduser_db
 \set ON_ERROR_STOP on
+drop type if exists commonsenseandproposalrecord cascade;
 --*/ 
 
 create or replace function get_language_slug(p_languageid int) returns text
@@ -236,8 +237,8 @@ begin
       else false end as ismine); end;
 $$;
 
-create or replace function fncommonsenseandproposals(p_sduserid bigint, p_commonid bigint) 
-  returns table (commonid bigint
+create type commonsenseandproposalrecord as (
+commonid bigint
   ,proposalid bigint
   ,senseid bigint
   ,proposalstatus enum_proposalstatus
@@ -245,14 +246,19 @@ create or replace function fncommonsenseandproposals(p_sduserid bigint, p_common
   ,word varchar(512)
   ,deleted bool
   ,ownerid bigint
-  ,sdusernickname varchar(128)
+  ,sdusernickname varchar
   ,languageslug text
-  ,commonorproposal varchar(128)
-  ,whos varchar(512)
-  ,kindofchange varchar(128)
+  ,commonorproposal varchar
+  ,whos varchar
+  ,kindofchange varchar
   ,iscommon bool
-  ,ismine bool
-  ) language plpgsql as $$ 
+  ,ismine bool  
+);
+
+--drop function fncommonsenseandproposals(p_sduserid bigint, p_commonid bigint);
+
+create or replace function fncommonsenseandproposals(p_sduserid bigint, p_commonid bigint) 
+  returns setof commonsenseandproposalrecord language plpgsql as $$ 
 begin
 return query(
   select vari.commonid, vari.proposalid, vari.senseid
@@ -264,7 +270,7 @@ return query(
 	union all 
   	select s.commonid, s.proposalid, s.senseid
     ,cast('n/a' as enum_proposalstatus)
-  	,s.phrase, s.word, s.deleted, cast(0 as bigint) as ownerid, '<common>' as sdusernickname, s.languageslug
+  	,s.phrase, s.word, s.deleted, cast(0 as bigint) as ownerid, cast('<common>' as varchar(256)) as sdusernickname, s.languageslug
   	,(explainSenseEssenseVsProposals(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.deleted)).*
     ,(explainCommonAndMine(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.deleted)).*
   	from vsense_wide s where id = p_commonid
@@ -272,10 +278,10 @@ return query(
 $$;
 
 -- fnProposalAndCommonSenseForComparison
-create or replace function fnproposalandcommonsenseforcomparison(p_sduserid bigint, p_proposalid bigint)
+-- create or replace function fnproposalandcommonsenseforcomparison(p_sduserid bigint, p_proposalid bigint)
 -- скопируй тело с fncommonsenseandproposal. верни первую запись для proposal и вторую для 
 -- common sense, если он есть.
-$$
+-- $$
 
 
 create or replace function fnlanguageproposals(p_sduserid bigint, p_commonid bigint) 
