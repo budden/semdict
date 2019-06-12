@@ -273,9 +273,42 @@ $$;
 
 -- fnProposalAndCommonSenseForComparison
 create or replace function fnproposalandcommonsenseforcomparison(p_sduserid bigint, p_proposalid bigint)
--- скопируй тело с fncommonsenseandproposal. верни первую запись для proposal и вторую для 
--- common sense, если он есть.
-$$
+  returns table (commonid bigint
+  ,proposalid bigint
+  ,senseid bigint
+  ,proposalstatus enum_proposalstatus
+  ,phrase text
+  ,word varchar(512)
+  ,deleted bool
+  ,ownerid bigint
+  ,sdusernickname varchar(128)
+  ,languageslug text
+  ,commonorproposal varchar(128)
+  ,whos varchar(512)
+  ,kindofchange varchar(128)
+  ,iscommon bool
+  ,ismine bool
+  ) language plpgsql as $$ 
+declare v_commonid bigint;
+begin
+select vari.commonid from vsense_wide as vari where vari.proposalid = p_proposalid into v_commonid;
+return query(
+  select vari.commonid, vari.proposalid, vari.senseid
+    ,vari.proposalstatus
+  	,vari.phrase, vari.word, vari.deleted, vari.ownerid, vari.sdusernickname, vari.languageslug
+  	,(explainSenseEssenseVsProposals(p_sduserid,vari.commonid,vari.proposalid,vari.ownerid,vari.deleted)).*
+    ,(explainCommonAndMine(p_sduserid,vari.commonid,vari.proposalid,vari.ownerid,vari.deleted)).*
+  	from vsense_wide as vari where vari.proposalid = p_proposalid
+	union all 
+  	select s.commonid, s.proposalid, s.senseid
+    ,cast('n/a' as enum_proposalstatus)
+  	,s.phrase, s.word, s.deleted, cast(0 as bigint) as ownerid, '<common>' as sdusernickname, s.languageslug
+  	,(explainSenseEssenseVsProposals(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.deleted)).*
+    ,(explainCommonAndMine(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.deleted)).*
+  	from vsense_wide s where id = v_commonid
+	order by iscommon desc); end;
+$$;
+
 
 
 create or replace function fnlanguageproposals(p_sduserid bigint, p_commonid bigint) 
