@@ -73,6 +73,23 @@ func SenseAndProposalsListFormRouteHandler(c *gin.Context) {
 			LoggedInUserId: int64(user.GetSDUserIdOrZero(c))})
 }
 
+func readSenseProposalAcceptOrRejectDataFromDb(spaorp *senseProposalAcceptOrRejectParamsType) (
+	records []*senseAndProposalsListQueryRecord) {
+	reply, err1 := sddb.NamedReadQuery(
+		"select * from fnproposalandcommonsenseforproposalacceptorreject(:sduserid, :proposalid)", spaorp)
+	apperror.Panic500AndErrorIf(err1, "Db query failed")
+	defer sddb.CloseRows(reply)
+	records = make([]*senseAndProposalsListQueryRecord, 0)
+	var last int
+	for last = 0; reply.Next(); last++ {
+		wsqr := &senseAndProposalsListQueryRecord{}
+		err1 = reply.StructScan(wsqr)
+		sddb.FatalDatabaseErrorIf(err1, "Error obtaining proposals of sense: %#v", err1)
+		records = append(records, wsqr)
+	}
+	return
+}
+
 // reads both common sense and proposals
 func readCommonSenseAndProposalsListQueryFromDb(svlqp *senseAndProposalsListQueryParams) (
 	records []*senseAndProposalsListQueryRecord) {

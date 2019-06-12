@@ -271,8 +271,8 @@ return query(
 	order by iscommon desc, ismine desc); end;
 $$;
 
--- fnProposalAndCommonSenseForComparison
-create or replace function fnproposalandcommonsenseforcomparison(p_sduserid bigint, p_proposalid bigint)
+-- fnProposalAndCommonSenseForProposalAcceptOrReject
+create or replace function fnproposalandcommonsenseforproposalacceptorreject(p_sduserid bigint, p_proposalid bigint)
   returns table (commonid bigint
   ,proposalid bigint
   ,senseid bigint

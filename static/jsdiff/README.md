@@ -4,3 +4,6 @@ Installation sequence for those files is like this:
 3. npm init, press enter many times and "yes" when it asks
 4. npm install diff --save
 5. Steal new_dir/node_modules/diff/dist/*.js to here.
+
+
+(Repo is at https://github.com/kpdecker/jsdiff , it has a web page example)

@@ -28,6 +28,21 @@ type senseProposalAcceptOrRejectParamsType struct {
 	Proposalid int64
 }
 
+// SenseViewHTMLTemplateParamsType are params for senseview.t.html
+
+type senseProposalAcceptOrRejectHTMLTemplateParamsType struct {
+	Proposalid       int64
+	Commonid         int64
+	DeletionProposed bool
+	PhraseOld        string
+	PhraseChanged    bool
+	PhraseNew        string
+	WordOld          string
+	WordChanged      bool
+	WordNew          string
+	// FIXME that is insufficient!
+}
+
 // senseDataForEditType is also used for a view.
 type senseDataForEditType struct {
 	Commonid         int64
@@ -48,8 +63,8 @@ type senseEditTemplateParams struct {
 	Ad *senseDataForEditType
 }
 
-// SenseViewParams are params for senseview.t.html
-type SenseViewParams struct {
+// SenseViewHTMLTemplateParamsType are params for senseview.t.html
+type SenseViewHTMLTemplateParamsType struct {
 	Svp    *senseViewParamsType
 	Sdfe   *senseDataForEditType
 	Phrase template.HTML
@@ -60,18 +75,29 @@ func SenseByCommonidViewDirHandler(c *gin.Context) {
 	senseOrProposalDirHandlerCommon(c, "commonid")
 }
 
-// SenseProposalAcceptOrRejectDirHandler ...
-func SenseProposalAcceptOrRejectDirHandler(c *gin.Context) {
-	pt := &senseProposalAcceptOrRejectParamsType{Sduserid: int64(user.GetSDUserIdOrZero(c))}
-	pt.Proposalid = extractIdFromRequest(c, "proposalid")
-	fnproposalandcommonsenseforcomparison
-	блаблабла
-	apperror.Panic500AndErrorIf(apperror.ErrDummy, "SenseProposalAcceptOrRejectDirHandler - writeme = «%d»", pt.Proposalid)
-}
-
 // SenseByIdViewDirHandler ...
 func SenseByIdViewDirHandler(c *gin.Context) {
 	senseOrProposalDirHandlerCommon(c, "senseid")
+}
+
+// SenseProposalAcceptOrRejectDirHandler ...
+func SenseProposalAcceptOrRejectDirHandler(c *gin.Context) {
+	spaorp := &senseProposalAcceptOrRejectParamsType{Sduserid: int64(user.GetSDUserIdOrZero(c))}
+	spaorp.Proposalid = extractIdFromRequest(c, "proposalid")
+	var records []*senseAndProposalsListQueryRecord
+	records = readSenseProposalAcceptOrRejectDataFromDb(spaorp)
+	if len(records) == 0 {
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Sorry, no proposal (yet?) with id = «%d»", spaorp.Proposalid)
+	}
+	c.HTML(http.StatusOK,
+		"general.t.html",
+		shared.GeneralTemplateParams{Message: "So far so good. TODO Now convert those records to senseProposalAcceptOrRejectHTMLTemplateParamsType and use diff.js to visualize"})
+	/*
+		phraseHTML := template.HTML(senseDataForEdit.Phrase)
+		c.HTML(http.StatusOK,
+			"senseview.t.html",
+			SenseViewHTMLTemplateParamsType{Svp: svp, Sdfe: senseDataForEdit, Phrase: phraseHTML})
+	*/
 }
 
 func senseOrProposalDirHandlerCommon(c *gin.Context, paramName string) {
@@ -93,7 +119,7 @@ func senseOrProposalDirHandlerCommon(c *gin.Context, paramName string) {
 		phraseHTML := template.HTML(senseDataForEdit.Phrase)
 		c.HTML(http.StatusOK,
 			"senseview.t.html",
-			SenseViewParams{Svp: svp, Sdfe: senseDataForEdit, Phrase: phraseHTML})
+			SenseViewHTMLTemplateParamsType{Svp: svp, Sdfe: senseDataForEdit, Phrase: phraseHTML})
 	} else {
 		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Sorry, no sense (yet?) with id = «%d»", svp.Senseid)
 	}
