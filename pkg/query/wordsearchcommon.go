@@ -62,7 +62,7 @@ func readWordSearchQueryFromDb(frp *wordSearchQueryParams) (
 		,ts.languageid, ts.languageslug, ts.word, ts.phrase
 		,ps.r_countofproposals as countofproposals
 		,ts.sdusernickname
-		,(explainSenseEssenseVsProposals(:sduserid, ts.commonid, ts.proposalid, ts.ownerid, ts.deleted)).*
+		,(explainSenseEssenseVsProposals(:sduserid, ts.commonid, ts.proposalid, ts.ownerid, ts.phantom, ts.deletionproposed)).*
 		from fnpersonalsenses(:sduserid) ps 
 		left join vsense_wide ts on coalesce(nullif(ps.r_proposalid,0), ps.r_commonid) = ts.id
 		order by word, languageslug, senseid offset :offset limit :limit`

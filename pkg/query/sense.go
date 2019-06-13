@@ -51,7 +51,7 @@ type senseDataForEditType struct {
 	Proposalstatus   string
 	Phrase           string
 	Word             string
-	Deleted          bool
+	Phantom          bool
 	Sdusernickname   sql.NullString
 	Languageslug     string
 	Commonorproposal string
@@ -89,6 +89,7 @@ func SenseProposalAcceptOrRejectDirHandler(c *gin.Context) {
 	if len(records) == 0 {
 		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Sorry, no proposal (yet?) with id = «%d»", spaorp.Proposalid)
 	}
+	// spaorhtp := senseProposalAcceptOrRejectCalculateTemplateParams(spaorp, records)
 	c.HTML(http.StatusOK,
 		"general.t.html",
 		shared.GeneralTemplateParams{Message: "So far so good. TODO Now convert those records to senseProposalAcceptOrRejectHTMLTemplateParamsType and use diff.js to visualize"})
@@ -98,6 +99,22 @@ func SenseProposalAcceptOrRejectDirHandler(c *gin.Context) {
 			"senseview.t.html",
 			SenseViewHTMLTemplateParamsType{Svp: svp, Sdfe: senseDataForEdit, Phrase: phraseHTML})
 	*/
+}
+
+func senseProposalAcceptOrRejectCalculateTemplateParams(spaorp *senseProposalAcceptOrRejectParamsType,
+	records []*senseAndProposalsListQueryRecord) (spaorhtp *senseProposalAcceptOrRejectHTMLTemplateParamsType) {
+	spaorhtp = &senseProposalAcceptOrRejectHTMLTemplateParamsType{Proposalid: spaorp.Proposalid}
+	n := len(records)
+	if n == 0 {
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "No proposal with id = %d", spaorp.Proposalid)
+	}
+	/*  p := records[0]
+	var o *senseAndProposalsListQueryRecord
+	if n == 2 {
+		o = records[1]
+	} */
+	//if p.Kindofchange
+	return
 }
 
 func senseOrProposalDirHandlerCommon(c *gin.Context, paramName string) {

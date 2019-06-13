@@ -81,22 +81,26 @@ create or replace function fnpersonalsenses(p_sduserid bigint)
       ,(select count(1) from tsense varic where varic.originid = orig.id) as r_countofproposals
       ,case when orig.ownerid = p_sduserid then true else false end as r_addedbyme
       from tsense orig 
-      left join tsense vari on orig.id = vari.originid and vari.ownerid = p_sduserid 
+      left join tsense vari 
+      on orig.id = vari.originid and vari.ownerid = p_sduserid and not vari.phantom 
       where orig.originid is null); end if; end;
 $$;
 
 
--- fnOnePersonalSense returns a personal or common sense for the specific sense id
+-- fnOnePersonalSense returns a user's proposal for the specific common sense if there is one
+-- and the common sense otherwise
 create or replace function fnonepersonalsense(p_sduserid bigint, p_commonid bigint) 
-  returns table(r_commonid bigint, r_proposalid bigint, r_senseid bigint)
+  returns table(r_commonid bigint, r_proposalid bigint, r_senseid bigint, r_deletionproposed bool)
   language plpgsql as $$
   begin
   return query(
     select cast(orig.id as bigint) as r_commonid
       ,cast(vari.id as bigint) as r_proposalid
       ,cast(coalesce(vari.id, orig.id) as bigint) as r_senseid
+      ,coalesce(vari.deletionproposed, false) as r_deletionproposed
     from tsense orig 
-    left join tsense vari on orig.id = vari.originid and vari.ownerid = p_sduserid 
+    left join tsense vari 
+    on orig.id = vari.originid and vari.ownerid = p_sduserid and not vari.phantom
     where orig.id = p_commonid and orig.originid is null); end;
 $$;
 
@@ -111,7 +115,7 @@ create or replace function fnsavepersonalsense(
     ,p_proposalstatus enum_proposalstatus, p_phrase text, p_word text, p_evenifidentical bool)
   returns table (r_proposalid bigint)
   language plpgsql as $$
-  declare v_deleted bool;
+  declare v_phantom bool;
   declare update_count int;
   declare v_commonid bigint;
   declare v_proposalid bigint;
@@ -123,16 +127,16 @@ create or replace function fnsavepersonalsense(
   if p_evenifidentical then
     raise exception 'invalid parameter p_evenifidentical'; end if;
   if p_proposalid <> 0 then
-    select originid, deleted 
+    select originid, phantom 
       from tsense where id = p_proposalid 
-      into v_commonid, v_deleted;
+      into v_commonid, v_phantom;
     if coalesce(v_commonid, 0) <> p_commonid then
       raise exception 'origin mismatch'; end if;
     if exists (select 1 from tsense where 
         id = v_commonid 
         and word = p_word 
         and phrase = p_phrase 
-        and deleted = v_deleted) then
+        and phantom = v_phantom) then
     -- nothing differs from the official version, delete our proposal
       delete from tsense where id = p_proposalid;
       return query(select true); return; end if;
@@ -197,7 +201,7 @@ update tsense set proposalstatus = 'draft', phrase = 'updated sense' where id=5;
 -- end of mess
 -- FIXME - addition is shown incorrectly
 create or replace function explainSenseEssenseVsProposals(
-    p_sduserid bigint, p_commonid bigint, p_proposalid bigint, p_ownerid bigint, p_deleted bool) 
+    p_sduserid bigint, p_commonid bigint, p_proposalid bigint, p_ownerid bigint, p_phantom bool, p_deletionproposed bool) 
   returns
   table (commonorproposal varchar(128), whos varchar(512), kindofchange varchar(128))
   language plpgsql CALLED ON NULL INPUT as $$
@@ -217,13 +221,14 @@ begin
   r_kindofchange = case
     when coalesce(p_ownerid,0)=0 then '' -- common - irrelevant
     when coalesce(p_commonid,0)=0 then 'addition'
-    when p_deleted then 'deletion'
+    when p_phantom then 'deleted (phantom)'
+    when p_deletionproposed then 'deletion'
     else 'change' end;
   return query(select r_commonorproposal, r_whos, r_kindofchange); end;
 $$;
 
 create or replace function explainCommonAndMine(
-    p_sduserid bigint, p_commonid bigint, p_proposalid bigint, p_ownerid bigint, p_deleted bool)
+    p_sduserid bigint, p_commonid bigint, p_proposalid bigint, p_ownerid bigint, p_phantom bool)
   returns
   table (iscommon bool, ismine bool)
   language plpgsql CALLED ON NULL INPUT as $$
@@ -243,7 +248,7 @@ create or replace function fncommonsenseandproposals(p_sduserid bigint, p_common
   ,proposalstatus enum_proposalstatus
   ,phrase text
   ,word varchar(512)
-  ,deleted bool
+  ,phantom bool
   ,ownerid bigint
   ,sdusernickname varchar(128)
   ,languageslug text
@@ -257,16 +262,16 @@ begin
 return query(
   select vari.commonid, vari.proposalid, vari.senseid
     ,vari.proposalstatus
-  	,vari.phrase, vari.word, vari.deleted, vari.ownerid, vari.sdusernickname, vari.languageslug
-  	,(explainSenseEssenseVsProposals(p_sduserid,vari.commonid,vari.proposalid,vari.ownerid,vari.deleted)).*
-    ,(explainCommonAndMine(p_sduserid,vari.commonid,vari.proposalid,vari.ownerid,vari.deleted)).*
-  	from vsense_wide as vari where vari.originid = p_commonid 
+  	,vari.phrase, vari.word, vari.phantom, vari.ownerid, vari.sdusernickname, vari.languageslug
+  	,(explainSenseEssenseVsProposals(p_sduserid,vari.commonid,vari.proposalid,vari.ownerid,false,vari.deletionproposed)).*
+    ,(explainCommonAndMine(p_sduserid,vari.commonid,vari.proposalid,vari.ownerid,vari.phantom)).*
+  	from vsense_wide as vari where vari.originid = p_commonid and not vari.phantom
 	union all 
   	select s.commonid, s.proposalid, s.senseid
     ,cast('n/a' as enum_proposalstatus)
-  	,s.phrase, s.word, s.deleted, cast(0 as bigint) as ownerid, '<common>' as sdusernickname, s.languageslug
-  	,(explainSenseEssenseVsProposals(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.deleted)).*
-    ,(explainCommonAndMine(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.deleted)).*
+  	,s.phrase, s.word, s.phantom, cast(0 as bigint) as ownerid, '<common>' as sdusernickname, s.languageslug
+  	,(explainSenseEssenseVsProposals(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.phantom,false)).*
+    ,(explainCommonAndMine(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.phantom)).*
   	from vsense_wide s where id = p_commonid
 	order by iscommon desc, ismine desc); end;
 $$;
@@ -279,7 +284,7 @@ create or replace function fnproposalandcommonsenseforproposalacceptorreject(p_s
   ,proposalstatus enum_proposalstatus
   ,phrase text
   ,word varchar(512)
-  ,deleted bool
+  ,phantom bool
   ,ownerid bigint
   ,sdusernickname varchar(128)
   ,languageslug text
@@ -291,20 +296,20 @@ create or replace function fnproposalandcommonsenseforproposalacceptorreject(p_s
   ) language plpgsql as $$ 
 declare v_commonid bigint;
 begin
-select vari.commonid from vsense_wide as vari where vari.proposalid = p_proposalid into v_commonid;
+select vari.commonid from vsense_wide as vari where vari.proposalid = p_proposalid and not vari.phantom into v_commonid;
 return query(
   select vari.commonid, vari.proposalid, vari.senseid
     ,vari.proposalstatus
-  	,vari.phrase, vari.word, vari.deleted, vari.ownerid, vari.sdusernickname, vari.languageslug
-  	,(explainSenseEssenseVsProposals(p_sduserid,vari.commonid,vari.proposalid,vari.ownerid,vari.deleted)).*
-    ,(explainCommonAndMine(p_sduserid,vari.commonid,vari.proposalid,vari.ownerid,vari.deleted)).*
-  	from vsense_wide as vari where vari.proposalid = p_proposalid
+  	,vari.phrase, vari.word, vari.phantom, vari.ownerid, vari.sdusernickname, vari.languageslug
+  	,(explainSenseEssenseVsProposals(p_sduserid,vari.commonid,vari.proposalid,vari.ownerid,false,vari.deletionproposed)).*
+    ,(explainCommonAndMine(p_sduserid,vari.commonid,vari.proposalid,vari.ownerid,false)).*
+  	from vsense_wide as vari where vari.proposalid = p_proposalid and not vari.phantom
 	union all 
   	select s.commonid, s.proposalid, s.senseid
     ,cast('n/a' as enum_proposalstatus)
-  	,s.phrase, s.word, s.deleted, cast(0 as bigint) as ownerid, '<common>' as sdusernickname, s.languageslug
-  	,(explainSenseEssenseVsProposals(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.deleted)).*
-    ,(explainCommonAndMine(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.deleted)).*
+  	,s.phrase, s.word, s.phantom, cast(0 as bigint) as ownerid, '<common>' as sdusernickname, s.languageslug
+  	,(explainSenseEssenseVsProposals(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.phantom,false)).*
+    ,(explainCommonAndMine(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.phantom)).*
   	from vsense_wide s where id = v_commonid
 	order by iscommon desc); end;
 $$;
@@ -318,7 +323,7 @@ create or replace function fnlanguageproposals(p_sduserid bigint, p_commonid big
   ,proposalstatus enum_proposalstatus
   ,phrasecommon text
   ,word varchar(512)
-  ,deleted bool
+  ,phantom bool
   ,ownerid bigint
   ,sdusernickname varchar(128)
   ,languageslug text
@@ -332,16 +337,16 @@ begin
 return query(
   select vari.commonid, vari.proposalid, vari.senseid
     ,vari.proposalstatus
-  	,vari.phrase, vari.word, vari.deleted, vari.ownerid, vari.sdusernickname, vari.languageslug
-  	,(explainSenseEssenseVsProposals(p_sduserid,vari.commonid,vari.proposalid,vari.ownerid,vari.deleted)).*
-    ,(explainCommonAndMine(p_sduserid,vari.commonid,vari.proposalid,vari.ownerid,vari.deleted)).*
-  	from vsense_wide as vari where vari.originid = p_commonid 
+  	,vari.phrase, vari.word, vari.phantom, vari.ownerid, vari.sdusernickname, vari.languageslug
+  	,(explainSenseEssenseVsProposals(p_sduserid,vari.commonid,vari.proposalid,vari.ownerid,false,vari.deletionproposed)).*
+    ,(explainCommonAndMine(p_sduserid,vari.commonid,vari.proposalid,vari.ownerid,vari.phantom)).*
+  	from vsense_wide as vari where vari.originid = p_commonid and not vari.phantom 
 	union all 
   	select s.commonid, s.proposalid, s.senseid
     ,cast('n/a' as enum_proposalstatus)
-  	,s.phrase, s.word, s.deleted, cast(0 as bigint) as ownerid, '<common>' as sdusernickname, s.languageslug
-  	,(explainSenseEssenseVsProposals(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.deleted)).*
-    ,(explainCommonAndMine(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.deleted)).*
+  	,s.phrase, s.word, s.phantom, cast(0 as bigint) as ownerid, '<common>' as sdusernickname, s.languageslug
+  	,(explainSenseEssenseVsProposals(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.phantom,false)).*
+    ,(explainCommonAndMine(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.phantom)).*
   	from vsense_wide s where id = p_commonid
 	order by iscommon desc, ismine desc); end;
 $$;
@@ -357,7 +362,7 @@ returns table (commonid bigint
   ,proposalstatus enum_proposalstatus
   ,phrase text
   ,word varchar(512)
-  ,deleted bool
+  ,phantom bool
   ,sdusernickname varchar(256)
   ,languageslug text
   ,commonorproposal varchar(128)
@@ -366,28 +371,30 @@ returns table (commonid bigint
   )
 language plpgsql as $$
   declare someid bigint;
-  begin
+  begin 
   if coalesce(p_commonid,0) <> 0 then
     return query(
+      -- ops is a proposal or a common sense. s is the same
       select s.commonid, s.proposalid, s.senseid
         ,s.proposalstatus
-        ,s.phrase, s.word, s.deleted 
+        ,s.phrase, s.word, s.phantom 
         ,s.sdusernickname
         ,s.languageslug
-        ,(explainSenseEssenseVsProposals(p_sduserid, s.commonid, s.proposalid, s.ownerid, s.deleted)).*
+        ,(explainSenseEssenseVsProposals(p_sduserid, s.commonid, s.proposalid, s.ownerid, s.phantom, ops.r_deletionproposed)).*
 	      from fnonepersonalsense(p_sduserid, p_commonid) ops
   		  left join vsense_wide as s on s.id = ops.r_senseid
         limit 1);
-  else
+  else 
+    -- again it can be a proposal or a common sense
     someid = coalesce(nullif(p_proposalid,0),p_senseid);
     return query(
       select s.commonid, s.proposalid, s.senseid
         ,s.proposalstatus
-        ,s.phrase, s.word, s.deleted 
+        ,s.phrase, s.word, s.phantom 
         ,s.sdusernickname
         ,s.languageslug
-        ,(explainSenseEssenseVsProposals(p_sduserid, s.commonid, s.proposalid, s.ownerid, s.deleted)).*
-  	    from vsense_wide as s where s.id = someid
+        ,(explainSenseEssenseVsProposals(p_sduserid, s.commonid, s.proposalid, s.ownerid, s.phantom, s.deletionproposed)).*
+  	    from vsense_wide as s where s.id = someid 
 			  limit 1); end if; end;
 $$;
 

@@ -22,7 +22,7 @@ type articlePostDataType struct {
 	Proposalstatus string
 	Phrase         string
 	Word           string
-	Deleted        bool
+	Phantom        bool
 	Ownerid        int32
 }
 
