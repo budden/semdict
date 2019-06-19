@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+    {{ template "header-start.t.html" .}}
+    <title>Sense proposal accept/reject form</title>
+    {{ template "header-end.t.html" .}}
+    <body>
+        <p><a href="/menu">Menu</a></p>
+        <p>{{ if .Data.Phantom }} <i>Common sense is DELETED!</i> {{end}}</p>
+        {{ if .Data.Deletionproposed }}
+           <p>{{ .Data.Proposalid }} is a proposal to delete {{ .Data.Commonid }}</p> 
+        {{ end }}
+        <p>Merge {{ .Data.Proposalid }} = &gt; {{  .Data.Commonid }} ?<br>
+         <i>Kind of proposal:</i> TODO .Data.Kindofchange 
+         {{ if .Data.Wordchanged }} «{{.Data.Wordold}}» => «{{.Data.Wordnew}}» {{ else }} <i>Word didn't change</i> {{ end }} &VerticalBar;
+                {{ if .Data.Phrasechanged }} 
+                 <p><i>Old phrase:</i> «{{.Data.Phraseold}}»</p><hr>
+                 <p><i>New phrase:</i> «{{.Data.Phrasenew}}»</p><hr>
+                {{ else }} <i>Phrase didn't change</i>
+                {{ end }}
+            &VerticalBar; <i>Status:</i> .Sdfe.Proposalstatus </p> 
+            <form class="form" action="/senseacceptorreject" method="POST">
+             <div class="form-group">
+               <label for="proposalstatus">Accept the proposal?</label>
+               <select id="proposalstatus" name="proposalstatus" value="Accept">
+                 <option value="Accept">Accept</option>
+                 <option value="Decline">Decline</option>
+               </select></div>
+             <button type="submit" class="btn btn-primary">Do</button>
+            </form>
+        <script src="/static/bootstrap-3.3.2/js/bootstrap.js"></script>
+        </body></html>
