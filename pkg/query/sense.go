@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 
 	"github.com/budden/semdict/pkg/apperror"
@@ -33,13 +34,13 @@ type senseProposalAcceptOrRejectParamsType struct {
 type senseProposalAcceptOrRejectHTMLTemplateParamsType struct {
 	Proposalid       int64
 	Commonid         int64
-	DeletionProposed bool
-	PhraseOld        string
-	PhraseChanged    bool
-	PhraseNew        string
-	WordOld          string
-	WordChanged      bool
-	WordNew          string
+	Deletionproposed bool
+	Phraseold        string
+	Phrasechanged    bool
+	Phrasenew        string
+	Wordold          string
+	Wordchanged      bool
+	Wordnew          string
 	// FIXME that is insufficient!
 }
 
@@ -52,6 +53,7 @@ type senseDataForEditType struct {
 	Phrase           string
 	Word             string
 	Phantom          bool
+	Deletionproposed bool
 	Sdusernickname   sql.NullString
 	Languageslug     string
 	Commonorproposal string
@@ -89,7 +91,7 @@ func SenseProposalAcceptOrRejectDirHandler(c *gin.Context) {
 	if len(records) == 0 {
 		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Sorry, no proposal (yet?) with id = «%d»", spaorp.Proposalid)
 	}
-	// spaorhtp := senseProposalAcceptOrRejectCalculateTemplateParams(spaorp, records)
+	spaorhtp := senseProposalAcceptOrRejectCalculateTemplateParams(spaorp, records)
 	c.HTML(http.StatusOK,
 		"general.t.html",
 		shared.GeneralTemplateParams{Message: "So far so good. TODO Now convert those records to senseProposalAcceptOrRejectHTMLTemplateParamsType and use diff.js to visualize"})
@@ -108,11 +110,24 @@ func senseProposalAcceptOrRejectCalculateTemplateParams(spaorp *senseProposalAcc
 	if n == 0 {
 		apperror.Panic500AndErrorIf(apperror.ErrDummy, "No proposal with id = %d", spaorp.Proposalid)
 	}
-	/*  p := records[0]
+	p := records[0]
 	var o *senseAndProposalsListQueryRecord
 	if n == 2 {
 		o = records[1]
-	} */
+		spaorhtp.Commonid = o.Commonid
+		spaorhtp.Proposalid = p.Proposalid
+		spaorhtp.Deletionproposed = p.Deletionproposed
+		spaorhtp.Phrasenew = p.Phrase
+		spaorhtp.Phraseold = o.Phrase
+		spaorhtp.Phrasechanged = p.Phrase != o.Phrase
+		spaorhtp.Wordnew = p.Word
+		spaorhtp.Wordold = o.Word
+		spaorhtp.Wordchanged = p.Word != o.Word
+		log.Printf("We got %#v", spaorhtp)
+		// Теперь надо в вызывающей ф-ии заполнить шаблон, который нужно сделать.
+	} else if n == 1 {
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Proposal with no original sense (is it an addition?) - unable to handle (yet)")
+	}
 	//if p.Kindofchange
 	return
 }

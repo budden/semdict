@@ -16,14 +16,15 @@ import (
 )
 
 type articlePostDataType struct {
-	Proposalid     int64 // must be here
-	Commonid       int64 // can be 0 if no origin (adding proposal)
-	Languageid     int32
-	Proposalstatus string
-	Phrase         string
-	Word           string
-	Phantom        bool
-	Ownerid        int32
+	Proposalid       int64 // must be here
+	Commonid         int64 // can be 0 if no origin (adding proposal)
+	Languageid       int32
+	Proposalstatus   string
+	Phrase           string
+	Word             string
+	Phantom          bool // Does it make sense?
+	Deletionproposed bool // Not used! FIXME
+	Ownerid          int32
 }
 
 // SenseEditFormSubmitPostHandler posts an sense data

@@ -29,6 +29,7 @@ type senseAndProposalsListQueryRecord struct {
 	Phrase           string
 	Word             string
 	Phantom          bool
+	Deletionproposed bool
 	OwnerId          int64
 	Sdusernickname   string
 	Languageslug     string
