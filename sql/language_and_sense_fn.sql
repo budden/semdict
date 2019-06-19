@@ -249,6 +249,7 @@ create or replace function fncommonsenseandproposals(p_sduserid bigint, p_common
   ,phrase text
   ,word varchar(512)
   ,phantom bool
+  ,deletionproposed bool
   ,ownerid bigint
   ,sdusernickname varchar(128)
   ,languageslug text
@@ -262,14 +263,16 @@ begin
 return query(
   select vari.commonid, vari.proposalid, vari.senseid
     ,vari.proposalstatus
-  	,vari.phrase, vari.word, vari.phantom, vari.ownerid, vari.sdusernickname, vari.languageslug
+  	,vari.phrase, vari.word, vari.phantom, vari.deletionproposed 
+    ,vari.ownerid, vari.sdusernickname, vari.languageslug
   	,(explainSenseEssenseVsProposals(p_sduserid,vari.commonid,vari.proposalid,vari.ownerid,false,vari.deletionproposed)).*
     ,(explainCommonAndMine(p_sduserid,vari.commonid,vari.proposalid,vari.ownerid,vari.phantom)).*
   	from vsense_wide as vari where vari.originid = p_commonid and not vari.phantom
 	union all 
   	select s.commonid, s.proposalid, s.senseid
     ,cast('n/a' as enum_proposalstatus)
-  	,s.phrase, s.word, s.phantom, cast(0 as bigint) as ownerid, '<common>' as sdusernickname, s.languageslug
+  	,s.phrase, s.word, s.phantom, false as deletionproposed
+    ,cast(0 as bigint) as ownerid, '<common>' as sdusernickname, s.languageslug
   	,(explainSenseEssenseVsProposals(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.phantom,false)).*
     ,(explainCommonAndMine(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.phantom)).*
   	from vsense_wide s where id = p_commonid
@@ -285,6 +288,7 @@ create or replace function fnproposalandcommonsenseforproposalacceptorreject(p_s
   ,phrase text
   ,word varchar(512)
   ,phantom bool
+  ,deletionproposed bool
   ,ownerid bigint
   ,sdusernickname varchar(128)
   ,languageslug text
@@ -300,14 +304,16 @@ select vari.commonid from vsense_wide as vari where vari.proposalid = p_proposal
 return query(
   select vari.commonid, vari.proposalid, vari.senseid
     ,vari.proposalstatus
-  	,vari.phrase, vari.word, vari.phantom, vari.ownerid, vari.sdusernickname, vari.languageslug
+  	,vari.phrase, vari.word, vari.phantom, vari.deletionproposed
+    ,vari.ownerid, vari.sdusernickname, vari.languageslug
   	,(explainSenseEssenseVsProposals(p_sduserid,vari.commonid,vari.proposalid,vari.ownerid,false,vari.deletionproposed)).*
     ,(explainCommonAndMine(p_sduserid,vari.commonid,vari.proposalid,vari.ownerid,false)).*
   	from vsense_wide as vari where vari.proposalid = p_proposalid and not vari.phantom
 	union all 
   	select s.commonid, s.proposalid, s.senseid
     ,cast('n/a' as enum_proposalstatus)
-  	,s.phrase, s.word, s.phantom, cast(0 as bigint) as ownerid, '<common>' as sdusernickname, s.languageslug
+  	,s.phrase, s.word, s.phantom, false as deletionproposed
+    ,cast(0 as bigint) as ownerid, '<common>' as sdusernickname, s.languageslug
   	,(explainSenseEssenseVsProposals(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.phantom,false)).*
     ,(explainCommonAndMine(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.phantom)).*
   	from vsense_wide s where id = v_commonid
@@ -323,7 +329,8 @@ create or replace function fnlanguageproposals(p_sduserid bigint, p_commonid big
   ,proposalstatus enum_proposalstatus
   ,phrasecommon text
   ,word varchar(512)
-  ,phantom bool
+  ,phantom bool 
+  ,deletionproposed bool
   ,ownerid bigint
   ,sdusernickname varchar(128)
   ,languageslug text
@@ -337,14 +344,16 @@ begin
 return query(
   select vari.commonid, vari.proposalid, vari.senseid
     ,vari.proposalstatus
-  	,vari.phrase, vari.word, vari.phantom, vari.ownerid, vari.sdusernickname, vari.languageslug
+  	,vari.phrase, vari.word, false as phantom, vari.deletionproposed 
+    ,vari.ownerid, vari.sdusernickname, vari.languageslug
   	,(explainSenseEssenseVsProposals(p_sduserid,vari.commonid,vari.proposalid,vari.ownerid,false,vari.deletionproposed)).*
     ,(explainCommonAndMine(p_sduserid,vari.commonid,vari.proposalid,vari.ownerid,vari.phantom)).*
   	from vsense_wide as vari where vari.originid = p_commonid and not vari.phantom 
 	union all 
   	select s.commonid, s.proposalid, s.senseid
     ,cast('n/a' as enum_proposalstatus)
-  	,s.phrase, s.word, s.phantom, cast(0 as bigint) as ownerid, '<common>' as sdusernickname, s.languageslug
+  	,s.phrase, s.word, s.phantom, false as deletionproposed
+    ,cast(0 as bigint) as ownerid, '<common>' as sdusernickname, s.languageslug
   	,(explainSenseEssenseVsProposals(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.phantom,false)).*
     ,(explainCommonAndMine(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.phantom)).*
   	from vsense_wide s where id = p_commonid
@@ -363,6 +372,7 @@ returns table (commonid bigint
   ,phrase text
   ,word varchar(512)
   ,phantom bool
+  ,deletionproposed bool
   ,sdusernickname varchar(256)
   ,languageslug text
   ,commonorproposal varchar(128)
@@ -377,7 +387,7 @@ language plpgsql as $$
       -- ops is a proposal or a common sense. s is the same
       select s.commonid, s.proposalid, s.senseid
         ,s.proposalstatus
-        ,s.phrase, s.word, s.phantom 
+        ,s.phrase, s.word, s.phantom, s.deletionproposed
         ,s.sdusernickname
         ,s.languageslug
         ,(explainSenseEssenseVsProposals(p_sduserid, s.commonid, s.proposalid, s.ownerid, s.phantom, ops.r_deletionproposed)).*
@@ -390,7 +400,7 @@ language plpgsql as $$
     return query(
       select s.commonid, s.proposalid, s.senseid
         ,s.proposalstatus
-        ,s.phrase, s.word, s.phantom 
+        ,s.phrase, s.word, s.phantom, s.deletionproposed
         ,s.sdusernickname
         ,s.languageslug
         ,(explainSenseEssenseVsProposals(p_sduserid, s.commonid, s.proposalid, s.ownerid, s.phantom, s.deletionproposed)).*
