@@ -22,15 +22,15 @@ func RegistrationFormPageHandler(c *gin.Context) {
 		shared.GeneralTemplateParams{Message: "Search Form"})
 }
 
-// RegistrationFormSubmitPostHandler processes a registrationformsubmit form post request
-func RegistrationFormSubmitPostHandler(c *gin.Context) {
+// RegistrationSubmitPostHandler processes a registrationsubmit form post request
+func RegistrationSubmitPostHandler(c *gin.Context) {
 	EnsureNotLoggedIn(c)
 	var rd RegistrationData
 	rd.Nickname = c.PostForm("nickname")
 	rd.Registrationemail = c.PostForm("registrationemail")
 	rd.Password1 = c.PostForm("password1")
 	rd.Password2 = c.PostForm("password2")
-	appErr := doRegistrationFormSubmit(c, &rd)
+	appErr := doRegistrationSubmit(c, &rd)
 	if appErr == nil {
 		c.HTML(http.StatusOK,
 			"general.t.html",
@@ -43,9 +43,9 @@ func RegistrationFormSubmitPostHandler(c *gin.Context) {
 	}
 }
 
-func doRegistrationFormSubmit(c *gin.Context, rd *RegistrationData) (apperr *apperror.AppErr) {
+func doRegistrationSubmit(c *gin.Context, rd *RegistrationData) (apperr *apperror.AppErr) {
 	validateRegistrationData(rd)
-	apperr = processRegistrationFormSubmitWithDb(rd)
+	apperr = processRegistrationSubmitWithDb(rd)
 	if apperr == nil {
 		// sendConfirmationEmail only produces 500 in case of failure
 		sendConfirmationEmail(c, rd)
@@ -134,9 +134,9 @@ func deleteExpiredRegistrationAttempts(trans *sddb.TransactionType) error {
 	return nil
 }
 
-// processRegistrationFormSubmitWithDb inserts a registration attempt into sdusers_db
+// processRegistrationSubmitWithDb inserts a registration attempt into sdusers_db
 // If some "normal" error happens like non-unique nickname, it is returned in dberror.
-func processRegistrationFormSubmitWithDb(rd *RegistrationData) *apperror.AppErr {
+func processRegistrationSubmitWithDb(rd *RegistrationData) *apperror.AppErr {
 
 	err := sddb.WithTransaction(deleteExpiredRegistrationAttempts)
 	sddb.FatalDatabaseErrorIf(err,
@@ -169,6 +169,6 @@ func handleRegistrationAttemptInsertError(err error) *apperror.AppErr {
 			}
 		}
 	}
-	sddb.FatalDatabaseErrorIf(err, "Unexpected error in the registrationformsubmit, %#v\n", err)
+	sddb.FatalDatabaseErrorIf(err, "Unexpected error in the registrationsubmit, %#v\n", err)
 	return nil
 }

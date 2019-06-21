@@ -15,7 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type articlePostDataType struct {
+type senseEditSubmitDataType struct {
 	Proposalid       int64 // must be here
 	Commonid         int64 // can be 0 if no origin (adding proposal)
 	Languageid       int32
@@ -27,10 +27,10 @@ type articlePostDataType struct {
 	Ownerid          int32
 }
 
-// SenseEditFormSubmitPostHandler posts an sense data
-func SenseEditFormSubmitPostHandler(c *gin.Context) {
+// SenseEditSubmitPostHandler posts an sense data
+func SenseEditSubmitPostHandler(c *gin.Context) {
 	user.EnsureLoggedIn(c)
-	pad := &articlePostDataType{}
+	pad := &senseEditSubmitDataType{}
 	extractDataFromRequest(c, pad)
 	sanitizeData(pad)
 	newProposalId := writeToDb(pad)
@@ -39,7 +39,7 @@ func SenseEditFormSubmitPostHandler(c *gin.Context) {
 		"/sensebyidview/"+strconv.FormatInt(newProposalId, 10))
 }
 
-func sanitizeData(pad *articlePostDataType) {
+func sanitizeData(pad *senseEditSubmitDataType) {
 	// example just from the title page of https://github.com/microcosm-cc/bluemonday
 	p := bluemonday.UGCPolicy()
 	pad.Proposalstatus = p.Sanitize(pad.Proposalstatus)
@@ -66,7 +66,7 @@ func extractIdFromRequest(c *gin.Context, paramName string) (id int64) {
 	return
 }
 
-func extractDataFromRequest(c *gin.Context, pad *articlePostDataType) {
+func extractDataFromRequest(c *gin.Context, pad *senseEditSubmitDataType) {
 	pad.Proposalid = extractIdFromRequest(c, "proposalid")
 	pad.Commonid = extractIdFromRequest(c, "commonid")
 	pad.Proposalstatus = c.PostForm("proposalstatus")
@@ -75,7 +75,7 @@ func extractDataFromRequest(c *gin.Context, pad *articlePostDataType) {
 	pad.Ownerid = user.GetSDUserIdOrZero(c)
 }
 
-func writeToDb(pad *articlePostDataType) (newProposalid int64) {
+func writeToDb(pad *senseEditSubmitDataType) (newProposalid int64) {
 	res, err1 := sddb.NamedUpdateQuery(
 		`select fnsavepersonalsense(:ownerid, :commonid, :proposalid, :proposalstatus, :phrase, :word, false)`, pad)
 	apperror.Panic500AndErrorIf(err1, "Failed to update a sense")

@@ -2,7 +2,7 @@ package user
 
 import "time"
 
-// RegistrationData is a transient struct containing data obtained from a /registrationformsubmit query
+// RegistrationData is a transient struct containing data obtained from a /registrationsubmit query
 // as well as some of calculated data
 type RegistrationData struct {
 	Nickname          string

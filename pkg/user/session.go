@@ -114,8 +114,8 @@ func getAndValidateToken(c *gin.Context) (tokenPresent, tokenValid bool, sduseri
 	return
 }
 
-// LoginFormSubmitPostHandler handles login route
-func LoginFormSubmitPostHandler(c *gin.Context) {
+// LoginSubmitPostHandler handles login route
+func LoginSubmitPostHandler(c *gin.Context) {
 	// We could check that user is not yet logged in, but we won't do
 	// Obtain the POSTed username and password values
 	nickname := c.PostForm("nickname")

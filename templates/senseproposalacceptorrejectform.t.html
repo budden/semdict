@@ -18,7 +18,8 @@
                 {{ else }} <i>Phrase didn't change</i>
                 {{ end }}
             &VerticalBar; <i>Status:</i> .Sdfe.Proposalstatus </p> 
-            <form class="form" action="/senseacceptorreject" method="POST">
+            <form class="form" action="/senseproposalacceptorrejectsubmit" method="POST">
+             <input type="text" class="form-control" id="proposalid" name="proposalid" value="{{.Data.Proposalid}}" readonly>
              <div class="form-group">
                <label for="proposalstatus">Accept the proposal?</label>
                <select id="proposalstatus" name="proposalstatus" value="Accept">

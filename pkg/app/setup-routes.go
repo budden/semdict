@@ -16,20 +16,22 @@ func setupRoutes(engine *gin.Engine) {
 	// FIXME add reference from proposal to the origin
 	engine.GET("/sensebyidview/:senseid", query.SenseByIdViewDirHandler)
 	engine.GET("/senseproposalacceptorreject/:proposalid", query.SenseProposalAcceptOrRejectDirHandler)
+	engine.POST("/senseproposalacceptorrejectsubmit", query.SenseProposalAcceptOrRejectSubmitPostHandler)
+
 	engine.GET("/sensebycommonidview/:commonid", query.SenseByCommonidViewDirHandler)
 	engine.GET("/senseedit/:commonid/:proposalid", query.SenseEditDirHandler)
 	engine.POST("/senseproposaldelete/:proposalid", query.SenseProposalDeleteRequestHandler)
 	engine.POST("/senseproposaladdform", query.SenseProposalAddFormPageHandler)
 
 	engine.GET("/registrationform", user.RegistrationFormPageHandler)
-	engine.POST("/registrationformsubmit", user.RegistrationFormSubmitPostHandler)
+	engine.POST("/registrationsubmit", user.RegistrationSubmitPostHandler)
 	engine.GET("/registrationconfirmation", user.RegistrationConfirmationPageHandler)
 
 	engine.GET("/loginform", user.LoginFormPageHandler)
-	engine.POST("/loginformsubmit", user.LoginFormSubmitPostHandler) // FIXME rename handler
+	engine.POST("/loginsubmit", user.LoginSubmitPostHandler) // FIXME rename handler
 	engine.GET("/logout", user.Logout)
 	engine.Static("/static", *TemplateBaseDir+"static")
 
-	engine.POST("/senseeditformsubmit", query.SenseEditFormSubmitPostHandler)
+	engine.POST("/senseeditsubmit", query.SenseEditSubmitPostHandler)
 	engine.GET("/senseproposalslistform/:commonid", query.SenseAndProposalsListFormRouteHandler)
 }
