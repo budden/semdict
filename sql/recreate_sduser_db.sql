@@ -12,7 +12,10 @@ CREATE DATABASE sduser_db;
 \i :thisdir/sql/mutex.sql
 \i :thisdir/sql/user_registration_session.sql
 \i :thisdir/sql/language_and_sense_tbl.sql
+\i :thisdir/sql/language_and_sense_view_1.sql
 \i :thisdir/sql/language_and_sense_fn.sql
+\i :thisdir/sql/senseProposalAcceptOrReject_fn.sql
+\i :thisdir/sql/language_and_sense_test.sql
 \i :thisdir/sql/privilege.sql
 
 \echo *** recreate_sduser_db.sql Done

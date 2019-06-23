@@ -53,7 +53,7 @@ create or replace function get_language_slug(p_languageid int) returns text
   end;
 $$;
 
-CREATE TYPE enum_proposalstatus AS ENUM ('draft', 'proposal', 'n/a');
+CREATE TYPE enum_proposalstatus AS ENUM ('draft', 'proposal', 'rejected', 'n/a');
 
 create table tsense (
   id serial primary KEY,
