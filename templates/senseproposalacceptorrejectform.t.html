@@ -21,10 +21,10 @@
             <form class="form" action="/senseproposalacceptorrejectsubmit" method="POST">
              <input type="text" class="form-control" id="proposalid" name="proposalid" value="{{.Data.Proposalid}}" readonly>
              <div class="form-group">
-               <label for="proposalstatus">Accept the proposal?</label>
-               <select id="proposalstatus" name="proposalstatus" value="Accept">
-                 <option value="Accept">Accept</option>
-                 <option value="Decline">Decline</option>
+               <label for="acceptorreject">What is your decision?</label>
+               <select id="acceptorreject" name="acceptorreject" value="1">
+                 <option value="1">Accept</option>
+                 <option value="2">Reject</option>
                </select></div>
              <button type="submit" class="btn btn-primary">Do</button>
             </form>
