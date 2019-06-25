@@ -44,6 +44,29 @@ return query(
 	order by iscommon desc); end;
 $$;
 
+/* fnRejectSenseProposal rejects a sense proposal and enqueues an email */
+create or replace function fnrejectsenseproposal(
+  p_sduserid bigint, p_proposalid bigint, msg text)
+  returns table (r_commonid bigint) 
+  language plpgsql as $$
+    declare email_topic text;
+    declare email_text text;
+    declare email_hyperlink text;
+    declare v_row_count int;
+  begin
+  update tsense set proposalstatus = 'rejected' 
+    where id = p_proposalid;
+  get diagnostics v_row_count = row_count;
+  if v_row_count != 1 then
+    raise exception 'expected to update just one record, which didn''t happen'; end if; 
+  email_topic = format('Proposal %d rejected',p_proposalid);
+  email_text = format('Proposal %d is rejected. Reason: «%s»',p_proposalid,msg);
+  email_hyperlink = format('/sensebyidview/%d',p_proposalid);
+  -- queue_mail (оно должно упасть при ошибке)
+  return query(select p_proposalid); 
+  return; end;
+$$;
+
 /* fnAcceptOrRejectSenseProposal merges the proposal into the language
   or rejects it. Arguments:
   p_acceptorreject = 1 for accept, 2 for reject
@@ -57,7 +80,7 @@ $$;
 -- Продолжать реализацию слияния смыслов
 --  сделать удаление и добавление смысла. Сразу историю?
 create or replace function fnacceptorrejectsenseproposal(
-    p_sduserid bigint, p_proposalid bigint, p_acceptorreject bigint)
+    p_sduserid bigint, p_proposalid bigint, p_acceptorreject bigint, msg text)
   returns table (r_commonid bigint)
   language plpgsql as $$
   declare v_common_phantom bool;
@@ -83,21 +106,37 @@ create or replace function fnacceptorrejectsenseproposal(
     select languageid, phantom from tsense 
       where id=v_commonid 
       into v_common_languageid, v_common_phantom;
-      get diagnostics v_row_count = row_count;
-      if v_row_count != 1 then
-        raise exception 'invalid proposal (common sense is missing)'; end if; 
-      if coalesce(v_languageid,0) <> coalesce(v_common_languageid,0) then
-        raise exception 'invalid proposal (language mismatch)'; end if; end if;
+    get diagnostics v_row_count = row_count;
+    if v_row_count != 1 then
+      raise exception 'invalid proposal (common sense is missing)'; end if; 
+    if coalesce(v_languageid,0) <> coalesce(v_common_languageid,0) then
+      raise exception 'invalid proposal (language mismatch)'; end if; end if;
   select result from isuserhavelanguageprivilege(p_sduserit
     ,4/*'Accept/decline change requests'*/, v_languageid) into v_have_privilege;
   if not v_have_privilege then
     raise exception 'sorry, you have no right to act on this proposal'; end if;
   -- если отказ, то поменять статус и выйти.
+  if p_acceptorreject = 2 then
+    return query(select fnrejectproposal(p_sduserid, p_proposalid, msg)); return; end if;
   -- если уже удалено и хотим удалить, то отказываем
+  if v_phantom and v_deletionproposed then 
+    raise exception 'you can not accept a deletion proposal for an already deleted record'; 
+    end if;
   -- если уже удалено и хотим поменять, то восстанавливаем
-  -- если добавление, то добавляем
   -- если правка, то правим. 
-  return query(select cast(0 as bigint));
+  if v_commonid is not null then
+    update tsense set phantom = false
+    ,originid = null 
+    where id = v_commonid;
+    get diagnostics v_row_count = row_count;
+    if v_row_count != 1 then
+      raise exception 'failed to update a proposal'; end if; 
+    -- email отправить про успех
+    return query(select p_proposalid); return; end if;
+
+  -- если добавление, то добавляем
+  return query(select cast(0 as bigint)); return; end; 
+$$;
 
 /*  p_commonid = coalesce(p_commonid,0);
   if coalesce(p_proposalstatus,'n/a') = 'n/a' then
@@ -131,7 +170,6 @@ create or replace function fnacceptorrejectsenseproposal(
   get diagnostics update_count = row_count;
   if update_count != 1 then
     raise exception 'expected to update just one record, which didn''t hapen'; end if;
-  return query(select v_proposalid); */ return; end; 
-$$;
+  return query(select v_proposalid); */ 
 
 \echo *** senseProposalAcceptOrReject_fn.sql Done
