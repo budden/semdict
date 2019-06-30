@@ -4,6 +4,7 @@
 --*/ 
 
 -- fnProposalAndCommonSenseForProposalAcceptOrReject
+-- Common sense, if present, goes first. Then the proposal. 
 create or replace function fnproposalandcommonsenseforproposalacceptorreject(p_sduserid bigint, p_proposalid bigint)
   returns table (commonid bigint
   ,proposalid bigint
@@ -95,12 +96,12 @@ create or replace function fnacceptorrejectsenseproposal(
   begin
   p_proposalid = coalesce(p_proposalid,0);
   lock table themutex;
-  select languageid, phantom, deletionproposed, originid 
+  select languageid, deletionproposed, originid 
     from tsense where id=p_proposalid 
     into v_languageid, v_deletionproposed, v_commonid;
   get diagnostics v_row_count = row_count;
   if v_row_count != 1 then
-    raise exception 'invalid p_proposalid'; end if;
+    raise exception 'invalid p_proposalid (not found)'; end if;
   -- Check correctness and privileges
   if v_commonid is not null then
     select languageid, phantom from tsense 
@@ -111,7 +112,7 @@ create or replace function fnacceptorrejectsenseproposal(
       raise exception 'invalid proposal (common sense is missing)'; end if; 
     if coalesce(v_languageid,0) <> coalesce(v_common_languageid,0) then
       raise exception 'invalid proposal (language mismatch)'; end if; end if;
-  select result from isuserhavelanguageprivilege(p_sduserit
+  select result from isuserhavelanguageprivilege(p_sduserid
     ,4/*'Accept/decline change requests'*/, v_languageid) into v_have_privilege;
   if not v_have_privilege then
     raise exception 'sorry, you have no right to act on this proposal'; end if;
@@ -119,7 +120,7 @@ create or replace function fnacceptorrejectsenseproposal(
   if p_acceptorreject = 2 then
     return query(select fnrejectproposal(p_sduserid, p_proposalid, msg)); return; end if;
   -- если уже удалено и хотим удалить, то отказываем
-  if v_phantom and v_deletionproposed then 
+  if v_common_phantom and v_deletionproposed then 
     raise exception 'you can not accept a deletion proposal for an already deleted record'; 
     end if;
   -- если уже удалено и хотим поменять, то восстанавливаем
@@ -130,7 +131,7 @@ create or replace function fnacceptorrejectsenseproposal(
     return; 
   else
     return query(
-      select r_proposalid from fnnewsenseproposalacceptinternal(p_proposalid)); 
+      select r_senseid from fnnewsenseproposalacceptinternal(p_proposalid)); 
     return; end if;
   end;
 $$;
@@ -144,10 +145,10 @@ create or replace function fnoldsenseproposalacceptinternal(p_proposalid bigint,
     ,originid = null
     ,word = proposal.word
     ,phrase = proposal.phrase
-    ,ownerid = proposal.ownerid
+    ,ownerid = null
     from (select word, phrase, ownerid from tsense 
       where id = p_proposalid) as proposal
-    where id = v_commonid;
+    where id = p_commonid;
   get diagnostics v_row_count = row_count;
   if v_row_count != 1 then
     raise exception 'failed to update a sense from proposal'; end if;
@@ -156,41 +157,25 @@ create or replace function fnoldsenseproposalacceptinternal(p_proposalid bigint,
   if v_row_count != 1 then
     raise exception 'failed to delete a proposal'; end if;
   -- email отправить про успех
+  return query(select p_commonid); return; end; 
+$$;
+
+create or replace function fnnewsenseproposalacceptinternal(p_proposalid bigint)
+  returns table(r_senseid bigint)
+  language plpgsql as $$
+  declare v_row_count int;
+  begin
+  update tsense set proposalstatus = 'n/a'
+    ,phantom = false
+    ,deletionproposed = false
+    ,originid = null 
+    where id = p_proposalid;
+  get diagnostics v_row_count = row_count;
+  if v_row_count != 1 then
+    raise exception 'failed to accept a proposal'; end if;
+  -- email отправить про успех
   return query(select p_proposalid); return; end; 
 $$;
 
-/*  p_commonid = coalesce(p_commonid,0);
-  if coalesce(p_proposalstatus,'n/a') = 'n/a' then
-    raise exception 'proposal status must be not null, not "n/a"'; end if;
-  if p_evenifidentical then
-    raise exception 'invalid parameter p_evenifidentical'; end if;
-  if p_proposalid <> 0 then
-    select originid, phantom 
-      from tsense where id = p_proposalid 
-      into v_commonid, v_phantom;
-    if coalesce(v_commonid, 0) <> p_commonid then
-      raise exception 'origin mismatch'; end if;
-    if exists (select 1 from tsense where 
-        id = v_commonid 
-        and word = p_word 
-        and phrase = p_phrase 
-        and phantom = v_phantom) then
-    -- nothing differs from the official version, delete our proposal
-      delete from tsense where id = p_proposalid;
-      return query(select true); return; end if;
-    v_proposalid = p_proposalid;
-  else -- hence p_proposalid=0
-    select ensuresenseproposal(p_sduserid, p_commonid) into v_proposalid; end if;
-  
-  update tsense set 
-    proposalstatus = p_proposalstatus
-    ,phrase = p_phrase
-    ,word = p_word
-    where id = v_proposalid;
-
-  get diagnostics update_count = row_count;
-  if update_count != 1 then
-    raise exception 'expected to update just one record, which didn''t hapen'; end if;
-  return query(select v_proposalid); */ 
 
 \echo *** senseProposalAcceptOrReject_fn.sql Done

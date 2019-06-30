@@ -67,15 +67,15 @@ language plpgsql strict as $$
 $$;
 
 
-create or replace function isuserhavelanguageprivilege(p_sduserit bigint, p_userlanguageprivilegekindid int, p_languageid int)
+create or replace function isuserhavelanguageprivilege(p_sduserid bigint, p_privilegekindid int, p_languageid int)
 returns table (result bool)
 language plpgsql strict as $$
   BEGIN
-  if exists (select 1 from tuserlanguageprivilege
+  if exists (select 1 from tuserlanguageprivilege ulp
     where 
-    sduserid = p_sduserid 
-    and languageprivilegekindid = p_languageprivilegekindid 
-    and languageid = p_languageid) THEN
+    ulp.sduserid = p_sduserid 
+    and ulp.privilegekindid = p_privilegekindid 
+    and ulp.languageid = p_languageid) THEN
     return query(select true);
   ELSE
     return query(select false);

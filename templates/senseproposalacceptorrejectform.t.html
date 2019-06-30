@@ -11,7 +11,7 @@
         {{ end }}
         <p>Merge {{ .Data.Proposalid }} = &gt; {{  .Data.Commonid }} ?<br>
          <i>Kind of proposal:</i> TODO .Data.Kindofchange 
-         {{ if .Data.Wordchanged }} «{{.Data.Wordold}}» => «{{.Data.Wordnew}}» {{ else }} <i>Word didn't change</i> {{ end }} &VerticalBar;
+         {{ if .Data.Wordchanged }} «{{.Data.Wordold}}» => «{{.Data.Wordnew}}» {{ else }} <i>Word didn't change: «{{.Data.Wordnew}}»</i> {{ end }} &VerticalBar;
                 {{ if .Data.Phrasechanged }} 
                  <p><i>Old phrase:</i> «{{.Data.Phraseold}}»</p><hr>
                  <p><i>New phrase:</i> «{{.Data.Phrasenew}}»</p><hr>

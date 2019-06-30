@@ -64,10 +64,10 @@ func senseProposalAcceptOrRejectCalculateTemplateParams(spaorp *senseProposalAcc
 	if n == 0 {
 		apperror.Panic500AndErrorIf(apperror.ErrDummy, "No proposal with id = %d", spaorp.Proposalid)
 	}
-	p := records[0]
+	p := records[len(records)-1]
 	var o *senseAndProposalsListQueryRecord
 	if n == 2 {
-		o = records[1]
+		o = records[0]
 		spaorhtpi.Commonid = o.Commonid
 		spaorhtpi.Proposalid = p.Proposalid
 		spaorhtpi.Deletionproposed = p.Deletionproposed
