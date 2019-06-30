@@ -125,17 +125,38 @@ create or replace function fnacceptorrejectsenseproposal(
   -- если уже удалено и хотим поменять, то восстанавливаем
   -- если правка, то правим. 
   if v_commonid is not null then
-    update tsense set phantom = false
-    ,originid = null 
-    where id = v_commonid;
-    get diagnostics v_row_count = row_count;
-    if v_row_count != 1 then
-      raise exception 'failed to update a proposal'; end if; 
-    -- email отправить про успех
-    return query(select p_proposalid); return; end if;
+    return query(
+      select r_senseid from fnoldsenseproposalacceptinternal(p_proposalid, v_commonid));
+    return; 
+  else
+    return query(
+      select r_proposalid from fnnewsenseproposalacceptinternal(p_proposalid)); 
+    return; end if;
+  end;
+$$;
 
-  -- если добавление, то добавляем
-  return query(select cast(0 as bigint)); return; end; 
+create or replace function fnoldsenseproposalacceptinternal(p_proposalid bigint, p_commonid bigint)
+  returns table(r_senseid bigint)
+  language plpgsql as $$
+  declare v_row_count int;
+  begin
+  update tsense set phantom = false
+    ,originid = null
+    ,word = proposal.word
+    ,phrase = proposal.phrase
+    ,ownerid = proposal.ownerid
+    from (select word, phrase, ownerid from tsense 
+      where id = p_proposalid) as proposal
+    where id = v_commonid;
+  get diagnostics v_row_count = row_count;
+  if v_row_count != 1 then
+    raise exception 'failed to update a sense from proposal'; end if;
+  delete from tsense where id = p_proposalid;
+  get diagnostics v_row_count = row_count;
+  if v_row_count != 1 then
+    raise exception 'failed to delete a proposal'; end if;
+  -- email отправить про успех
+  return query(select p_proposalid); return; end; 
 $$;
 
 /*  p_commonid = coalesce(p_commonid,0);
