@@ -33,7 +33,7 @@ type wordSearchFormRouteParams struct {
 
 // Это нужно для статической типизации параметров шаблона? Или вообще неyужно?
 type wordSearchFormTemplateParamsType struct {
-	Fd *wordSearchFormDataType
+	Wsfd *wordSearchFormDataType
 }
 
 // WordSearchFormRouteHandler - обработчик для "/wordsearchform". Поддерживается случай, когда форма поиска
@@ -52,7 +52,7 @@ func WordSearchFormRouteHandler(c *gin.Context) {
 	c.HTML(http.StatusOK,
 		// возможно, тут нужна развязка в зависимости от того, открываем ли мы на чтение или на ред-е - разные шаблоны
 		"wordsearchform.t.html",
-		wordSearchFormTemplateParamsType{Fd: fd})
+		wordSearchFormTemplateParamsType{Wsfd: fd})
 }
 
 func readWordSearchFormFromDb(frp *wordSearchFormRouteParams) (fd *wordSearchFormDataType) {
