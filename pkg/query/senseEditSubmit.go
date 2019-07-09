@@ -51,21 +51,6 @@ func sanitizeData(pad *senseEditSubmitDataType) {
 	}
 }
 
-func extractIdFromRequest(c *gin.Context, paramName string) (id int64) {
-	idAsString := c.PostForm(paramName)
-	if idAsString == "" {
-		idAsString = c.Param(paramName)
-	}
-	if idAsString != "" {
-		padID, err := strconv.ParseInt(idAsString, 10, 64)
-		apperror.Panic500AndErrorIf(err, "Wrong "+paramName)
-		id = padID
-	} else {
-		apperror.Panic500AndErrorIf(apperror.ErrDummy, "No "+paramName+" given")
-	}
-	return
-}
-
 func extractDataFromRequest(c *gin.Context, pad *senseEditSubmitDataType) {
 	pad.Proposalid = extractIdFromRequest(c, "proposalid")
 	pad.Commonid = extractIdFromRequest(c, "commonid")

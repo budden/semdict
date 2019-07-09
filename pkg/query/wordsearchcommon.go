@@ -11,6 +11,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+/*  Общая идея - всегда должен быть вот этотworwo
+wordSearchQueryParams, пустой для
+нового запроса и заполненный для формы результата.
+А wordSearchQueryParams вероятно надо упразднить
+и заменить его на wordSearchQueryParams.
+В обработчиках обеих путей экземпляр wordSearchQueryParams
+должен быть под одним именем, скажем, wsqp. или даже прямо
+wordSearchQueryParams.
+
+ещё один вопрос - куда деть нужный javascript.  */
+
 // параметры из URL
 type wordSearchQueryParams struct {
 	Dummyid     int32 // не имеет значения
@@ -37,24 +48,23 @@ type wordSearchQueryRecord struct {
 	Kindofchange     string
 }
 
-func wordSearchCommonPart(c *gin.Context) (frp *wordSearchQueryParams, fd []*wordSearchQueryRecord) {
-	frp = &wordSearchQueryParams{}
+func wordSearchCommonPart(c *gin.Context) (wsqp *wordSearchQueryParams, fd []*wordSearchQueryRecord) {
+	wsqp = getWordSearchQueryParamsFromRequest(c)
 
-	frp.Wordpattern = c.Query("wordpattern")
-	if frp.Wordpattern == "" {
+	if wsqp.Wordpattern == "" {
 		apperror.Panic500AndLogAttackIf(apperror.ErrDummy, c, "Empty search pattern")
 	}
 
-	frp.Offset = int32(GetZeroOrOneNonNegativeIntFormValue(c, "offset"))
-	frp.Limit = int32(GetZeroOrOneNonNegativeIntFormValue(c, "limit"))
-	LimitLimit(&frp.Limit)
-	frp.Sduserid = user.GetSDUserIdOrZero(c)
+	wsqp.Offset = int32(GetZeroOrOneNonNegativeIntFormValue(c, "offset"))
+	wsqp.Limit = int32(GetZeroOrOneNonNegativeIntFormValue(c, "limit"))
+	LimitLimit(&wsqp.Limit)
+	wsqp.Sduserid = user.GetSDUserIdOrZero(c)
 
-	fd = readWordSearchQueryFromDb(frp)
+	fd = readWordSearchQueryFromDb(wsqp)
 	return
 }
 
-func readWordSearchQueryFromDb(frp *wordSearchQueryParams) (
+func readWordSearchQueryFromDb(wsqp *wordSearchQueryParams) (
 	fd []*wordSearchQueryRecord) {
 	var queryText string
 	queryText = `select ts.commonid,	ts.proposalid, ts.senseid
@@ -66,10 +76,10 @@ func readWordSearchQueryFromDb(frp *wordSearchQueryParams) (
 		from fnpersonalsenses(:sduserid) ps 
 		left join vsense_wide ts on coalesce(nullif(ps.r_proposalid,0), ps.r_commonid) = ts.id
 		order by word, languageslug, senseid offset :offset limit :limit`
-	reply, err1 := sddb.NamedReadQuery(queryText, frp)
+	reply, err1 := sddb.NamedReadQuery(queryText, wsqp)
 	apperror.Panic500AndErrorIf(err1, "Db query failed")
 	defer sddb.CloseRows(reply)
-	fd = make([]*wordSearchQueryRecord, frp.Limit)
+	fd = make([]*wordSearchQueryRecord, wsqp.Limit)
 	var last int
 	for last = 0; reply.Next(); last++ {
 		wsqr := &wordSearchQueryRecord{}

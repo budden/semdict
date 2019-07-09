@@ -10,7 +10,7 @@ import (
 
 // Параметры шаблона
 type wordSearchResultFormTemplateParamsType struct {
-	P                     *wordSearchQueryParams
+	Wsqp                  *wordSearchQueryParams
 	Wordpatternurlencoded string
 	Records               []*wordSearchQueryRecord
 	IsLoggedIn            bool
@@ -19,15 +19,15 @@ type wordSearchResultFormTemplateParamsType struct {
 // WordSearchResultRouteHandler - обработчик для "/wordsearchresult". Поддерживается случай, когда форма поиска
 // заполняет через URL... По идее, это - runWrappedSprav - его частный случай
 func WordSearchResultRouteHandler(c *gin.Context) {
-	var frp *wordSearchQueryParams
+	var wsqp *wordSearchQueryParams
 	var fd []*wordSearchQueryRecord
-	frp, fd = wordSearchCommonPart(c)
+	wsqp, fd = wordSearchCommonPart(c)
 
-	wpu := url.QueryEscape(frp.Wordpattern)
+	wpu := url.QueryEscape(wsqp.Wordpattern)
 
 	c.HTML(http.StatusOK,
 		"wordsearchresultform.t.html",
-		wordSearchResultFormTemplateParamsType{P: frp,
+		wordSearchResultFormTemplateParamsType{Wsqp: wsqp,
 			Wordpatternurlencoded: wpu,
 			Records:               fd,
 			IsLoggedIn:            user.IsLoggedIn(c)})

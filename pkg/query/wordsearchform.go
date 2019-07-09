@@ -22,40 +22,34 @@ type wordSearchFormDataType struct {
 	Wordpattern string
 }
 
-// Параметры, которые могут участвовать в маршруте. Например, невидимые поля не могут.
-// А может быть могут быть и параметры такие, как
-// В десктопе аналогом может быть params из runWrappedSprav
-// Интересный вопрос - можно ли передать wrapper через URL? Вообще говоря, wrapper - слишком могущественная вещь
-// для URL-ов.
-type wordSearchFormRouteParams struct {
-	Wordpattern string
-}
-
-// Это нужно для статической типизации параметров шаблона? Или вообще неyужно?
 type wordSearchFormTemplateParamsType struct {
 	Wsfd *wordSearchFormDataType
+	Wsqp *wordSearchQueryParams
+}
+
+func getWordSearchQueryParamsFromRequest(c *gin.Context) (wsqp *wordSearchQueryParams) {
+	wsqp = new(wordSearchQueryParams)
+	wsqp.Wordpattern, _ = c.GetQuery("wordpattern")
+	return
 }
 
 // WordSearchFormRouteHandler - обработчик для "/wordsearchform". Поддерживается случай, когда форма поиска
 // заполняет через URL... По идее, это - runWrappedSprav - его частный случай
 func WordSearchFormRouteHandler(c *gin.Context) {
-	var frp wordSearchFormRouteParams
-
-	// Извлечь параметры из запроса
-	// frp.Id = extractIdFromRequest(c)
+	wsqp := getWordSearchQueryParamsFromRequest(c)
 
 	// Прочитать данные из базы данных. Если нет данных, паниковать
-	fd := readWordSearchFormFromDb(&frp)
+	fd := readWordSearchFormFromDb(wsqp)
 
 	// Здесь мы генерируем интерфейс, заполненный данными (или содержащий функции AJAX для динамического заполнения)
 	// и отправляем клиенту
 	c.HTML(http.StatusOK,
 		// возможно, тут нужна развязка в зависимости от того, открываем ли мы на чтение или на ред-е - разные шаблоны
 		"wordsearchform.t.html",
-		wordSearchFormTemplateParamsType{Wsfd: fd})
+		wordSearchFormTemplateParamsType{Wsfd: fd, Wsqp: wsqp})
 }
 
-func readWordSearchFormFromDb(frp *wordSearchFormRouteParams) (fd *wordSearchFormDataType) {
+func readWordSearchFormFromDb(frp *wordSearchQueryParams) (fd *wordSearchFormDataType) {
 	reply, err1 := sddb.NamedReadQuery(
 		`select 1 as dummyid, cast(:wordpattern as text) as wordpattern`, frp)
 	apperror.Panic500AndErrorIf(err1, "Db query failed")

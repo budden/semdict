@@ -40,3 +40,26 @@ func LimitLimit(limit *int32) {
 		*limit = MaxDataSetRecordCountLimit
 	}
 }
+
+func extractIdFromRequest(c *gin.Context, paramName string) (id int64) {
+	idAsString := c.PostForm(paramName)
+	if idAsString == "" {
+		idAsString = c.Param(paramName)
+	}
+	if idAsString != "" {
+		padID, err := strconv.ParseInt(idAsString, 10, 64)
+		apperror.Panic500AndErrorIf(err, "Wrong "+paramName)
+		id = padID
+	} else {
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "No "+paramName+" given")
+	}
+	return
+}
+
+func extractStringFromRequest(c *gin.Context, paramName string) (res string, found bool) {
+	res, found = c.GetPostForm(paramName)
+	if !found {
+		res, found = c.Params.Get(paramName)
+	}
+	return
+}
