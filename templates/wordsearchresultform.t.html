@@ -7,6 +7,7 @@
 
 <body>
     <p><a href="menu">Menu</a></p>
+    {{ template "wordsearchform-inner.t.html" . }}
     <p>Word search results: «{{.Wsqp.Wordpattern}}»</p>
     {{if .IsLoggedIn}}
     <form class="form" action="/senseproposaladdform?wordpattern={{.Wsqp.Wordpattern}}" method="POST">
@@ -36,5 +37,7 @@
     {{end}}
 
 </body>
-
+{{ template "jquery.t.html" }}
+{{ template "bootstrap.t.html" }}
+{{ template "expandable-details-script.t.html" }}
 </html>

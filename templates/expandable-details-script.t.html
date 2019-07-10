@@ -1,0 +1,11 @@
+<script>
+  // вынести это тоже в отдельный шаблон, параметром к-рого является имя функции и id изменяемого треугольника (назвать его как-то)
+  // вставить шаблон в обе формы и проверить, что выпадение списка работает. 
+  // далее сделать форму параметрически только для чтения и сделать кнопку "новый запрос"
+jQuery(function setupGlyphIcon($) {
+ function toggleIt(e) {
+  $(e.target).prev().toggleClass('active inactive').find('.glyphicon').toggleClass('glyphicon-chevron-down glyphicon-chevron-up');
+ }
+ $('#advanced').on('show.bs.collapse', toggleIt)
+ $('#advanced').on('hide.bs.collapse', toggleIt)
+});</script>

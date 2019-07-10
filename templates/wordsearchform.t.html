@@ -10,14 +10,7 @@
  {{ template "wordsearchform-inner.t.html" . }}
 </body>
 
-<script src="/static/js/jquery-2.1.1.min.js"></script>
-<script src="/static/bootstrap-3.3.2/js/bootstrap.js"></script>
-<script>
-jQuery(function setUpAdvancedPanelEvents($) {
- function toggleIt(e) {
-  $(e.target).prev().toggleClass('active inactive').find('.glyphicon').toggleClass('glyphicon-chevron-down glyphicon-chevron-up');
- }
- $('#advanced').on('show.bs.collapse', toggleIt)
- $('#advanced').on('hide.bs.collapse', toggleIt)
-});</script>
+{{ template "jquery.t.html" }}
+{{ template "bootstrap.t.html" }}
+{{ template "expandable-details-script.t.html" }}
 </html>

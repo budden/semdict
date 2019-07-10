@@ -27,26 +27,26 @@ type wordSearchFormTemplateParamsType struct {
 	Wsqp *wordSearchQueryParams
 }
 
-func getWordSearchQueryParamsFromRequest(c *gin.Context) (wsqp *wordSearchQueryParams) {
-	wsqp = new(wordSearchQueryParams)
-	wsqp.Wordpattern, _ = c.GetQuery("wordpattern")
-	return
-}
-
 // WordSearchFormRouteHandler - обработчик для "/wordsearchform". Поддерживается случай, когда форма поиска
 // заполняет через URL... По идее, это - runWrappedSprav - его частный случай
 func WordSearchFormRouteHandler(c *gin.Context) {
 	wsqp := getWordSearchQueryParamsFromRequest(c)
 
 	// Прочитать данные из базы данных. Если нет данных, паниковать
-	fd := readWordSearchFormFromDb(wsqp)
+	wsfd := readWordSearchFormFromDb(wsqp)
 
 	// Здесь мы генерируем интерфейс, заполненный данными (или содержащий функции AJAX для динамического заполнения)
 	// и отправляем клиенту
 	c.HTML(http.StatusOK,
 		// возможно, тут нужна развязка в зависимости от того, открываем ли мы на чтение или на ред-е - разные шаблоны
 		"wordsearchform.t.html",
-		wordSearchFormTemplateParamsType{Wsfd: fd, Wsqp: wsqp})
+		wordSearchFormTemplateParamsType{Wsfd: wsfd, Wsqp: wsqp})
+}
+
+func getWordSearchQueryParamsFromRequest(c *gin.Context) (wsqp *wordSearchQueryParams) {
+	wsqp = new(wordSearchQueryParams)
+	wsqp.Wordpattern, _ = c.GetQuery("wordpattern")
+	return
 }
 
 func readWordSearchFormFromDb(frp *wordSearchQueryParams) (fd *wordSearchFormDataType) {
