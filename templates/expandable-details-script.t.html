@@ -6,6 +6,6 @@ jQuery(function setupGlyphIcon($) {
  function toggleIt(e) {
   $(e.target).prev().toggleClass('active inactive').find('.glyphicon').toggleClass('glyphicon-chevron-down glyphicon-chevron-up');
  }
- $('#advanced').on('show.bs.collapse', toggleIt)
- $('#advanced').on('hide.bs.collapse', toggleIt)
+ $("{{.}}").on('show.bs.collapse', toggleIt)
+ $("{{.}}").on('hide.bs.collapse', toggleIt)
 });</script>
