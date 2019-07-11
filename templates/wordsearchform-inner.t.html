@@ -33,7 +33,7 @@
             </select></div>
           <div class="form-check">
               <label class="form-check-label" for="showphantoms">Show deleted records</label>
-              <input type="checkbox" class="form-check-input" id="showphantoms">
+              <input type="checkbox" class="form-check-input" id="showphantoms" name="showphantoms" {{if .Wsqp.Showphantoms}}checked{{end}}>
           </div>
         </div>
       </div>
@@ -42,3 +42,5 @@
   <div class="form-group">
     <button type="submit" class="btn btn-primary">Search</button></div>
 </form>
+
+

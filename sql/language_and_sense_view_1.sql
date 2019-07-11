@@ -65,7 +65,7 @@ create or replace view vsense_wide as select s.*
 -- fnPersonalSenses returns all personal senses for the user. If the user is 0 or null,
 -- then common senses are returned as well as unparallel personal
 -- to copy-paste or complicate this one to have a good select plan for searches.
-create or replace function fnpersonalsenses(p_sduserid bigint) 
+create or replace function fnpersonalsenses(p_sduserid bigint,p_showphantoms bool) 
   returns table(r_commonid bigint, r_proposalid bigint, r_proposalstatus enum_proposalstatus, r_countofproposals bigint, r_addedbyme bool)
   language plpgsql as $$
   begin
@@ -76,7 +76,8 @@ create or replace function fnpersonalsenses(p_sduserid bigint)
       ,'n/a' as r_proposalstatus
       ,(select count(1) from tsense varic where varic.originid = orig.id) as r_countofproposals
       ,false as r_addedbyme
-      from tsense orig where orig.originid is null and orig.ownerid is null); 
+      from tsense orig where orig.originid is null and orig.ownerid is null
+      and (p_showphantoms or not orig.phantom)); 
   else
     return query(
       select cast(orig.id as bigint) as r_commonid
@@ -86,8 +87,8 @@ create or replace function fnpersonalsenses(p_sduserid bigint)
       ,case when orig.ownerid = p_sduserid then true else false end as r_addedbyme
       from tsense orig 
       left join tsense vari 
-      on orig.id = vari.originid and vari.ownerid = p_sduserid and not vari.phantom 
-      where orig.originid is null); end if; end;
+      on orig.id = vari.originid and vari.ownerid = p_sduserid  
+      where orig.originid is null and (p_showphantoms or not orig.phantom)); end if; end;
 $$;
 
 \echo *** language_and_sense_view_1.sql Done

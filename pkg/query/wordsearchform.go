@@ -46,6 +46,14 @@ func WordSearchFormRouteHandler(c *gin.Context) {
 func getWordSearchQueryParamsFromRequest(c *gin.Context) (wsqp *wordSearchQueryParams) {
 	wsqp = new(wordSearchQueryParams)
 	wsqp.Wordpattern, _ = c.GetQuery("wordpattern")
+	showphantomsText, _ := c.GetQuery("showphantoms")
+	if showphantomsText == "on" {
+		wsqp.Showphantoms = true
+	} else if showphantomsText == "off" || showphantomsText == "" {
+		// it is false already
+	} else {
+		apperror.Panic500If(apperror.ErrDummy, "Bad «showphantoms» value")
+	}
 	return
 }
 

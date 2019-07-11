@@ -20,11 +20,14 @@ import (
 
 // параметры из URL
 type wordSearchQueryParams struct {
-	Dummyid     int32 // не имеет значения
-	Wordpattern string
-	Sduserid    int32 // 0 для незарег. польз.
-	Offset      int32
-	Limit       int32 // 0 - значит «без ограничения»
+	Dummyid      int32 // не имеет значения
+	Wordpattern  string
+	Languageid   int64 // 0 значит «все»
+	Showphantoms bool
+	// Эти поля не вводятся пользователем
+	Sduserid int32 // 0 для незарег. польз.
+	Offset   int32
+	Limit    int32 // 0 - значит «без ограничения»
 }
 
 type wordSearchQueryRecord struct {
@@ -32,9 +35,10 @@ type wordSearchQueryRecord struct {
 	Proposalid     int64
 	Senseid        int64
 	Proposalstatus string
-	Languageid     int32
+	Languageid     int64
 	Languageslug   string
 	Sdusernickname sql.NullString
+	Phantom        bool
 	Phrase         string
 	Word           string
 	// Proposalid       sql.NullInt64 // is non-null when this record is a proposal.
@@ -68,8 +72,9 @@ func readWordSearchQueryFromDb(wsqp *wordSearchQueryParams) (
 		,ts.languageid, ts.languageslug, ts.word, ts.phrase
 		,ps.r_countofproposals as countofproposals
 		,ts.sdusernickname
+		,ts.phantom
 		,(explainSenseEssenseVsProposals(:sduserid, ts.commonid, ts.proposalid, ts.ownerid, ts.phantom, ts.deletionproposed)).*
-		from fnpersonalsenses(:sduserid) ps 
+		from fnpersonalsenses(:sduserid,:showphantoms) ps 
 		left join vsense_wide ts on coalesce(nullif(ps.r_proposalid,0), ps.r_commonid) = ts.id
 		order by word, languageslug, senseid offset :offset limit :limit`
 	reply, err1 := sddb.NamedReadQuery(queryText, wsqp)
