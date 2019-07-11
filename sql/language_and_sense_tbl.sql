@@ -93,5 +93,9 @@ insert into tsense (languageid, phrase, word)
   VALUES
   (1,'Язык программирования, созданный google в 2000-х годах','go');
 
+insert into tsense (languageid, phrase, word,phantom)
+  VALUES
+  (1,'Эта запись удалена','go',true);
+
 
 \echo *** language_and_sense_tbl.sql Done
