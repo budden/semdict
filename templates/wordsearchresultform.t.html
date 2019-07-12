@@ -17,7 +17,9 @@
     <p></p>
     {{range $index, $wordSearchQueryRecord := .Records}}
     <hr>
-    <p><i>Common Id:</i>
+    <p><i>{{if or $wordSearchQueryRecord.Phantom $wordSearchQueryRecord.Deletionproposed}}<del>{{end}}
+        Common Id{{if $wordSearchQueryRecord.Phantom}}</del>(DELETED){{end}}
+        {{if $wordSearchQueryRecord.Deletionproposed}}</del>(DELETION PROPOSED){{end}}:</i>
         {{if eq $wordSearchQueryRecord.Commonid 0 }}
             -
         {{else}}
@@ -32,7 +34,7 @@
         &VerticalBar; <i>Language</i>: {{ $wordSearchQueryRecord.Languageslug }}
         {{if gt $wordSearchQueryRecord.Countofproposals 0}}
             &VerticalBar; <a href=/senseproposalslistform/{{ $wordSearchQueryRecord.Commonid }}>{{ $wordSearchQueryRecord.Countofproposals }} proposals</a>{{end}}
-        <p><b>{{if $wordSearchQueryRecord.Phantom}}<del>{{end}}{{ $wordSearchQueryRecord.Word }}{{if $wordSearchQueryRecord.Phantom}}</del>(DELETED){{end}}</b>
+        <p><b>{{ $wordSearchQueryRecord.Word }}</b>
         &VerticalBar; <i>Phrase:</i>{{ castAsHTML $wordSearchQueryRecord.Phrase }}</p>
     {{end}}
 

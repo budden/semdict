@@ -23,7 +23,7 @@ type senseEditSubmitDataType struct {
 	Phrase           string
 	Word             string
 	Phantom          bool // Does it make sense?
-	Deletionproposed bool // Not used! FIXME
+	Deletionproposed bool
 	Ownerid          int32
 }
 
@@ -57,12 +57,13 @@ func extractDataFromRequest(c *gin.Context, pad *senseEditSubmitDataType) {
 	pad.Proposalstatus = c.PostForm("proposalstatus")
 	pad.Phrase = c.PostForm("phrase")
 	pad.Word = c.PostForm("word")
+	pad.Deletionproposed = extractCheckBoxFromRequest(c, "deletionproposed")
 	pad.Ownerid = user.GetSDUserIdOrZero(c)
 }
 
 func writeToDb(pad *senseEditSubmitDataType) (newProposalid int64) {
 	res, err1 := sddb.NamedUpdateQuery(
-		`select fnsavepersonalsense(:ownerid, :commonid, :proposalid, :proposalstatus, :phrase, :word, false)`, pad)
+		`select fnsavepersonalsense(:ownerid, :commonid, :proposalid, :proposalstatus, :phrase, :word, :deletionproposed)`, pad)
 	apperror.Panic500AndErrorIf(err1, "Failed to update a sense")
 	dataFound := false
 	for res.Next() {
@@ -74,28 +75,3 @@ func writeToDb(pad *senseEditSubmitDataType) (newProposalid int64) {
 	}
 	return
 }
-
-/* Example of nested records in the template:
-
-package main
-
-import (
-	"html/template"
-	"log"
-	"os"
-)
-
-func main() {
-	type z struct{ Msg string; Child *z }
-	v := z{Msg: "hi", Child: &z{Msg: "wow"}}
-	master := "Greeting: {{ .Msg}}, {{ .Child.Msg}}"
-	masterTmpl, err := template.New("master").Parse(master)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if err := masterTmpl.Execute(os.Stdout, v); err != nil {
-		log.Fatal(err)
-	}
-}
-
-*/

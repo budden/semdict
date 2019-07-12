@@ -29,7 +29,8 @@ $$;
     We are updating a pre-existing proposal */
 create or replace function fnsavepersonalsense(
     p_sduserid bigint, p_commonid bigint, p_proposalid bigint
-    ,p_proposalstatus enum_proposalstatus, p_phrase text, p_word text, p_evenifidentical bool)
+    ,p_proposalstatus enum_proposalstatus, p_phrase text, p_word text
+    ,p_deletionproposed bool)
   returns table (r_proposalid bigint)
   language plpgsql as $$
   declare v_phantom bool;
@@ -41,22 +42,19 @@ create or replace function fnsavepersonalsense(
   p_commonid = coalesce(p_commonid,0);
   if coalesce(p_proposalstatus,'n/a') = 'n/a' then
     raise exception 'proposal status must be not null, not "n/a"'; end if;
-  if p_evenifidentical then
-    raise exception 'invalid parameter p_evenifidentical'; end if;
+  if p_commonid = 0 and p_deletionproposed then
+    raise exception 'you''re suggesting to delete a non-existent sense'; end if;
   if p_proposalid <> 0 then
-    select originid, phantom 
-      from tsense where id = p_proposalid 
-      into v_commonid, v_phantom;
+    select originid from tsense where id = p_proposalid 
+      into v_commonid;
     if coalesce(v_commonid, 0) <> p_commonid then
       raise exception 'origin mismatch'; end if;
     if exists (select 1 from tsense where 
         id = v_commonid 
         and word = p_word 
         and phrase = p_phrase 
-        and phantom = v_phantom) then
-    -- nothing differs from the official version, delete our proposal
-      delete from tsense where id = p_proposalid;
-      return query(select true); return; end if;
+        and phantom = p_deletionproposed) then
+      raise exception 'You suggest no change to the common sense. Can''t save'; end if;
     v_proposalid = p_proposalid;
   else -- hence p_proposalid=0
     select ensuresenseproposal(p_sduserid, p_commonid) into v_proposalid; end if;
@@ -65,6 +63,7 @@ create or replace function fnsavepersonalsense(
     proposalstatus = p_proposalstatus
     ,phrase = p_phrase
     ,word = p_word
+    ,deletionproposed = p_deletionproposed
     where id = v_proposalid;
 
   get diagnostics update_count = row_count;
@@ -248,7 +247,7 @@ returns table (commonid bigint
   ,proposalstatus enum_proposalstatus
   ,phrase text
   ,word varchar(512)
-  ,phantom bool
+  ,phantom bool -- if we return a proposal, it is taken from a proposal, not from the origin!
   ,deletionproposed bool
   ,sdusernickname varchar(256)
   ,languageslug text
@@ -269,9 +268,10 @@ language plpgsql as $$
         ,s.languageslug
         ,(explainSenseEssenseVsProposals(p_sduserid, s.commonid, s.proposalid, s.ownerid, s.phantom, ops.r_deletionproposed)).*
 	      from fnonepersonalsense(p_sduserid, p_commonid) ops
+        -- actually it is an inner join to the same record
   		  left join vsense_wide as s on s.id = ops.r_senseid
         limit 1);
-  else 
+  else
     -- again it can be a proposal or a common sense
     someid = coalesce(nullif(p_proposalid,0),p_senseid);
     return query(

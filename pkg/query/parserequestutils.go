@@ -41,6 +41,21 @@ func LimitLimit(limit *int32) {
 	}
 }
 
+func extractCheckBoxFromRequest(c *gin.Context, paramName string) (res bool) {
+	txt := c.PostForm(paramName)
+	if txt == "" {
+		txt, _ = c.GetQuery(paramName)
+	}
+	if txt == "on" {
+		res = true
+	} else if txt == "off" || txt == "" {
+		res = false
+	} else {
+		apperror.Panic500If(apperror.ErrDummy, "Bad «%s» request parameter value", txt)
+	}
+	return
+}
+
 func extractIdFromRequest(c *gin.Context, paramName string) (id int64) {
 	idAsString := c.PostForm(paramName)
 	if idAsString == "" {

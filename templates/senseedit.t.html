@@ -33,6 +33,10 @@
    value="{{.Ad.Word}}"
    required>
   </div>
+  <div class="form-group">
+    <label class="form-check-label" for="deletionproposed">I suggest to delete this record</label>
+    <input type="checkbox" class="form-check-input" id="deletionproposed" name="deletionproposed"
+     {{if .Ad.Deletionproposed}}checked{{end}}></div>
   <button type="submit" class="btn btn-primary">Save</button>
  </form>
 </body>

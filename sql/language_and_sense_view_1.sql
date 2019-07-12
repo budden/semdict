@@ -65,7 +65,7 @@ create or replace view vsense_wide as select s.*
 -- fnPersonalSenses returns all personal senses for the user. If the user is 0 or null,
 -- then common senses are returned as well as unparallel personal
 -- to copy-paste or complicate this one to have a good select plan for searches.
-create or replace function fnpersonalsenses(p_sduserid bigint,p_showphantoms bool) 
+create or replace function fnpersonalsenses(p_sduserid bigint,p_showdeleted bool) 
   returns table(r_commonid bigint, r_proposalid bigint, r_proposalstatus enum_proposalstatus, r_countofproposals bigint, r_addedbyme bool)
   language plpgsql as $$
   begin
@@ -77,7 +77,7 @@ create or replace function fnpersonalsenses(p_sduserid bigint,p_showphantoms boo
       ,(select count(1) from tsense varic where varic.originid = orig.id) as r_countofproposals
       ,false as r_addedbyme
       from tsense orig where orig.originid is null and orig.ownerid is null
-      and (p_showphantoms or not orig.phantom)); 
+      and (p_showdeleted or not orig.phantom)); 
   else
     return query(
       select cast(orig.id as bigint) as r_commonid
@@ -88,7 +88,12 @@ create or replace function fnpersonalsenses(p_sduserid bigint,p_showphantoms boo
       from tsense orig 
       left join tsense vari 
       on orig.id = vari.originid and vari.ownerid = p_sduserid  
-      where orig.originid is null and (p_showphantoms or not orig.phantom)); end if; end;
+      where orig.originid is null 
+      -- If user asked us not to show deleted records, we act as follows:
+      --   if orig is deleted, but there is a change proposal, we show the record.
+      --   if orig is not deleted, but there is a deletion prposal, we don't show it
+      --   So personal reality layer covers common reality untransparently
+      and (p_showdeleted or not coalesce(vari.deletionproposed, orig.phantom))); end if; end;
 $$;
 
 \echo *** language_and_sense_view_1.sql Done

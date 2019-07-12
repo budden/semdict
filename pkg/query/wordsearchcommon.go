@@ -20,10 +20,10 @@ import (
 
 // параметры из URL
 type wordSearchQueryParams struct {
-	Dummyid      int32 // не имеет значения
-	Wordpattern  string
-	Languageid   int64 // 0 значит «все»
-	Showphantoms bool
+	Dummyid     int32 // не имеет значения
+	Wordpattern string
+	Languageid  int64 // 0 значит «все»
+	Showdeleted bool
 	// Эти поля не вводятся пользователем
 	Sduserid int32 // 0 для незарег. польз.
 	Offset   int32
@@ -46,6 +46,7 @@ type wordSearchQueryRecord struct {
 	Commonorproposal string
 	Whos             string
 	Kindofchange     string
+	Deletionproposed bool
 }
 
 func wordSearchCommonPart(c *gin.Context) (wsqp *wordSearchQueryParams, fd []*wordSearchQueryRecord) {
@@ -73,8 +74,9 @@ func readWordSearchQueryFromDb(wsqp *wordSearchQueryParams) (
 		,ps.r_countofproposals as countofproposals
 		,ts.sdusernickname
 		,ts.phantom
+		,ts.deletionproposed
 		,(explainSenseEssenseVsProposals(:sduserid, ts.commonid, ts.proposalid, ts.ownerid, ts.phantom, ts.deletionproposed)).*
-		from fnpersonalsenses(:sduserid,:showphantoms) ps 
+		from fnpersonalsenses(:sduserid,:showdeleted) ps 
 		left join vsense_wide ts on coalesce(nullif(ps.r_proposalid,0), ps.r_commonid) = ts.id
 		order by word, languageslug, senseid offset :offset limit :limit`
 	reply, err1 := sddb.NamedReadQuery(queryText, wsqp)
