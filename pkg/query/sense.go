@@ -31,7 +31,6 @@ type senseDataForEditType struct {
 	Phrase           string
 	Word             string
 	Phantom          bool
-	Deletionproposed bool
 	Sdusernickname   sql.NullString
 	Languageslug     string
 	Commonorproposal string

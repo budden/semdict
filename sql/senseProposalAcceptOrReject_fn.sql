@@ -13,7 +13,6 @@ create or replace function fnproposalandcommonsenseforproposalacceptorreject(p_s
   ,phrase text
   ,word varchar(512)
   ,phantom bool
-  ,deletionproposed bool
   ,ownerid bigint
   ,sdusernickname varchar(128)
   ,languageslug text
@@ -27,17 +26,9 @@ declare v_commonid bigint;
 begin
 select vari.commonid from vsense_wide as vari where vari.proposalid = p_proposalid and not vari.phantom into v_commonid;
 return query(
-  select vari.commonid, vari.proposalid, vari.senseid
-    ,vari.proposalstatus
-  	,vari.phrase, vari.word, vari.phantom, vari.deletionproposed
-    ,vari.ownerid, vari.sdusernickname, vari.languageslug
-  	,(explainSenseEssenseVsProposals(p_sduserid,vari.commonid,vari.proposalid,vari.ownerid,false,vari.deletionproposed)).*
-    ,(explainCommonAndMine(p_sduserid,vari.commonid,vari.proposalid,vari.ownerid,false)).*
-  	from vsense_wide as vari where vari.proposalid = p_proposalid and not vari.phantom
-	union all 
-  	select s.commonid, s.proposalid, s.senseid
+ 	select s.commonid, s.proposalid, s.senseid
     ,cast('n/a' as enum_proposalstatus)
-  	,s.phrase, s.word, s.phantom, false as deletionproposed
+  	,s.phrase, s.word, s.phantom
     ,cast(0 as bigint) as ownerid, '<common>' as sdusernickname, s.languageslug
   	,(explainSenseEssenseVsProposals(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.phantom,false)).*
     ,(explainCommonAndMine(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.phantom)).*
@@ -72,8 +63,7 @@ $$;
   or rejects it. Arguments:
   p_acceptorreject = 1 for accept, 2 for reject
 
-  Returns common id, or if it was a deletionproposed, 
-  special value of -1
+  Returns common id
 
   FIXME защищаться от изменения записи другим пользователем во время
   просмотра.
@@ -85,7 +75,6 @@ create or replace function fnacceptorrejectsenseproposal(
   returns table (r_commonid bigint)
   language plpgsql as $$
   declare v_common_phantom bool;
-  declare v_deletionproposed bool;
   declare v_languageid int;
   declare v_common_languageid int;
   declare v_row_count int;
@@ -96,9 +85,9 @@ create or replace function fnacceptorrejectsenseproposal(
   begin
   p_proposalid = coalesce(p_proposalid,0);
   lock table themutex;
-  select languageid, deletionproposed, originid 
+  select languageid, originid 
     from tsense where id=p_proposalid 
-    into v_languageid, v_deletionproposed, v_commonid;
+    into v_languageid, v_commonid;
   get diagnostics v_row_count = row_count;
   if v_row_count != 1 then
     raise exception 'invalid p_proposalid (not found)'; end if;
@@ -119,10 +108,6 @@ create or replace function fnacceptorrejectsenseproposal(
   -- если отказ, то поменять статус и выйти.
   if p_acceptorreject = 2 then
     return query(select fnrejectproposal(p_sduserid, p_proposalid, msg)); return; end if;
-  -- если уже удалено и хотим удалить, то отказываем
-  if v_common_phantom and v_deletionproposed then 
-    raise exception 'you can not accept a deletion proposal for an already deleted record'; 
-    end if;
   -- если уже удалено и хотим поменять, то восстанавливаем
   -- если правка, то правим. 
   if v_commonid is not null then
@@ -167,7 +152,6 @@ create or replace function fnnewsenseproposalacceptinternal(p_proposalid bigint)
   begin
   update tsense set proposalstatus = 'n/a'
     ,phantom = false
-    ,deletionproposed = false
     ,originid = null 
     where id = p_proposalid;
   get diagnostics v_row_count = row_count;

@@ -46,7 +46,6 @@ type wordSearchQueryRecord struct {
 	Commonorproposal string
 	Whos             string
 	Kindofchange     string
-	Deletionproposed bool
 }
 
 func wordSearchCommonPart(c *gin.Context) (wsqp *wordSearchQueryParams, fd []*wordSearchQueryRecord) {
@@ -74,8 +73,7 @@ func readWordSearchQueryFromDb(wsqp *wordSearchQueryParams) (
 		,ps.r_countofproposals as countofproposals
 		,ts.sdusernickname
 		,ts.phantom
-		,ts.deletionproposed
-		,(explainSenseEssenseVsProposals(:sduserid, ts.commonid, ts.proposalid, ts.ownerid, ts.phantom, ts.deletionproposed)).*
+		,(explainSenseEssenseVsProposals(:sduserid, ts.commonid, ts.proposalid, ts.ownerid, ts.phantom)).*
 		from fnpersonalsenses(:sduserid,:showdeleted) ps 
 		left join vsense_wide ts on coalesce(nullif(ps.r_proposalid,0), ps.r_commonid) = ts.id
 		order by word, languageslug, senseid offset :offset limit :limit`

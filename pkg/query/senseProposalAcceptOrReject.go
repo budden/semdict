@@ -18,16 +18,15 @@ type senseProposalAcceptOrRejectParamsType struct {
 // SenseViewHTMLTemplateParamsType are params for senseview.t.html
 
 type senseProposalAcceptOrRejectTemplateParamsInnerType struct {
-	Proposalid       int64
-	Commonid         int64
-	Phantom          bool // FIXME fill it!
-	Deletionproposed bool
-	Phraseold        string
-	Phrasechanged    bool
-	Phrasenew        string
-	Wordold          string
-	Wordchanged      bool
-	Wordnew          string
+	Proposalid    int64
+	Commonid      int64
+	Phantom       bool // FIXME fill it!
+	Phraseold     string
+	Phrasechanged bool
+	Phrasenew     string
+	Wordold       string
+	Wordchanged   bool
+	Wordnew       string
 	// FIXME that is insufficient!
 }
 
@@ -70,7 +69,6 @@ func senseProposalAcceptOrRejectCalculateTemplateParams(spaorp *senseProposalAcc
 		o = records[0]
 		spaorhtpi.Commonid = o.Commonid
 		spaorhtpi.Proposalid = p.Proposalid
-		spaorhtpi.Deletionproposed = p.Deletionproposed
 		spaorhtpi.Phrasenew = p.Phrase
 		spaorhtpi.Phraseold = o.Phrase
 		spaorhtpi.Phrasechanged = p.Phrase != o.Phrase

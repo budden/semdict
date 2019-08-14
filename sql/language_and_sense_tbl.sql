@@ -62,7 +62,6 @@ create table tsense (
   phrase text not null,
   word varchar(512) not null,
   phantom bool not null default false, -- this record is phantom by the user
-  deletionproposed bool not null default false, -- we suggest to delete
   ownerid bigint references sduser,
   originid bigint references tsense
 );
@@ -72,7 +71,6 @@ There can be multiple records for the same word. API path is based on the id, li
 comment on column tsense.phrase is 'Phrase in the dialect that describes the sense of the word';
 comment on column tsense.word is 'Word or word combination in the dialect denoting the sense';
 comment on column tsense.phantom is 'We can''t delete senses as there may be proposals for them, so we mark senses (not proposals) as phantoms';
-comment on column tsense.deletionproposed is 'Our proposal is to delete the original sense';
 comment on column tsense.ownerid is 'If ownerid is non-empty, this sense is a proposal';
 comment on column tsense.originid is 'Change or deletion of a sense denoted by originid is suggested';
 

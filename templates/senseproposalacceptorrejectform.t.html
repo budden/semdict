@@ -6,9 +6,6 @@
     <body>
         <p><a href="/menu">Menu</a></p>
         <p>{{ if .Data.Phantom }} <i>Common sense is DELETED!</i> {{end}}</p>
-        {{ if .Data.Deletionproposed }}
-           <p>{{ .Data.Proposalid }} is a proposal to delete {{ .Data.Commonid }}</p> 
-        {{ end }}
         <p>Merge {{ .Data.Proposalid }} = &gt; {{  .Data.Commonid }} ?<br>
          <i>Kind of proposal:</i> TODO .Data.Kindofchange 
          {{ if .Data.Wordchanged }} «{{.Data.Wordold}}» => «{{.Data.Wordnew}}» {{ else }} <i>Word didn't change: «{{.Data.Wordnew}}»</i> {{ end }} &VerticalBar;

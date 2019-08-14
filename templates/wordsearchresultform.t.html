@@ -17,9 +17,8 @@
     <p></p>
     {{range $index, $wordSearchQueryRecord := .Records}}
     <hr>
-    <p><i>{{if or $wordSearchQueryRecord.Phantom $wordSearchQueryRecord.Deletionproposed}}<del>{{end}}
-        Common Id{{if $wordSearchQueryRecord.Phantom}}</del>(DELETED){{end}}
-        {{if $wordSearchQueryRecord.Deletionproposed}}</del>(DELETION PROPOSED){{end}}:</i>
+    <p><i>{{if $wordSearchQueryRecord.Phantom}}<del>{{end}}
+        Common Id{{if $wordSearchQueryRecord.Phantom}}</del>(DELETED){{end}}:</i>
         {{if eq $wordSearchQueryRecord.Commonid 0 }}
             -
         {{else}}

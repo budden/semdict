@@ -16,15 +16,14 @@ import (
 )
 
 type senseEditSubmitDataType struct {
-	Proposalid       int64 // must be here
-	Commonid         int64 // can be 0 if no origin (adding proposal)
-	Languageid       int32
-	Proposalstatus   string
-	Phrase           string
-	Word             string
-	Phantom          bool // Does it make sense?
-	Deletionproposed bool
-	Ownerid          int32
+	Proposalid     int64 // must be here
+	Commonid       int64 // can be 0 if no origin (adding proposal)
+	Languageid     int32
+	Proposalstatus string
+	Phrase         string
+	Word           string
+	Phantom        bool // Does it make sense?
+	Ownerid        int32
 }
 
 // SenseEditSubmitPostHandler posts an sense data
@@ -57,13 +56,12 @@ func extractDataFromRequest(c *gin.Context, pad *senseEditSubmitDataType) {
 	pad.Proposalstatus = c.PostForm("proposalstatus")
 	pad.Phrase = c.PostForm("phrase")
 	pad.Word = c.PostForm("word")
-	pad.Deletionproposed = extractCheckBoxFromRequest(c, "deletionproposed")
 	pad.Ownerid = user.GetSDUserIdOrZero(c)
 }
 
 func writeToDb(pad *senseEditSubmitDataType) (newProposalid int64) {
 	res, err1 := sddb.NamedUpdateQuery(
-		`select fnsavepersonalsense(:ownerid, :commonid, :proposalid, :proposalstatus, :phrase, :word, :deletionproposed)`, pad)
+		`select fnsavepersonalsense(:ownerid, :commonid, :proposalid, :proposalstatus, :phrase, :word)`, pad)
 	apperror.Panic500AndErrorIf(err1, "Failed to update a sense")
 	dataFound := false
 	for res.Next() {
