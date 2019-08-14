@@ -1,11 +1,10 @@
-# Semantic dictionary - an anarchic multilingual glossary engine  
+# Semantic dictionary - an aristocratic communism multilingual glossary engine  
 
 ## Concept
 
 ### Golang exercise
 The main goal of this project is to train myself in a full-stack development using golang and postgresql. 
-You know golang is usually associated with «microservices», but I consider golang as just a good 
-high-level programming language. So here I use golang as a replacement for a PHP.
+You know golang is usually associated with «microservices», but I consider golang as just a good high-level programming language. So here I use golang as a replacement for a PHP.
 
 ### Idea of "semantic dictionary"
 Dictionaries are used to translate words from one language to another. But every word usually have 
@@ -13,22 +12,26 @@ multiple meanings (senses), so word translations are NxN relationships between w
 engine where the key is the pair of the word and the defining phrase which disambiguates the sense. 
 This way, there is a chance that glossary entry to glossary entry translation is unambiguous. 
 
-### Anarchic = like github
-Github has a "fork" feature. That means that anyone can create one's own version of every project. Operations on forks
-are "compare versions" and "request an original author to accept my changes", or «Pull request».
-We plan to support two sorts of forks:
+### Why communism?
+We aim for the minimization of the administrative burden. Git is an example 
+of excellent approach to that and we tried to implement git-like responsibility
+structure, where a database of senses for each language or dialect is 
+owned by only one person (like git repo), and any other person can fork 
+the language and suggest his/her changes. But we forgot about translations
+:) Who is responsible for English-Russian translation? This way we found
+that there is no clean responsibility bounds and decided to reject
+the entire ownership concept. So, imagine all the people sharing all the world.
+All registered people, of course. 
 
-- make a new dialect; for instance, localized MS Windows can have different translations for the same sense compared to Linux or Android.
-So we create three forks on "Russian" language and call them "Windows localization", "Linux localization" and "Android localization"
-- do a collective work; for now, fork (or branch) with a subsequent pull request seem to be a good way to administer collective work.
-Time will tell if it is really so good.
+### Why aristocratic
+All animals are equal but others are more equal. Any of moderators can undo the change history to some point in the past. Maybe in the future we will be able to introduce more sophisticated moderation, but not now, because we are limited by time severely. 
 
-### Detailed requirement specifications
+### Detailed requirement specifications (outdated)
 
-[Здесь](https://bitbucket.org/budden/ppr/src/master/док/словарь.md?at=master&fileviewer=file-view-default)
+[Look here](https://bitbucket.org/budden/ppr/src/master/док/словарь.md?at=master&fileviewer=file-view-default)
 
 ## State
-Pre-alpha, no deployment.  
+Pre-alpha, no deployment. Not all features are implemented.
 
 ## Technology
 
