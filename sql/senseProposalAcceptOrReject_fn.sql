@@ -16,9 +16,6 @@ create or replace function fnproposalandcommonsenseforproposalacceptorreject(p_s
   ,ownerid bigint
   ,sdusernickname varchar(128)
   ,languageslug text
-  ,commonorproposal varchar(128)
-  ,whos varchar(512)
-  ,kindofchange varchar(128)
   ,iscommon bool
   ,ismine bool
   ) language plpgsql as $$ 
@@ -30,7 +27,6 @@ return query(
     ,cast('n/a' as enum_proposalstatus)
   	,s.phrase, s.word, s.phantom
     ,cast(0 as bigint) as ownerid, '<common>' as sdusernickname, s.languageslug
-  	,(explainSenseEssenseVsProposals(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.phantom,false)).*
     ,(explainCommonAndMine(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.phantom)).*
   	from vsense_wide s where id = v_commonid
 	order by iscommon desc); end;

@@ -32,9 +32,6 @@ type senseAndProposalsListQueryRecord struct {
 	OwnerId          int64
 	Sdusernickname   string
 	Languageslug     string
-	Commonorproposal string
-	Whos             string
-	Kindofchange     string
 	Iscommon         bool
 	Ismine           bool
 }

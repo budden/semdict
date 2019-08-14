@@ -43,9 +43,6 @@ type wordSearchQueryRecord struct {
 	Word           string
 	// Proposalid       sql.NullInt64 // is non-null when this record is a proposal.
 	Countofproposals int32
-	Commonorproposal string
-	Whos             string
-	Kindofchange     string
 }
 
 func wordSearchCommonPart(c *gin.Context) (wsqp *wordSearchQueryParams, fd []*wordSearchQueryRecord) {
@@ -70,12 +67,9 @@ func readWordSearchQueryFromDb(wsqp *wordSearchQueryParams) (
 	queryText = `select ts.commonid,	ts.proposalid, ts.senseid
 	 ,ts.proposalstatus
 		,ts.languageid, ts.languageslug, ts.word, ts.phrase
-		,ps.r_countofproposals as countofproposals
 		,ts.sdusernickname
 		,ts.phantom
-		,(explainSenseEssenseVsProposals(:sduserid, ts.commonid, ts.proposalid, ts.ownerid, ts.phantom)).*
-		from fnpersonalsenses(:sduserid,:showdeleted) ps 
-		left join vsense_wide ts on coalesce(nullif(ps.r_proposalid,0), ps.r_commonid) = ts.id
+		from vsense_wide ts
 		order by word, languageslug, senseid offset :offset limit :limit`
 	reply, err1 := sddb.NamedReadQuery(queryText, wsqp)
 	apperror.Panic500AndErrorIf(err1, "Db query failed")

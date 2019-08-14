@@ -33,9 +33,6 @@ type senseDataForEditType struct {
 	Phantom          bool
 	Sdusernickname   sql.NullString
 	Languageslug     string
-	Commonorproposal string
-	Whos             string
-	Kindofchange     string
 }
 
 type senseEditTemplateParams struct {
