@@ -22,18 +22,18 @@ type senseAndProposalsListQueryHeader struct {
 }
 
 type senseAndProposalsListQueryRecord struct {
-	Commonid         int64
-	Proposalid       int64
-	Senseid          int64
-	Proposalstatus   string
-	Phrase           string
-	Word             string
-	Phantom          bool
-	OwnerId          int64
-	Sdusernickname   string
-	Languageslug     string
-	Iscommon         bool
-	Ismine           bool
+	Commonid       int64
+	Proposalid     int64
+	Senseid        int64
+	Proposalstatus string
+	Phrase         string
+	Word           string
+	Phantom        bool
+	OwnerId        int64
+	Sdusernickname string
+	Languageslug   string
+	Iscommon       bool
+	Ismine         bool
 }
 
 // Параметры шаблона
@@ -68,23 +68,6 @@ func SenseAndProposalsListFormRouteHandler(c *gin.Context) {
 			Records:        records,
 			IsLoggedIn:     user.IsLoggedIn(c),
 			LoggedInUserId: int64(user.GetSDUserIdOrZero(c))})
-}
-
-func readSenseProposalAcceptOrRejectDataFromDb(spaorp *senseProposalAcceptOrRejectParamsType) (
-	records []*senseAndProposalsListQueryRecord) {
-	reply, err1 := sddb.NamedReadQuery(
-		"select * from fnproposalandcommonsenseforproposalacceptorreject(:sduserid, :proposalid)", spaorp)
-	apperror.Panic500AndErrorIf(err1, "Db query failed")
-	defer sddb.CloseRows(reply)
-	records = make([]*senseAndProposalsListQueryRecord, 0)
-	var last int
-	for last = 0; reply.Next(); last++ {
-		wsqr := &senseAndProposalsListQueryRecord{}
-		err1 = reply.StructScan(wsqr)
-		sddb.FatalDatabaseErrorIf(err1, "Error obtaining proposals of sense: %#v", err1)
-		records = append(records, wsqr)
-	}
-	return
 }
 
 // reads both common sense and proposals
