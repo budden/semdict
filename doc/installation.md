@@ -40,12 +40,18 @@ echo $GOPATH
 ## Building
 
 ```
+go get -d github.com/stretchr/testify/assert
+cd $GOPATH/src/github.com/stretchr/testify/assert
+git checkout v1.3.0
+go get ./... 
+
+
 go get github.com/budden/semdict
 cd $GOPATH/src/github.com/budden/semdict
 
 # FIXME use vendoring instead!
 go get ./...
-go get github.com/stretchr/testify/assert
+
 go generate
 go build
 ```
@@ -82,7 +88,7 @@ alter role root createdb;
 # we left psql
 exit
 # we left sudo su - postgres and 
-# now we're again in our server user's account
+# now we're again in our server user's account 
 
 sudo vi /etc/postgresql/9.6/main/pg_hba.conf
 
@@ -104,7 +110,14 @@ sudo psql postgres://localhost/postgres
 
 ```
 cd $GOPATH/src/github.com/budden/semdict
+# just loading the script does not work, because (I guess) I forgot to describe how to enable calling shell from Postgres scripts.
+# So 
+vi sql/recreate_sduser_db.sql
+# in the definition of the :thisdir, replace `echo $GOPATH...` with its actual value, that is, /root/go... (no quotes)
+# ESC :wq!
+
 sudo psql -f sql/recreate_sduser_db.sql postgres://localhost/postgres
+
 # Must pass w/o errors and end with "CREATE VIEW"
 ```
 
@@ -134,7 +147,7 @@ Access http://your_server:8085 - it should welcome message. Kill app with ^C.
 
 
 ### Install
-
+mc
 I needed to install pkg-config package before this run successfully, your
 mileage my vary.
 ```
