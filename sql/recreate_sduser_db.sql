@@ -5,7 +5,7 @@ CREATE DATABASE sduser_db;
 /* END_CREATE - keep this line intact. It is used to make the test db */
 
 \set ON_ERROR_STOP on
-\set thisdir `echo "$GOPATH/src/github.com/budden/semdict/"`
+\set thisdir /y/go/src/github.com/budden/semdict/
 -- \set thisdir `pwd`
 
 \i :thisdir/sql/forward_declarations.sql
