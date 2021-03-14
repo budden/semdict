@@ -1,27 +1,29 @@
 --/*
 \connect sduser_db
 \set ON_ERROR_STOP on
-drop table if exists tlanguage cascade;
+drop table if exists tlws cascade;
 drop table if exists tsense cascade;
-drop type if exists enum_proposalstatus cascade;
+drop table if exists tlanguage cascade;
 --*/ 
 
 create table tlanguage (
   id serial primary KEY,
-  parentid int references tlanguage,
   slug varchar(128) not null unique,
-  commentary text);
+  commentary text,
+  ownerid bigint references sduser
+);
 
-comment on table tlanguage is 'tlanguage is a language or a dialect, or a source of translation';
-comment on column tlanguage.slug is 'slug is an identifier in the parent''s space. Access item by parentslug/childslug';
+comment on table tlanguage is 'tlanguage is a language, or a dialect, or a source of translation';
+comment on column tlanguage.slug is 'slug is a human-readable abbreviated identifier';
+comment on column tlanguage.commentary is 'commentary is a full descriptive name of the dialect';
+comment on column tlanguage.ownerid is 'ownerid specifies an owner of the language. If NULL, language is "common", so that everyone can add tlws records referencing the language';
 
-insert into tlanguage (id, slug) 
-  values (1,'русский'), (2,'english'), (3,'中文');
+insert into tlanguage (id, slug, commentary) 
+  values (1,'ру','русский'), (2,'en','english'), (3,'中','中文');
 
-
-insert into tlanguage (id, parentid, slug, commentary) 
-  values (4, 1, '1С', '1С предприятие')
-    ,(5, 1, 'excel', 'Microsoft Excel');
+insert into tlanguage (id, slug, commentary) 
+  values (4, 'ру-1С', '1С предприятие')
+    ,(5, 'ру-excel', 'Microsoft Excel');
 
 create or replace function get_language_slug(p_languageid int) returns text
  language plpgsql strict as $$
@@ -29,71 +31,51 @@ create or replace function get_language_slug(p_languageid int) returns text
  declare v_len_limit int;
   begin
   
-  v_len_limit = 256;
-  with recursive r as 
-  (select id, parentid, cast(slug as text) from tlanguage
-  where id = p_languageid 
-  union 
-  select r.id, tl.parentid, r.slug || '/' || tl.slug from r 
-  left join tlanguage tl on tl.id = r.parentid 
-  where tl.id is not null 
-    or r.slug is null -- this should never happen as slug is not null, but just in case
-    or length(r.slug) > v_len_limit -- guard against an unlimited recursion 
-  )
-
-  select slug from r 
-  where parentid is null 
+  select slug from tlanguage 
+  where id = p_languageid is null 
   into v_result;
-
-  if length(v_result) > v_len_limit then
-    v_result = 'bad slug for languageid='||p_languageid;
-  end if;
 
   return v_result;
   end;
 $$;
 
-CREATE TYPE enum_proposalstatus AS ENUM ('draft', 'proposal', 'rejected', 'n/a');
-
 create table tsense (
   id serial primary KEY,
-  proposalstatus enum_proposalstatus not null default 'n/a',
-  languageid int not null references tlanguage,
+  theme varchar(512) not null,
   phrase text not null,
-  word varchar(512) not null,
-  phantom bool not null default false, -- this record is phantom by the user
-  ownerid bigint references sduser,
-  originid bigint references tsense
+  ownerid bigint not null references sduser
 );
 
-comment on table tsense is 'tsense stored a record for a specific sense of a word. 
-There can be multiple records for the same word. API path is based on the id, like русский/excel/1';
-comment on column tsense.phrase is 'Phrase in the dialect that describes the sense of the word';
-comment on column tsense.word is 'Word or word combination in the dialect denoting the sense';
-comment on column tsense.phantom is 'We can''t delete senses as there may be proposals for them, so we mark senses (not proposals) as phantoms';
-comment on column tsense.ownerid is 'If ownerid is non-empty, this sense is a proposal';
-comment on column tsense.originid is 'Change or deletion of a sense denoted by originid is suggested';
+comment on table tsense is 'tsense stored a record for a specific sense of a word. (Sense X Language X Word) is a (many X many X many) relation. ';
+comment on column tsense.id is 'id serves as a slug of a sense';
+comment on column tsense.phrase is 'Phrase in Russian that expesses the sense';
+comment on column tsense.theme is 'Theme is useful as a search criteria in a combination with the word. Theme is set in Russian';
+comment on column tsense.ownerid is 'Owner of the sense. Normally, tzar owns senses, except for new ones.';
 
-
-insert into tsense (languageid, phrase, word)
+insert into tsense (theme, phrase, ownerid)
   VALUES
-  (2,'Programming language by Google created in 2000s','golang');
+  ('ЯП','golang - язык программирования, созданный гуглом в 2000s', 1);
 
-insert into tsense (languageid, phrase, word)
+insert into tsense (theme, phrase, ownerid)
   VALUES
-  (2,'Programming language by Google created in 2000s','go');
+  ('ГПИ','пространство на экранной форме, на котором можно рисовать', 1);
 
-insert into tsense (languageid, phrase, word)
+insert into tsense (theme, phrase, ownerid)
   VALUES
-  (1,'Язык программирования, созданный google в 2000-х годах','golang');
+  ('ЯП','+, -, *, /, >>, «и», «или» и тому подобное', 1);
 
-insert into tsense (languageid, phrase, word)
-  VALUES
-  (1,'Язык программирования, созданный google в 2000-х годах','go');
+create table tlws (
+  id serial primary KEY,
+  languageid bigint not null references tlanguage,
+  senseid bigint not null references tsense,
+  word varchar(512) not null,
+  ownerid bigint null references sduser
+);
 
-insert into tsense (languageid, phrase, word,phantom)
-  VALUES
-  (1,'Эта запись удалена','go',true);
+comment on table tlws is 'tlws is a language-word-sense relation';
+comment on column tlws.id is 'id is a surrogate key and serves as slug';
+comment on column tlws.word is 'Word or a phrase in the language referenced which can be used to express a sense';
+comment on column tlws.ownerid is 'Owner of the relation. If none, language''s owner is implied.';
 
 
 \echo *** language_and_sense_tbl.sql Done
