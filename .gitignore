@@ -3,3 +3,6 @@ debug
 semdict
 .vscode/**
 static/ckeditor_4.11.3_basic/**
+GTAGS
+GPATH
+GRTAGS
