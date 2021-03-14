@@ -3,23 +3,6 @@
 \set ON_ERROR_STOP on
 --*/ 
 
-
--- fnOnePersonalSense returns a user's proposal for the specific common sense if there is one
--- and the common sense otherwise
-create or replace function fnonepersonalsense(p_sduserid bigint, p_commonid bigint) 
-  returns table(r_commonid bigint, r_proposalid bigint, r_senseid bigint)
-  language plpgsql as $$
-  begin
-  return query(
-    select cast(orig.id as bigint) as r_commonid
-      ,cast(vari.id as bigint) as r_proposalid
-      ,cast(coalesce(vari.id, orig.id) as bigint) as r_senseid
-    from tsense orig 
-    left join tsense vari 
-    on orig.id = vari.originid and vari.ownerid = p_sduserid and not vari.phantom
-    where orig.id = p_commonid and orig.originid is null); end;
-$$;
-
 -- fnSavePersonalSense saves the sense. p_evenifidentical must be false for now
 -- Use cases:
 /* commonid is not null, proposalid is null:

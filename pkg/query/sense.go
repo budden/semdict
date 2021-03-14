@@ -14,25 +14,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Params to show a sense. First non-zero sense of three sense ids is used.
+// Params to show a sense.
 type senseViewParamsType struct {
-	Sduserid   int64
-	Commonid   int64 // We want to see proposal for this common id if Sduserid has one, otherwise common sense.
-	Proposalid int64 // We want to see this record which must be a proposal
-	Senseid    int64 // We want to see sense by id, regardless of it is a common sense or a proposal
+	Sduserid int64
+	Senseid  int64
 }
 
 // senseDataForEditType is also used for a view.
 type senseDataForEditType struct {
-	Commonid         int64
-	Proposalid       int64
-	Senseid          int64
-	Proposalstatus   string
-	Phrase           string
-	Word             string
-	Phantom          bool
-	Sdusernickname   sql.NullString
-	Languageslug     string
+	Senseid        int64
+	Theme          string
+	Phrase         string
+	Sdusernickname sql.NullString // owner (direct or implied)
 }
 
 type senseEditTemplateParams struct {
@@ -46,29 +39,11 @@ type SenseViewHTMLTemplateParamsType struct {
 	Phrase template.HTML
 }
 
-// SenseByCommonidViewDirHandler ...
-func SenseByCommonidViewDirHandler(c *gin.Context) {
-	senseOrProposalDirHandlerCommon(c, "commonid")
-}
-
-// SenseByIdViewDirHandler ...
 func SenseByIdViewDirHandler(c *gin.Context) {
-	senseOrProposalDirHandlerCommon(c, "senseid")
-}
-
-func senseOrProposalDirHandlerCommon(c *gin.Context, paramName string) {
 	svp := &senseViewParamsType{Sduserid: int64(user.GetSDUserIdOrZero(c))}
 
-	paramValue := extractIdFromRequest(c, paramName)
-	if paramName == "commonid" {
-		svp.Commonid = paramValue
-	} else if paramName == "proposalid" {
-		svp.Proposalid = paramValue
-	} else if paramName == "senseid" {
-		svp.Senseid = paramValue
-	} else {
-		apperror.GracefullyExitAppIf(apperror.ErrDummy, "unknown paramName")
-	}
+	paramValue := extractIdFromRequest(c, "senseid")
+	svp.Senseid = paramValue
 	dataFound, senseDataForEdit := readSenseFromDb(svp)
 
 	if dataFound {
