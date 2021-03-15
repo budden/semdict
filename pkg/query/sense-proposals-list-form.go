@@ -55,11 +55,11 @@ func SenseAndProposalsListFormRouteHandler(c *gin.Context) {
 	records = readCommonSenseAndProposalsListQueryFromDb(svlqp)
 
 	svp := &senseViewParamsType{Sduserid: sduserid, Senseid: commonid}
-	dataFound, header1 := readSenseFromDb(svp)
+	dataFound, _ := readSenseFromDb(svp)
 	if !dataFound {
 		apperror.Panic500AndErrorIf(apperror.ErrDummy, "No common sense found - unable to get proposals")
 	}
-	header := &senseAndProposalsListQueryHeader{Commonid: commonid, Languageslug: header1.Languageslug}
+	header := &senseAndProposalsListQueryHeader{Commonid: commonid}
 
 	c.HTML(http.StatusOK,
 		"senseproposalslistform.t.html",

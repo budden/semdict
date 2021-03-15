@@ -1,7 +1,6 @@
 package query
 
 import (
-	"net/http"
 	"strings"
 
 	"github.com/budden/semdict/pkg/apperror"
@@ -19,18 +18,6 @@ type senseAddParamsType struct {
 // SenseProposalAddFormPageHandler handles POST senseproposaldelete
 func SenseProposalAddFormPageHandler(c *gin.Context) {
 	user.EnsureLoggedIn(c)
-	svp := &senseAddParamsType{
-		Sduserid: int64(user.GetSDUserIdOrZero(c)),
-		Word:     convertWordpatternToNewWork(c.PostForm("wordpattern"))}
-	ProposalID := makeNewSenseidInDb(svp)
-	ad := &senseDataForEditType{}
-	ad.Proposalid = ProposalID
-	ad.Word = svp.Word
-	// FIXME set language and edit it
-	aetp := &senseEditTemplateParams{Ad: ad}
-	c.HTML(http.StatusOK,
-		"senseedit.t.html",
-		aetp)
 }
 
 func convertWordpatternToNewWork(pattern string) string {

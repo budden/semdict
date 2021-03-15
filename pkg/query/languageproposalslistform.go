@@ -22,18 +22,18 @@ type languageProposalsListQueryHeader struct {
 }
 
 type languageProposalsListQueryRecord struct {
-	Commonid         int64
-	Proposalid       int64
-	Senseid          int64
-	Proposalstatus   string
-	Phrase           string
-	Word             string
-	Phantom          bool
-	OwnerId          int64
-	Sdusernickname   string
-	Languageslug     string
-	Iscommon         bool
-	Ismine           bool
+	Commonid       int64
+	Proposalid     int64
+	Senseid        int64
+	Proposalstatus string
+	Phrase         string
+	Word           string
+	Phantom        bool
+	OwnerId        int64
+	Sdusernickname string
+	Languageslug   string
+	Iscommon       bool
+	Ismine         bool
 }
 
 // Параметры шаблона
@@ -55,11 +55,11 @@ func LanguageProposalsListFormRouteHandler(c *gin.Context) {
 	records = readLanguageProposalsListQueryFromDb(svlqp)
 
 	svp := &senseViewParamsType{Sduserid: sduserid, Senseid: commonid}
-	dataFound, header1 := readSenseFromDb(svp)
+	dataFound, _ := readSenseFromDb(svp)
 	if !dataFound {
 		apperror.Panic500AndErrorIf(apperror.ErrDummy, "No common sense found - unable to get proposals")
 	}
-	header := &languageProposalsListQueryHeader{Commonid: commonid, Languageslug: header1.Languageslug}
+	header := &languageProposalsListQueryHeader{Commonid: commonid}
 
 	c.HTML(http.StatusOK,
 		"senseproposalslistform.t.html",

@@ -23,6 +23,7 @@ type senseViewParamsType struct {
 // senseDataForEditType is also used for a view.
 type senseDataForEditType struct {
 	Senseid        int64
+	OWord          string
 	Theme          string
 	Phrase         string
 	Sdusernickname sql.NullString // owner (direct or implied)
@@ -59,7 +60,7 @@ func SenseByIdViewDirHandler(c *gin.Context) {
 // read the sense, see the vsense view and senseViewParamsType for the explanation
 func readSenseFromDb(svp *senseViewParamsType) (dataFound bool, ad *senseDataForEditType) {
 	reply, err1 := sddb.NamedReadQuery(
-		`select * from fnsenseorproposalforview(:sduserid, :commonid, :proposalid, :senseid)`, &svp)
+		`select * from tsense where id = :senseid`, &svp)
 	apperror.Panic500AndErrorIf(err1, "Failed to extract a sense, sorry")
 	ad = &senseDataForEditType{}
 	for reply.Next() {
@@ -70,18 +71,13 @@ func readSenseFromDb(svp *senseViewParamsType) (dataFound bool, ad *senseDataFor
 	return
 }
 
-//  SenseEditDirHandler serves /senseedit/:commonid/:proposalid
+//  SenseEditDirHandler serves /senseedit/:senseid
 func SenseEditDirHandler(c *gin.Context) {
 	user.EnsureLoggedIn(c)
-	Proposalid := extractIdFromRequest(c, "proposalid")
-	Commonid := extractIdFromRequest(c, "commonid")
-	if Proposalid != 0 {
-		Commonid = 0
-	}
+	Senseid := extractIdFromRequest(c, "commonid")
 	svp := &senseViewParamsType{
-		Sduserid:   int64(user.GetSDUserIdOrZero(c)),
-		Commonid:   Commonid,
-		Proposalid: Proposalid}
+		Sduserid: int64(user.GetSDUserIdOrZero(c)),
+		Senseid:  Senseid}
 
 	var dataFound bool
 	var ad *senseDataForEditType
