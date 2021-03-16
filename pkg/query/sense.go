@@ -22,10 +22,11 @@ type senseViewParamsType struct {
 
 // senseDataForEditType is also used for a view.
 type senseDataForEditType struct {
-	Senseid        int64
+	Id             int64
 	OWord          string
 	Theme          string
 	Phrase         string
+	OwnerId        int64
 	Sdusernickname sql.NullString // owner (direct or implied)
 }
 
