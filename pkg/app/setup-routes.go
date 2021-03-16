@@ -16,9 +16,9 @@ func setupRoutes(engine *gin.Engine) {
 	// FIXME add reference from proposal to the origin
 	engine.GET("/sensebyidview/:senseid", query.SenseByIdViewDirHandler)
 
-	engine.GET("/senseedit/:commonid/:proposalid", query.SenseEditDirHandler)
-	engine.POST("/senseproposaldelete/:proposalid", query.SenseProposalDeleteRequestHandler)
-	engine.POST("/senseproposaladdform", query.SenseProposalAddFormPageHandler)
+	engine.GET("/senseedit/:senseid", query.SenseEditDirHandler)
+	engine.POST("/sensedelete/:senseid", query.SenseDeleteRequestHandler)
+	engine.POST("/senseadd", query.SenseAddPageHandler)
 
 	engine.GET("/registrationform", user.RegistrationFormPageHandler)
 	engine.POST("/registrationsubmit", user.RegistrationSubmitPostHandler)

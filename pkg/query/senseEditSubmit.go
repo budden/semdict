@@ -16,14 +16,12 @@ import (
 )
 
 type senseEditSubmitDataType struct {
-	Proposalid     int64 // must be here
-	Commonid       int64 // can be 0 if no origin (adding proposal)
-	Languageid     int32
-	Proposalstatus string
-	Phrase         string
-	Word           string
-	Phantom        bool // Does it make sense?
-	Ownerid        int32
+	Sduserid int64
+	Senseid  int64 // must be here
+	OWord    string
+	Theme    string
+	Phrase   string
+	Ownerid  int32
 }
 
 // SenseEditSubmitPostHandler posts an sense data
@@ -41,27 +39,25 @@ func SenseEditSubmitPostHandler(c *gin.Context) {
 func sanitizeData(pad *senseEditSubmitDataType) {
 	// example just from the title page of https://github.com/microcosm-cc/bluemonday
 	p := bluemonday.UGCPolicy()
-	pad.Proposalstatus = p.Sanitize(pad.Proposalstatus)
 	pad.Phrase = p.Sanitize(pad.Phrase)
-	matched, err := regexp.Match(`^[0-9a-zA-Z\p{L} ]+$`, []byte(pad.Word))
+	matched, err := regexp.Match(`^[0-9a-zA-Z\p{L} ]+$`, []byte(pad.OWord))
 	if (err != nil) || !matched {
 		// https://www.linux.org.ru/forum/development/14877320
-		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Word can only contain letters, digits and spaces")
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "English word can only contain latin letters, digits and spaces")
 	}
 }
 
 func extractDataFromRequest(c *gin.Context, pad *senseEditSubmitDataType) {
-	pad.Proposalid = extractIdFromRequest(c, "proposalid")
-	pad.Commonid = extractIdFromRequest(c, "commonid")
-	pad.Proposalstatus = c.PostForm("proposalstatus")
+	pad.Sduserid = int64(user.GetSDUserIdOrZero(c))
+	pad.Senseid = extractIdFromRequest(c, "senseid")
 	pad.Phrase = c.PostForm("phrase")
-	pad.Word = c.PostForm("word")
-	pad.Ownerid = user.GetSDUserIdOrZero(c)
+	pad.OWord = c.PostForm("oword")
+	pad.Ownerid = int32(extractIdFromRequest(c, "ownerid"))
 }
 
 func writeToDb(pad *senseEditSubmitDataType) (newProposalid int64) {
 	res, err1 := sddb.NamedUpdateQuery(
-		`select fnsavepersonalsense(:ownerid, :commonid, :proposalid, :proposalstatus, :phrase, :word)`, pad)
+		`select fnsavesense(:sduserid, :senseid, :oword, :theme, :phrase, :ownerid)`, pad)
 	apperror.Panic500AndErrorIf(err1, "Failed to update a sense")
 	dataFound := false
 	for res.Next() {

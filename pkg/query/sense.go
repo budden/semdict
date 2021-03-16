@@ -75,7 +75,7 @@ func readSenseFromDb(svp *senseViewParamsType) (dataFound bool, ad *senseDataFor
 //  SenseEditDirHandler serves /senseedit/:senseid
 func SenseEditDirHandler(c *gin.Context) {
 	user.EnsureLoggedIn(c)
-	Senseid := extractIdFromRequest(c, "commonid")
+	Senseid := extractIdFromRequest(c, "senseid")
 	svp := &senseViewParamsType{
 		Sduserid: int64(user.GetSDUserIdOrZero(c)),
 		Senseid:  Senseid}

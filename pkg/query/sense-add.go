@@ -15,8 +15,8 @@ type senseAddParamsType struct {
 	Word     string
 }
 
-// SenseProposalAddFormPageHandler handles POST senseproposaldelete
-func SenseProposalAddFormPageHandler(c *gin.Context) {
+// SenseAddPageHandler handles POST senseadd
+func SenseAddPageHandler(c *gin.Context) {
 	user.EnsureLoggedIn(c)
 }
 

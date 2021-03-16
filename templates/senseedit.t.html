@@ -9,29 +9,29 @@
 <body>
  <script type="text/javascript" src="/static/ckeditor_4.11.3_basic/ckeditor.js"></script>
  <p><a href="menu">Menu</a></p>
- <p>Edit article</p>
- <p>Common Id: {{.Ad.Commonid}} | ProposalId: {{.Ad.Proposalid}}</p>
+ <p>Edit sense</p>
  <form class="form" action="/senseeditsubmit" method="POST">
-  <input type="text" class="form-control" id="commonid" name="commonid" value="{{.Ad.Commonid}}" readonly>
-  <input type="text" class="form-control" id="proposalid" name="proposalid" value="{{.Ad.Proposalid}}" readonly>
+  <div class="form-group" style="display:none">
+    <input type="text" class="form-control" id="senseid" name="senseid" value="{{.Ad.Id}}" readonly>
+    <input type="text" class="form-control" id="ownerid" name="ownerid" value="{{.Ad.OwnerId}}" readonly>
+  </div>
   <div class="form-group">
-    <label for="proposalstatus">Proposal status</label>
-    <select id="proposalstatus" name="proposalstatus" value="{{.Ad.Proposalstatus}}">
-      <option value="draft">Draft (I will edit it more)</option>
-      <option value="proposal">Proposal (I want it to be merged into the language)</option>
-    </select></div>
-  <div class="form-group">
+    <label for="oword">English word</label>
+    <input type="text" name="oword" class="form-control" id="oword"
+    placeholder="An English word, abbrev, or collocation which can denote the sense"
+    value="{{.Ad.OWord}}"
+    required></div>
+    <div class="form-group">
+      <label for="theme">Theme</label>
+      <input type="text" name="theme" class="form-control" id="theme"
+      placeholder="Theme (Russian) for the word disambiguation"
+      value="{{.Ad.Theme}}" required></div>
+    <div class="form-group">
    <label for="phrase">Phrase</label>
    <textarea rows="10" cols="80" class="form-control" id="phrase" name="phrase"
-    placeholder="Express the sense in detail as a phrase in the same language">
+    placeholder="Express the sense in detail in Russian">
     {{.Ad.Phrase}}
     </textarea></div>
-  <div class="form-group">
-   <label for="word">Word</label>
-   <input type="text" name="word" class="form-control" id="word"
-   placeholder="The word denoting the sense"
-   value="{{.Ad.Word}}"
-   required>
   </div>
   <button type="submit" class="btn btn-primary">Save</button>
  </form>
