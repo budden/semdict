@@ -17,6 +17,10 @@ func setupRoutes(engine *gin.Engine) {
 	engine.GET("/sensebyidview/:senseid", query.SenseByIdViewDirHandler)
 
 	engine.GET("/senseedit/:senseid", query.SenseEditDirHandler)
+	// sensedeleteconfirm returns a form which asks if you really want to delete the item,
+	// and, if yes, posts /sensedelete request
+	engine.GET("/sensedeleteconfirm/:senseid", query.SenseDeleteConfirmRequestHandler)
+	// sensedelete deletes sense w/o confirmation
 	engine.POST("/sensedelete/:senseid", query.SenseDeleteRequestHandler)
 	engine.POST("/senseadd", query.SenseAddPageHandler)
 

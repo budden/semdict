@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type senseProposalDeleteParamsType struct {
+type senseDeleteParamsType struct {
 	Sduserid int64
 	Senseid  int64
 }
@@ -22,7 +22,7 @@ func SenseDeleteRequestHandler(c *gin.Context) {
 	// Like have timeout for a draft, or a draft status, or even not add into the db until the
 	// first save
 	user.EnsureLoggedIn(c)
-	svp := &senseProposalDeleteParamsType{
+	svp := &senseDeleteParamsType{
 		Sduserid: int64(user.GetSDUserIdOrZero(c)),
 		Senseid:  extractIdFromRequest(c, "senseid")}
 	deleteSenseFromDb(svp)
@@ -31,7 +31,7 @@ func SenseDeleteRequestHandler(c *gin.Context) {
 		shared.GeneralTemplateParams{Message: "Proposal deleted successfully"})
 }
 
-func deleteSenseFromDb(spdp *senseProposalDeleteParamsType) {
+func deleteSenseFromDb(spdp *senseDeleteParamsType) {
 	reply, err1 := sddb.NamedUpdateQuery(
 		`delete from tsense where id = :senseid returning id`, &spdp)
 	apperror.Panic500AndErrorIf(err1, "Failed to delete a sense, sorry")

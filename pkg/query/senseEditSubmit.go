@@ -22,6 +22,7 @@ type senseEditSubmitDataType struct {
 	Theme    string
 	Phrase   string
 	Ownerid  int32
+	Action   string
 }
 
 // SenseEditSubmitPostHandler posts an sense data
@@ -29,11 +30,18 @@ func SenseEditSubmitPostHandler(c *gin.Context) {
 	user.EnsureLoggedIn(c)
 	pad := &senseEditSubmitDataType{}
 	extractDataFromRequest(c, pad)
-	sanitizeData(pad)
-	newProposalId := writeToDb(pad)
-	// https://github.com/gin-gonic/gin/issues/444
-	c.Redirect(http.StatusFound,
-		"/sensebyidview/"+strconv.FormatInt(newProposalId, 10))
+	if pad.Action == "save" {
+		sanitizeData(pad)
+		newSenseId := writeToDb(pad)
+		// https://github.com/gin-gonic/gin/issues/444
+		c.Redirect(http.StatusFound,
+			"/sensebyidview/"+strconv.FormatInt(newSenseId, 10))
+	} else if pad.Action == "delete" {
+		c.Redirect(http.StatusFound,
+			"/sensedeleteconfirm/"+strconv.FormatInt(pad.Senseid, 10))
+		// spdp := &senseDeleteParamsType{Sduserid: pad.Sduserid, Senseid: pad.Senseid}
+	}
+
 }
 
 func sanitizeData(pad *senseEditSubmitDataType) {
@@ -53,6 +61,7 @@ func extractDataFromRequest(c *gin.Context, pad *senseEditSubmitDataType) {
 	pad.Phrase = c.PostForm("phrase")
 	pad.OWord = c.PostForm("oword")
 	pad.Ownerid = int32(extractIdFromRequest(c, "ownerid"))
+	pad.Action = c.PostForm("action")
 }
 
 func writeToDb(pad *senseEditSubmitDataType) (newProposalid int64) {
