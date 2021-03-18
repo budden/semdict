@@ -40,6 +40,8 @@ func SenseEditSubmitPostHandler(c *gin.Context) {
 		c.Redirect(http.StatusFound,
 			"/sensedeleteconfirm/"+strconv.FormatInt(pad.Senseid, 10))
 		// spdp := &senseDeleteParamsType{Sduserid: pad.Sduserid, Senseid: pad.Senseid}
+	} else {
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Unknown action in the form")
 	}
 
 }

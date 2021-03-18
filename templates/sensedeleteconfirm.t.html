@@ -12,5 +12,13 @@
         <hr>
         <p>Phrase:</p>
         <p>{{ .Phrase}}</p>
+        <form class="form" action="/sensedelete/{{ .Sdfe.Id}}" method="POST">
+            <div class="form-group" style="display:none">
+              <input type="text" class="form-control" id="senseid" name="senseid" value="{{.Sdfe.Id}}" readonly>
+            </div>
+            <button type="submit" name="action" accesskey="n" value="delete" class="btn btn-primary">Delete (alt-n)</button>
+            <button type="submit" name="action" accesskey="u" value="cancel" class="btn btn-primary">Cancel (alt-u)</button>
+        </form>
+          
         <script src="/static/bootstrap-3.3.2/js/bootstrap.js"></script>
         </body></html>

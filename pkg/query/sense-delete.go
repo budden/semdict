@@ -14,6 +14,7 @@ import (
 type senseDeleteParamsType struct {
 	Sduserid int64
 	Senseid  int64
+	Action   string
 }
 
 // SenseDeleteRequestHandler = POST sensedelete
@@ -24,11 +25,23 @@ func SenseDeleteRequestHandler(c *gin.Context) {
 	user.EnsureLoggedIn(c)
 	svp := &senseDeleteParamsType{
 		Sduserid: int64(user.GetSDUserIdOrZero(c)),
-		Senseid:  extractIdFromRequest(c, "senseid")}
-	deleteSenseFromDb(svp)
-	c.HTML(http.StatusOK,
-		"general.t.html",
-		shared.GeneralTemplateParams{Message: "Proposal deleted successfully"})
+		Senseid:  extractIdFromRequest(c, "senseid"),
+		Action:   c.PostForm("action"),
+	}
+
+	if svp.Action == "delete" {
+		deleteSenseFromDb(svp)
+		c.HTML(http.StatusOK,
+			"general.t.html",
+			shared.GeneralTemplateParams{Message: "Sense deleted successfully"})
+	} else if svp.Action == "cancel" {
+		c.HTML(http.StatusFound,
+			"general.t.html",
+			shared.GeneralTemplateParams{Message: "You declined to delete a sense"})
+	} else {
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Unknown action in the form")
+	}
+
 }
 
 func deleteSenseFromDb(spdp *senseDeleteParamsType) {
