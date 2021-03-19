@@ -22,6 +22,8 @@ func setupRoutes(engine *gin.Engine) {
 	engine.GET("/sensedeleteconfirm/:senseid", query.SenseDeleteConfirmRequestHandler)
 	// sensedelete deletes sense w/o confirmation
 	engine.POST("/sensedelete/:senseid", query.SenseDeleteRequestHandler)
+
+	engine.POST("/sensenewedit", query.SenseNewEditRequestHandler)
 	engine.POST("/senseadd", query.SenseAddPageHandler)
 
 	engine.GET("/registrationform", user.RegistrationFormPageHandler)
