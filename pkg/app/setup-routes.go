@@ -24,7 +24,7 @@ func setupRoutes(engine *gin.Engine) {
 	engine.POST("/sensedelete/:senseid", query.SenseDeleteRequestHandler)
 
 	engine.POST("/sensenewedit", query.SenseNewEditRequestHandler)
-	engine.POST("/senseadd", query.SenseAddPageHandler)
+	engine.POST("/sensenewsubmit", query.SenseNewSubmitPostHandler)
 
 	engine.GET("/registrationform", user.RegistrationFormPageHandler)
 	engine.POST("/registrationsubmit", user.RegistrationSubmitPostHandler)

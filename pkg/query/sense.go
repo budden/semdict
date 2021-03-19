@@ -58,16 +58,6 @@ func SenseByIdViewDirHandler(c *gin.Context) {
 	}
 }
 
-type SenseNewEditHTMLTemplateParamsType = SenseViewHTMLTemplateParamsType
-
-func SenseNewEditRequestHandler(c *gin.Context) {
-	svp := &senseViewParamsType{Sduserid: int64(user.GetSDUserIdOrZero(c))}
-
-	c.HTML(http.StatusOK,
-		"sensenewedit.t.html",
-		SenseNewEditHTMLTemplateParamsType{Svp: svp})
-}
-
 // read the sense, see the vsense view and senseViewParamsType for the explanation
 func readSenseFromDb(svp *senseViewParamsType) (dataFound bool, ad *senseDataForEditType) {
 	reply, err1 := sddb.NamedReadQuery(
