@@ -8,6 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+/// Поиск смысла
+
 // Параметры шаблона
 type wordSearchResultFormTemplateParamsType struct {
 	Wsqp                  *wordSearchQueryParams

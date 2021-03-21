@@ -23,7 +23,6 @@ type wordSearchQueryParams struct {
 	Dummyid     int32 // не имеет значения
 	Wordpattern string
 	Languageid  int64 // 0 значит «все»
-	Showdeleted bool
 	// Эти поля не вводятся пользователем
 	Sduserid int32 // 0 для незарег. польз.
 	Offset   int32
@@ -31,18 +30,15 @@ type wordSearchQueryParams struct {
 }
 
 type wordSearchQueryRecord struct {
-	Commonid       int64
-	Proposalid     int64
-	Senseid        int64
-	Proposalstatus string
-	Languageid     int64
-	Languageslug   string
-	Sdusernickname sql.NullString
-	Phantom        bool
-	Phrase         string
-	Word           string
+	Id int64
+	// Sdusernickname sql.NullString
+	Oword   string
+	Theme   string
+	Phrase  string
+	Ownerid int64
+	Lwsjson sql.NullString
 	// Proposalid       sql.NullInt64 // is non-null when this record is a proposal.
-	Countofproposals int32
+
 }
 
 func wordSearchCommonPart(c *gin.Context) (wsqp *wordSearchQueryParams, fd []*wordSearchQueryRecord) {
@@ -61,16 +57,17 @@ func wordSearchCommonPart(c *gin.Context) (wsqp *wordSearchQueryParams, fd []*wo
 	return
 }
 
+// select * from tsense where to_tsvector(phrase)||to_tsvector(word) @@ 'go';
+// select row_to_json(x) from (select * from tsense) x;
+// https://eax.me/postgresql-full-text-search/
+
 func readWordSearchQueryFromDb(wsqp *wordSearchQueryParams) (
 	fd []*wordSearchQueryRecord) {
 	var queryText string
-	queryText = `select ts.commonid,	ts.proposalid, ts.senseid
-	 ,ts.proposalstatus
-		,ts.languageid, ts.languageslug, ts.word, ts.phrase
-		,ts.sdusernickname
-		,ts.phantom
-		from vsense_wide ts
-		order by word, languageslug, senseid offset :offset limit :limit`
+	queryText = `select tsense.*, 
+   (select jsonb_agg(row_to_json(detail)) 
+    from (select tlws.* from tlws where senseid=tsense.id order by word) as detail)
+			as lwsjson from tsense	order by oword, theme, id offset :offset limit :limit`
 	reply, err1 := sddb.NamedReadQuery(queryText, wsqp)
 	apperror.Panic500AndErrorIf(err1, "Db query failed")
 	defer sddb.CloseRows(reply)

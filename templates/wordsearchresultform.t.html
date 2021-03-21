@@ -17,24 +17,14 @@
     <p></p>
     {{range $index, $wordSearchQueryRecord := .Records}}
     <hr>
-    <p><i>{{if $wordSearchQueryRecord.Phantom}}<del>{{end}}
-        Common Id{{if $wordSearchQueryRecord.Phantom}}</del>(DELETED){{end}}:</i>
-        {{if eq $wordSearchQueryRecord.Commonid 0 }}
-            -
-        {{else}}
-            <a href="/sensebyidview/{{ $wordSearchQueryRecord.Commonid }}">{{ $wordSearchQueryRecord.Commonid }}</a>{{end}}
-        {{if not (eq $wordSearchQueryRecord.Proposalid 0) }}
-            &VerticalBar; <i>Proposal Id</i>
-            <a href="/sensebyidview/{{ $wordSearchQueryRecord.Proposalid }}">{{ $wordSearchQueryRecord.Proposalid }}</a>
-            <i>by </i>{{ coalesce $wordSearchQueryRecord.Sdusernickname ""}}{{end}}
+    <p>
+        <a href="/sensebyidview/{{ $wordSearchQueryRecord.Id }}">View</a>
         {{if $.IsLoggedIn}}
-            &VerticalBar; <a href="/senseedit/{{ $wordSearchQueryRecord.Commonid }}/{{ $wordSearchQueryRecord.Proposalid }}">
+        &VerticalBar; <a href="/senseedit/{{ $wordSearchQueryRecord.Id }}">
                 <span class="glyphicon glyphicon-edit"></span></a>{{end}}
-        &VerticalBar; <i>Language</i>: {{ $wordSearchQueryRecord.Languageslug }}
-        {{if gt $wordSearchQueryRecord.Countofproposals 0}}
-            &VerticalBar; <a href=/senseproposalslistform/{{ $wordSearchQueryRecord.Commonid }}>{{ $wordSearchQueryRecord.Countofproposals }} proposals</a>{{end}}
-        <p><b>{{ $wordSearchQueryRecord.Word }}</b>
+        <p><b>{{ $wordSearchQueryRecord.Oword }}</b>
         &VerticalBar; <i>Phrase:</i>{{ castAsHTML $wordSearchQueryRecord.Phrase }}</p>
+        {{ $wordSearchQueryRecord.Lwsjson }}
     {{end}}
 
 </body>

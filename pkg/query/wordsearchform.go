@@ -46,7 +46,6 @@ func WordSearchFormRouteHandler(c *gin.Context) {
 func getWordSearchQueryParamsFromRequest(c *gin.Context) (wsqp *wordSearchQueryParams) {
 	wsqp = new(wordSearchQueryParams)
 	wsqp.Wordpattern, _ = c.GetQuery("wordpattern")
-	wsqp.Showdeleted = extractCheckBoxFromRequest(c, "showdeleted")
 	return
 }
 
