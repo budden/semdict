@@ -11,7 +11,6 @@ import (
 	"github.com/budden/semdict/pkg/apperror"
 	"github.com/budden/semdict/pkg/shared"
 	"github.com/gin-gonic/gin"
-	"github.com/lib/pq"
 )
 
 // RegistrationFormPageHandler renders a /registrationform page
@@ -117,7 +116,7 @@ var mapViolatedConstraintNameToMessage = map[string]string{
 	"i_registrationattempt__registrationemail": "Someone is already trying to register with the same E-mail",
 	"i_registrationattempt__nickname":          "Someone is already trying to register with the same Nickname",
 	"i_sduser_registrationemail":               "There is already a user with the same E-mail",
-	"i_sdusernickname":                        "There is already a user with the same nickname"}
+	"i_sdusernickname":                         "There is already a user with the same nickname"}
 
 func deleteExpiredRegistrationAttempts(trans *sddb.TransactionType) error {
 	tx := trans.Tx
@@ -161,14 +160,14 @@ func processRegistrationSubmitWithDb(rd *RegistrationData) *apperror.AppErr {
 
 func handleRegistrationAttemptInsertError(err error) *apperror.AppErr {
 	//xt := reflect.TypeOf(err1).Kind()
-	if e, ok := err.(*pq.Error); ok {
+	/* if e, ok := err.(*pgx.Error); ok {
 		if e.Code == PostgresqlErrorCodeUniqueViolation {
 			message, found := mapViolatedConstraintNameToMessage[e.Constraint]
 			if found {
 				return apperror.NewAppErrf(message)
 			}
 		}
-	}
+	} */
 	sddb.FatalDatabaseErrorIf(err, "Unexpected error in the registrationsubmit, %#v\n", err)
 	return nil
 }

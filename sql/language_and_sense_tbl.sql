@@ -19,7 +19,7 @@ comment on column tlanguage.commentary is 'commentary is a full descriptive name
 comment on column tlanguage.ownerid is 'ownerid specifies an owner of the language. If NULL, language is "common", so that everyone can add tlws records referencing the language';
 
 insert into tlanguage (id, slug, commentary) 
-  values (1,'ру','русский'), (2,'en','english'), (3,'中','中文');
+  values (1,'en','english'), (2,'ру','русский'), (3,'中','中文');
 
 insert into tlanguage (id, slug, commentary) 
   values (4, 'ру-1С', '1С предприятие')
@@ -65,6 +65,9 @@ comment on column tlws.id is 'id is a surrogate key and serves as slug';
 comment on column tlws.languageid is 'dialect we are translating the sense to';
 comment on column tlws.word is 'translation, that is, word or a phrase in the language referenced which can be used to express a sense';
 comment on column tlws.ownerid is 'Owner of the relation. If none, language''s owner is implied.';
+
+insert into tlws (languageid, senseid, word) values
+  (2,2,'холст'), (4,2,'канва'),(1,2,'Гоу'),(2,3,'операция'),(4,3,'оператор');
 
 
 \echo *** language_and_sense_tbl.sql Done

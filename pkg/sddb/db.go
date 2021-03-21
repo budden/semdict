@@ -19,8 +19,8 @@ import (
 	"github.com/budden/semdict/pkg/apperror"
 	"github.com/budden/semdict/pkg/shared"
 	"github.com/budden/semdict/pkg/shutdown"
+	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
-	"github.com/lib/pq"
 )
 
 // ConnectionType encapsulates connection with
@@ -84,8 +84,8 @@ func PlayWithDb() {
 			m)
 		//xt := reflect.TypeOf(err1).Kind()
 		if err1 != nil {
-			switch e := interface{}(err1).(type) {
-			case *pq.Error:
+			/* switch e := interface{}(err1).(type) {
+			case *pgx.Error:
 				if e.Code == "23505" {
 					fmt.Printf("Duplicate key in %s", e.Constraint)
 				} else {
@@ -93,7 +93,8 @@ func PlayWithDb() {
 				}
 			default:
 				fmt.Printf("Error insertiing: %#v\n", err1)
-			}
+			} */
+			fmt.Printf("failed to insert: %#v\n", err1)
 		} else {
 			fmt.Printf("Inserted %#v\n", res)
 		}
@@ -142,7 +143,7 @@ func RollbackIfActive(trans *TransactionType) {
 func OpenDb(url, logFriendlyName string, withMutex bool) *ConnectionType {
 	var err error
 	var db *sqlx.DB
-	db, err = sqlx.Open("postgres", url)
+	db, err = sqlx.Open("pgx", url)
 	apperror.ExitAppIf(err, 6, "Failed to open «%s» database", logFriendlyName)
 	err = db.Ping()
 	apperror.ExitAppIf(err, 7, "Failed to ping «%s» database", logFriendlyName)
