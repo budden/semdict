@@ -4,6 +4,7 @@ package query
 
 import (
 	"database/sql"
+	"encoding/json"
 
 	"github.com/budden/semdict/pkg/apperror"
 	"github.com/budden/semdict/pkg/sddb"
@@ -32,11 +33,12 @@ type wordSearchQueryParams struct {
 type wordSearchQueryRecord struct {
 	Id int64
 	// Sdusernickname sql.NullString
-	Oword   string
-	Theme   string
-	Phrase  string
-	Ownerid int64
-	Lwsjson sql.NullString
+	Oword    string
+	Theme    string
+	Phrase   string
+	Ownerid  int64
+	Lwsjson  sql.NullString
+	LwsArray []TlwsRecord
 	// Proposalid       sql.NullInt64 // is non-null when this record is a proposal.
 
 }
@@ -55,6 +57,14 @@ func wordSearchCommonPart(c *gin.Context) (wsqp *wordSearchQueryParams, fd []*wo
 
 	fd = readWordSearchQueryFromDb(wsqp)
 	return
+}
+
+type TlwsRecord = struct {
+	Id         int64
+	Word       string
+	OwnerId    int64
+	SenseId    int64
+	LanguageId int64
 }
 
 // select * from tsense where to_tsvector(phrase)||to_tsvector(word) @@ 'go';
@@ -76,6 +86,11 @@ func readWordSearchQueryFromDb(wsqp *wordSearchQueryParams) (
 	for last = 0; reply.Next(); last++ {
 		wsqr := &wordSearchQueryRecord{}
 		err1 = reply.StructScan(wsqr)
+		tlws := make([]TlwsRecord, 0)
+		if wsqr.Lwsjson.Valid {
+			json.Unmarshal([]byte(wsqr.Lwsjson.String), &tlws)
+		}
+		wsqr.LwsArray = tlws
 		sddb.FatalDatabaseErrorIf(err1, "Error obtaining data of sense: %#v", err1)
 		fd[last] = wsqr
 	}

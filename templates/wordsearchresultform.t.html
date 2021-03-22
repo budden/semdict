@@ -25,7 +25,12 @@
         <p><b>{{ $wordSearchQueryRecord.Oword }}</b>&VerticalBar; 
         <i>Theme:</i>{{ $wordSearchQueryRecord.Theme }}&VerticalBar;
         <i>Phrase:</i>{{ castAsHTML $wordSearchQueryRecord.Phrase }}</p>
-        {{ $wordSearchQueryRecord.Lwsjson }}
+
+        {{ range $index1, $TlwsRecord := $wordSearchQueryRecord.LwsArray }}
+        <p>
+        {{ $TlwsRecord.LanguageId }}  &VerticalBar; {{ $TlwsRecord.Word }}
+        </p>
+        {{ end }}
     {{end}}
 
 </body>
