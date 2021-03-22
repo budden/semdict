@@ -28,7 +28,7 @@
 
         {{ range $index1, $TlwsRecord := $wordSearchQueryRecord.LwsArray }}
         <p>
-        {{ $TlwsRecord.LanguageId }}  &VerticalBar; {{ $TlwsRecord.Word }}
+        <i>{{ $TlwsRecord.Languageslug }}</i> : {{ $TlwsRecord.Word }}
         </p>
         {{ end }}
     {{end}}

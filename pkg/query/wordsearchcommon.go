@@ -60,11 +60,12 @@ func wordSearchCommonPart(c *gin.Context) (wsqp *wordSearchQueryParams, fd []*wo
 }
 
 type TlwsRecord = struct {
-	Id         int64
-	Word       string
-	OwnerId    int64
-	SenseId    int64
-	LanguageId int64
+	Id           int64
+	Word         string
+	OwnerId      int64
+	SenseId      int64
+	LanguageId   int64
+	Languageslug string
 }
 
 // select * from tsense where to_tsvector(phrase)||to_tsvector(word) @@ 'go';
@@ -76,7 +77,10 @@ func readWordSearchQueryFromDb(wsqp *wordSearchQueryParams) (
 	var queryText string
 	queryText = `select tsense.*, 
    (select jsonb_agg(row_to_json(detail)) 
-    from (select tlws.* from tlws where senseid=tsense.id order by word) as detail)
+    from (select tlws.*, tlanguage.slug languageslug 
+										from tlws
+										left join tlanguage on tlws.languageid = tlanguage.id
+										where senseid=tsense.id order by languageslug) as detail)
 			as lwsjson from tsense	order by oword, theme, id offset :offset limit :limit`
 	reply, err1 := sddb.NamedReadQuery(queryText, wsqp)
 	apperror.Panic500AndErrorIf(err1, "Db query failed")
