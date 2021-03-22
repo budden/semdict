@@ -21,8 +21,10 @@
     required></div>
     <div class="form-group">
       <label for="theme">Theme (in Russian) for the sense disambiguation</label>
-      <input type="text" name="theme" class="form-control" id="theme"
-      value="" required></div>
+      <select class="form-control js-example-basic-single" name="theme" id="theme">
+        <option value="ЯП">ЯП</option>
+        <option value="Компиляция">Компиляция</option>
+       </select> 
     <div class="form-group">
    <label for="phrase">Phrase (in Russian) explaining the sense</label>
    <textarea rows="10" cols="80" class="form-control" id="phrase" name="phrase">
@@ -39,4 +41,11 @@
   editor: ckeditor1
   });
   </script>
+{{ template "jquery.t.html" }}
+<link href="/static/select2-4.0.7/dist/css/select2.css" rel="stylesheet" />
+<script src="/static/select2-4.0.7/dist/js/select2.js"></script>  
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('.js-example-basic-single').select2({ tags : true}); });  
+</script>
 </html>
