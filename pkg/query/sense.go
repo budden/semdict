@@ -37,6 +37,7 @@ type senseEditTemplateParams struct {
 // SenseViewHTMLTemplateParamsType are params for senseview.t.html
 type SenseViewHTMLTemplateParamsType struct {
 	Svp    *senseViewParamsType
+	Allth  []*ThemeRecord
 	Sdfe   *senseDataForEditType
 	Phrase template.HTML
 }

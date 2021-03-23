@@ -20,9 +20,11 @@
     value="{{ .Sdfe.OWord}}"
     required></div>
     <div class="form-group">
-      <label for="theme">Theme (in Russian) for the sense disambiguation</label>
+      <label for="theme">Theme (in Russian) for the sense disambiguation. Alt-Down to select</label>
       <select class="form-control js-example-basic-single" name="theme" id="theme">
-        <option value="ЯП">ЯП</option>
+        {{ range $index, $ThemeRecord := .Allth }}
+        <option value="{{ $ThemeRecord.Theme }}">{{ $ThemeRecord.Theme }}</option>
+        {{ end }}
         <option value="Компиляция">Компиляция</option>
        </select> 
     <div class="form-group">

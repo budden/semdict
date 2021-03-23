@@ -258,6 +258,15 @@ func NamedReadQuery(sql string, params interface{}) (res *sqlx.Rows, err error) 
 	return
 }
 
+// ReadQuery is for queries which are read-only. We introduce one as we encapsulate
+// sql(x) connection of sdusers_db in the sddb module.
+func ReadQuery(sql string) (res *sqlx.Rows, err error) {
+	conn := sdUsersDb
+	CheckDbAlive()
+	res, err = conn.Db.NamedQuery(sql, map[string]interface{}{})
+	return
+}
+
 // CloseRows are for use with defer to close rows in case rows iteration goes wrong
 func CloseRows(r *sqlx.Rows) func() {
 	return func() {
