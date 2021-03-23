@@ -28,6 +28,7 @@ type senseDataForEditType struct {
 	Phrase         string
 	OwnerId        int64
 	Sdusernickname sql.NullString // owner (direct or implied)
+	Allth          []*ThemeRecord
 }
 
 type senseEditTemplateParams struct {
@@ -37,7 +38,6 @@ type senseEditTemplateParams struct {
 // SenseViewHTMLTemplateParamsType are params for senseview.t.html
 type SenseViewHTMLTemplateParamsType struct {
 	Svp    *senseViewParamsType
-	Allth  []*ThemeRecord
 	Sdfe   *senseDataForEditType
 	Phrase template.HTML
 }
@@ -91,6 +91,9 @@ func SenseEditDirHandler(c *gin.Context) {
 			shared.GeneralTemplateParams{Message: fmt.Sprintf("Sorry, no sense (yet?) for «%d»", svp.Senseid)})
 		return
 	}
+
+	allThemes := AllKnownThemes()
+	ad.Allth = allThemes
 
 	aetp := &senseEditTemplateParams{Ad: ad}
 	c.HTML(http.StatusOK,

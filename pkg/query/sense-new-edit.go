@@ -17,10 +17,10 @@ func SenseNewEditRequestHandler(c *gin.Context) {
 	sdfe := &senseDataForEditType{}
 	oword := c.PostForm("oword")
 	sdfe.OWord = convertWordpatternToNewWork(oword)
-	allThemes := AllKnownThemes()
+	sdfe.Allth = AllKnownThemes()
 	c.HTML(http.StatusOK,
 		"sensenewedit.t.html",
-		SenseNewEditHTMLTemplateParamsType{Svp: svp, Sdfe: sdfe, Allth: allThemes})
+		SenseNewEditHTMLTemplateParamsType{Svp: svp, Sdfe: sdfe})
 }
 
 type ThemeRecord struct {

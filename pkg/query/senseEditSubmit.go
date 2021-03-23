@@ -62,6 +62,7 @@ func extractDataFromRequest(c *gin.Context, pad *senseEditSubmitDataType) {
 	pad.Senseid = extractIdFromRequest(c, "senseid")
 	pad.Phrase = c.PostForm("phrase")
 	pad.OWord = c.PostForm("oword")
+	pad.Theme = c.PostForm("theme")
 	pad.Ownerid = int32(extractIdFromRequest(c, "ownerid"))
 	pad.Action = c.PostForm("action")
 }

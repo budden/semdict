@@ -20,12 +20,11 @@
     value="{{ .Sdfe.OWord}}"
     required></div>
     <div class="form-group">
-      <label for="theme">Theme (in Russian) for the sense disambiguation. Alt-Down to select</label>
+      <label for="theme">Theme (in Russian) for the sense disambiguation. Press SPACE to select</label>
       <select class="form-control js-example-basic-single" name="theme" id="theme">
-        {{ range $index, $ThemeRecord := .Allth }}
+        {{ range $index, $ThemeRecord := .Sdfe.Allth }}
         <option value="{{ $ThemeRecord.Theme }}">{{ $ThemeRecord.Theme }}</option>
         {{ end }}
-        <option value="Компиляция">Компиляция</option>
        </select> 
     <div class="form-group">
    <label for="phrase">Phrase (in Russian) explaining the sense</label>
@@ -48,6 +47,6 @@
 <script src="/static/select2-4.0.7/dist/js/select2.js"></script>  
 <script type="text/javascript">
   $(document).ready(function() {
-    $('.js-example-basic-single').select2({ tags : true}); });  
+    $('.js-example-basic-single').select2({ tags : true }); });  
 </script>
 </html>
