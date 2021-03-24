@@ -22,6 +22,7 @@ func setupRoutes(engine *gin.Engine) {
 	// sensedelete deletes sense w/o confirmation
 	engine.POST("/sensedelete/:senseid", query.SenseDeleteRequestHandler)
 
+	// sensenewedit accepts an «oword» query parameter
 	engine.POST("/sensenewedit", query.SenseNewEditRequestHandler)
 	engine.POST("/sensenewsubmit", query.SenseNewSubmitPostHandler)
 

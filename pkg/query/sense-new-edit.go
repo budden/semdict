@@ -15,7 +15,7 @@ type SenseNewEditHTMLTemplateParamsType = SenseViewHTMLTemplateParamsType
 func SenseNewEditRequestHandler(c *gin.Context) {
 	svp := &senseViewParamsType{Sduserid: int64(user.GetSDUserIdOrZero(c))}
 	sdfe := &senseDataForEditType{}
-	oword := c.PostForm("oword")
+	oword := c.Query("oword")
 	sdfe.OWord = convertWordpatternToNewWork(oword)
 	sdfe.Allth = AllKnownThemes()
 	c.HTML(http.StatusOK,

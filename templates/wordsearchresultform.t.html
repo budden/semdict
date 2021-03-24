@@ -10,7 +10,7 @@
     {{ template "wordsearchform-inner.t.html" . }}
     <p>Word search results: «{{.Wsqp.Wordpattern}}»</p>
     {{if .IsLoggedIn}}
-    <form class="form" action="/senseproposaladdform?wordpattern={{.Wsqp.Wordpattern}}" method="POST">
+    <form class="form" action="/sensenewedit?oword={{.Wsqp.Wordpattern}}" method="POST">
     <button type="submit" class="btn btn-primary">Add new «{{.Wsqp.Wordpattern}}»</button>
     </form>
     {{end}}
