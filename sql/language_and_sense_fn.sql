@@ -76,33 +76,6 @@ language plpgsql as $$
   end;
 $$;
 
-
-create or replace function fnlanguageproposals(p_sduserid bigint, p_commonid bigint) 
-  returns table (commonid bigint
-  ,proposalid bigint
-  ,senseid bigint
-  ,proposalstatus enum_proposalstatus
-  ,phrasecommon text
-  ,word varchar(512)
-  ,phantom bool 
-  ,ownerid bigint
-  ,sdusernickname varchar(128)
-  ,languageslug text
-  ,iscommon bool
-  ,ismine bool
-  ) language plpgsql as $$ 
-begin
-return query(
- 	select s.commonid, s.proposalid, s.senseid
-    ,cast('n/a' as enum_proposalstatus)
-  	,s.phrase, s.word, s.phantom
-    ,cast(0 as bigint) as ownerid, '<common>' as sdusernickname, s.languageslug
-    ,(explainCommonAndMine(p_sduserid,s.commonid,s.proposalid,s.ownerid,s.phantom)).*
-  	from vsense_wide s where id = p_commonid
-	order by iscommon desc, ismine desc); end;
-$$;
-
-
 create or replace function fnsenseorproposalforview(p_sduserid bigint
   ,p_commonid bigint
   ,p_proposalid bigint
