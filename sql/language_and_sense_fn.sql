@@ -3,6 +3,31 @@
 \set ON_ERROR_STOP on
 --*/ 
 
+
+create or replace function fncanuserchangetlws(
+  p_sduserid bigint, p_tlws_ownerid bigint, p_tlanguage_ownerid bigint)
+returns int
+language plpgsql immutable as $$
+  declare tlws_ownerid bigint;
+  begin
+    if coalesce(p_sduserid,0) = 0 then return 0; end if;
+    if coalesce(p_tlws_ownerid,0) <> 0 then
+      tlws_ownerid = p_tlws_ownerid;
+    elsif coalesce(p_tlanguage_ownerid,0) <> 0 then
+      tlws_ownerid = p_tlanguage_ownerid;
+    else
+      tlws_ownerid = 0; 
+    end if;
+    if p_sduserid = tlws_ownerid then 
+      return 1;
+    elsif tlws_ownerid = 0 then
+      return 1;
+    else
+      return 0; end if;
+  end;
+$$;
+
+
 -- fnSaveSense saves the sense. p_evenifidentical must be false for now
 -- Use cases:
 create or replace function fnsavesense(
@@ -55,7 +80,8 @@ create or replace function fnwordsearch(
     tsense.phrase,
     (select jsonb_agg(row_to_json(detail)) 
      from 
-      (select tlws.*, tlanguage.slug languageslug 
+      (select tlws.*, tlanguage.slug languageslug,
+       fncanuserchangetlws(p_sduserid,tlws.ownerid,tlanguage.ownerid) as canedit
 		   from tlws
   			 left join tlanguage on tlws.languageid = tlanguage.id
 	  		 where tlws.senseid=tsense.id order by languageslug
