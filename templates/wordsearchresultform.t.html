@@ -18,9 +18,9 @@
     {{range $index, $wordSearchQueryRecord := .Records}}
     <hr>
     <p>
-        <a href="/sensebyidview/{{ $wordSearchQueryRecord.Id }}">View</a>
+        <a href="/sensebyidview/{{ $wordSearchQueryRecord.Senseid }}">View</a>
         {{if $.IsLoggedIn}}
-        &VerticalBar; <a href="/senseedit/{{ $wordSearchQueryRecord.Id }}">
+        &VerticalBar; <a href="/senseedit/{{ $wordSearchQueryRecord.Senseid }}">
                 <span class="glyphicon glyphicon-edit"></span></a>{{end}}
         <p><b>{{ $wordSearchQueryRecord.Oword }}</b>&VerticalBar; 
         <i>Theme:</i>{{ $wordSearchQueryRecord.Theme }}&VerticalBar;

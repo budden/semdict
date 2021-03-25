@@ -31,7 +31,7 @@ type wordSearchQueryParams struct {
 }
 
 type wordSearchQueryRecord struct {
-	Id int64
+	Senseid int64
 	// Sdusernickname sql.NullString
 	Oword    string
 	Theme    string
@@ -75,13 +75,15 @@ type TlwsRecord = struct {
 func readWordSearchQueryFromDb(wsqp *wordSearchQueryParams) (
 	fd []*wordSearchQueryRecord) {
 	var queryText string
-	queryText = `select tsense.*, 
-   (select jsonb_agg(row_to_json(detail)) 
-    from (select tlws.*, tlanguage.slug languageslug 
-										from tlws
-										left join tlanguage on tlws.languageid = tlanguage.id
-										where senseid=tsense.id order by languageslug) as detail)
-			as lwsjson from tsense	order by oword, theme, id offset :offset limit :limit`
+	/* queryText = `select tsense.*,
+	   (select jsonb_agg(row_to_json(detail))
+	    from (select tlws.*, tlanguage.slug languageslug
+											from tlws
+											left join tlanguage on tlws.languageid = tlanguage.id
+											where senseid=tsense.id order by languageslug) as detail)
+				as lwsjson from tsense	where oword like :wordpattern
+				order by oword, theme, id offset :offset limit :limit` */
+	queryText = "select * from fnwordsearch(:sduserid,:wordpattern,:offset,:limit)"
 	reply, err1 := sddb.NamedReadQuery(queryText, wsqp)
 	apperror.Panic500AndErrorIf(err1, "Db query failed")
 	defer sddb.CloseRows(reply)
