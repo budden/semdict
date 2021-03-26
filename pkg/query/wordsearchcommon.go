@@ -38,7 +38,7 @@ type wordSearchQueryRecord struct {
 	Phrase   string
 	Ownerid  int64
 	Lwsjson  sql.NullString
-	LwsArray []TlwsRecord
+	LwsArray []TlwsRecordForWordSearch
 	// Proposalid       sql.NullInt64 // is non-null when this record is a proposal.
 
 }
@@ -59,13 +59,14 @@ func wordSearchCommonPart(c *gin.Context) (wsqp *wordSearchQueryParams, fd []*wo
 	return
 }
 
-type TlwsRecord = struct {
+type TlwsRecordForWordSearch = struct {
 	Id           int64
 	Word         string
 	OwnerId      int64
 	SenseId      int64
 	LanguageId   int64
 	Languageslug string
+	Canedit      int
 }
 
 // select * from tsense where to_tsvector(phrase)||to_tsvector(word) @@ 'go';
@@ -92,7 +93,7 @@ func readWordSearchQueryFromDb(wsqp *wordSearchQueryParams) (
 	for last = 0; reply.Next(); last++ {
 		wsqr := &wordSearchQueryRecord{}
 		err1 = reply.StructScan(wsqr)
-		tlws := make([]TlwsRecord, 0)
+		tlws := make([]TlwsRecordForWordSearch, 0)
 		if wsqr.Lwsjson.Valid {
 			json.Unmarshal([]byte(wsqr.Lwsjson.String), &tlws)
 		}

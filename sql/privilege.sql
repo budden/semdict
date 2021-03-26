@@ -27,7 +27,7 @@ create table tuserprivilege (
   privilegekindid int not null references tprivilegekind
 );
 
-create table tuserlanguageprivilege (
+/* create table tuserlanguageprivilege (
  id serial primary key,
  sduserid int not null references sduser on delete cascade,
  privilegekindid int not null references tprivilegekind,
@@ -44,7 +44,7 @@ insert into tuserlanguageprivilege (sduserid, privilegekindid, languageid)
  (1,3,1)
  ,(1,3,2)
  ,(1,4,1)
- ,(1,4,2);
+ ,(1,4,2); */
 
 create or replace function isuserhaveprivilege(p_sduserid bigint, p_privilegekindid int)
 returns table (result bool) 
@@ -83,7 +83,7 @@ language plpgsql strict as $$
 $$;
 
 -- tests
-create or replace function test_privilege() returns void
+/* create or replace function test_privilege() returns void
 language plpgsql strict as $$
 begin
  if not exists (select result from isuserhaveprivilege(1,1) where result = true) THEN
@@ -93,7 +93,7 @@ end;
 $$;
 
 select test_privilege();
-
+*/
 
 
 \echo *** privilege.sql Done

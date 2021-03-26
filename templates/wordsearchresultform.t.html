@@ -27,9 +27,12 @@
         <i>Phrase:</i>{{ castAsHTML $wordSearchQueryRecord.Phrase }}</p>
 
         {{ range $index1, $TlwsRecord := $wordSearchQueryRecord.LwsArray }}
-        <p>
-        <i>{{ $TlwsRecord.Languageslug }}</i> : {{ $TlwsRecord.Word }}
-        </p>
+        <form class="form" action="/tlwseditaction/{{ $TlwsRecord.Id }}" method="POST"><p>
+            <i>{{ $TlwsRecord.Languageslug }}</i>  
+            {{ if eq $TlwsRecord.Canedit 1 }}
+            <button type="submit" class="btn btn-link btn-sm" name="action" value="edit"><span class="glyphicon glyphicon-edit"></span></button>{{else}} : {{end}}
+            {{ $TlwsRecord.Word }}
+        </p></form>
         {{ end }}
     {{end}}
 
