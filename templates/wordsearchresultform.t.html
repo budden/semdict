@@ -18,12 +18,16 @@
     {{range $index, $wordSearchQueryRecord := .Records}}
     <hr>
     <p>
-        <a href="/sensebyidview/{{ $wordSearchQueryRecord.Senseid }}">View</a>
-        {{if $.IsLoggedIn}}
-        &VerticalBar; <a href="/senseedit/{{ $wordSearchQueryRecord.Senseid }}">
-                <span class="glyphicon glyphicon-edit"></span></a>{{end}}
-        <p><b>{{ $wordSearchQueryRecord.Oword }}</b>&VerticalBar; 
-        <i>Theme:</i>{{ $wordSearchQueryRecord.Theme }}&VerticalBar;
+        
+        <p><a href="/sensebyidview/{{ $wordSearchQueryRecord.Senseid }}">
+            <b>{{ $wordSearchQueryRecord.Oword }}</b></a>
+            
+            {{if $.IsLoggedIn}}
+            <a href="/senseedit/{{ $wordSearchQueryRecord.Senseid }}">
+                    <span class="glyphicon glyphicon-edit"></span></a>
+            {{else}}&VerticalBar;{{end}}              
+
+            <i>Theme:</i>{{ $wordSearchQueryRecord.Theme }}&VerticalBar;
         <i>Phrase:</i>{{ castAsHTML $wordSearchQueryRecord.Phrase }}</p>
 
         {{ range $index1, $TlwsRecord := $wordSearchQueryRecord.LwsArray }}
