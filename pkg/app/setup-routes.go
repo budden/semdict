@@ -23,7 +23,7 @@ func setupRoutes(engine *gin.Engine) {
 	engine.POST("/sensedelete/:senseid", query.SenseDeleteRequestHandler)
 
 	// sensenewedit accepts an «oword» query parameter
-	engine.POST("/sensenewedit", query.SenseNewEditRequestHandler)
+	engine.GET("/sensenewedit", query.SenseNewEditRequestHandler)
 	engine.POST("/sensenewsubmit", query.SenseNewSubmitPostHandler)
 
 	engine.GET("/registrationform", user.RegistrationFormPageHandler)

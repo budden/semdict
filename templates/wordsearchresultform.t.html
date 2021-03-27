@@ -10,11 +10,9 @@
     {{ template "wordsearchform-inner.t.html" . }}
     <p>Word search results: «{{.Wsqp.Wordpattern}}»</p>
     {{if .IsLoggedIn}}
-    <form class="form" action="/sensenewedit?oword={{.Wsqp.Wordpattern}}" method="POST">
-    <button type="submit" class="btn btn-primary">Add new «{{.Wsqp.Wordpattern}}»</button>
-    </form>
+    <a href="/sensenewedit?oword={{.Wsqp.Wordpattern}}">Add new «{{.Wsqp.Wordpattern}}»</a>
     {{end}}
-    <p></p>
+    </p>
     {{range $index, $wordSearchQueryRecord := .Records}}
     <hr>
     <p>
@@ -31,12 +29,11 @@
         <i>Phrase:</i>{{ castAsHTML $wordSearchQueryRecord.Phrase }}</p>
 
         {{ range $index1, $TlwsRecord := $wordSearchQueryRecord.LwsArray }}
-        <form class="form" action="/tlwseditaction/{{ $TlwsRecord.Id }}" method="POST"><p>
-            <i>{{ $TlwsRecord.Languageslug }}</i>  
-            {{ if eq $TlwsRecord.Canedit 1 }}
-            <button type="submit" class="btn btn-link btn-sm" name="action" value="edit"><span class="glyphicon glyphicon-edit"></span></button>{{else}} : {{end}}
+        <i>{{ $TlwsRecord.Languageslug }}</i>  
+        {{ if eq $TlwsRecord.Canedit 1 }}
+        <a href="/tlwseditaction/{{ $TlwsRecord.Id }}">edit</a>{{else}} : {{end}}
             {{ $TlwsRecord.Word }}
-        </p></form>
+        </p>
         {{ end }}
     {{end}}
 
