@@ -63,6 +63,28 @@ create or replace function fnsavesense(
 $$;
 
 
+create or replace function fnwordsearchmasterrecord(
+    p_sduserid bigint)
+  returns table (
+    favoritelanguageid int,
+    favoritelanguageslug varchar(128))
+  language plpgsql as $$
+  begin
+  if coalesce(p_sduserid,0) = 0 then
+    return query(select cast(0 as bigint), cast('' as varchar(128)));
+    return;
+  else
+    return query(select
+      coalesce(sduser_profile.favorite_tlanguageid,0),
+      coalesce(tlanguage.slug,'')
+      from sduser_profile 
+      left join tlanguage on sduser_profile.favorite_tlanguageid = tlanguage.id
+      where sduser_profile.id = p_sduserid);
+    return;
+  end if; end
+$$;
+
+
 create or replace function fnwordsearch(
     p_sduserid bigint, p_wordpattern text, p_offset bigint, p_limit bigint)
   returns table (
@@ -70,7 +92,8 @@ create or replace function fnwordsearch(
     oword varchar(512), 
     theme varchar(512),
     phrase text,
-    lwsjson jsonb)
+    lwsjson jsonb,
+    hasfavoritelanguagetranslation bigint)
   language plpgsql as $$
   begin
   return query(
@@ -88,7 +111,10 @@ create or replace function fnwordsearch(
   			 left join tlanguage on tlws.languageid = tlanguage.id
 	  		 where tlws.senseid=tsense.id order by prefer_favorite_language, languageslug
       ) as detail
-    ) as lwsjson 
+    ) as lwsjson,
+    (select count(1) 
+      from tlws 
+      where tlws.senseid=tsense.id and tlws.languageid = sduser_profile.favorite_tlanguageid) as hasfavoritelanguagetranslation
     from tsense	
     left join sduser_profile on sduser_profile.id = p_sduserid
     where tsense.oword like p_wordpattern

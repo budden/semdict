@@ -10,7 +10,7 @@ import (
 
 // WordSearchQueryRouteHandler - обработчик для "/wordsearchquery".
 func WordSearchQueryRouteHandler(c *gin.Context) {
-	_, fd := wordSearchCommonPart(c)
+	_, _, fd := wordSearchCommonPart(c)
 	// Выдать как JSON
 	c.JSON(http.StatusOK, fd)
 }

@@ -14,6 +14,7 @@ import (
 type wordSearchResultFormTemplateParamsType struct {
 	Wsqp                  *wordSearchQueryParams
 	Wordpatternurlencoded string
+	Wsmr                  *wordSearchMasterRecord
 	Records               []*wordSearchQueryRecord
 	IsLoggedIn            bool
 }
@@ -22,8 +23,9 @@ type wordSearchResultFormTemplateParamsType struct {
 // заполняет через URL... По идее, это - runWrappedSprav - его частный случай
 func WordSearchResultRouteHandler(c *gin.Context) {
 	var wsqp *wordSearchQueryParams
+	var wsmr *wordSearchMasterRecord
 	var wsfd []*wordSearchQueryRecord
-	wsqp, wsfd = wordSearchCommonPart(c)
+	wsqp, wsmr, wsfd = wordSearchCommonPart(c)
 
 	wpu := url.QueryEscape(wsqp.Wordpattern)
 
@@ -31,6 +33,7 @@ func WordSearchResultRouteHandler(c *gin.Context) {
 		"wordsearchresultform.t.html",
 		wordSearchResultFormTemplateParamsType{Wsqp: wsqp,
 			Wordpatternurlencoded: wpu,
+			Wsmr:                  wsmr,
 			Records:               wsfd,
 			IsLoggedIn:            user.IsLoggedIn(c)})
 }

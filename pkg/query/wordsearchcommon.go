@@ -30,20 +30,30 @@ type wordSearchQueryParams struct {
 	Limit    int32 // 0 - значит «без ограничения»
 }
 
+// data common to the form
+type wordSearchMasterRecord struct {
+	FavoriteLanguageId   int64
+	FavoriteLanguageSlug string
+}
+
+// a record per sense found
 type wordSearchQueryRecord struct {
 	Senseid int64
 	// Sdusernickname sql.NullString
-	Oword    string
-	Theme    string
-	Phrase   string
-	Ownerid  int64
-	Lwsjson  sql.NullString
-	LwsArray []TlwsRecordForWordSearch
+	Oword                          string
+	Theme                          string
+	Phrase                         string
+	Ownerid                        int64
+	Lwsjson                        sql.NullString
+	LwsArray                       []TlwsRecordForWordSearch
+	HasFavoriteLanguageTranslation int64
 	// Proposalid       sql.NullInt64 // is non-null when this record is a proposal.
 
 }
 
-func wordSearchCommonPart(c *gin.Context) (wsqp *wordSearchQueryParams, fd []*wordSearchQueryRecord) {
+func wordSearchCommonPart(c *gin.Context) (wsqp *wordSearchQueryParams,
+	wsmr *wordSearchMasterRecord,
+	fd []*wordSearchQueryRecord) {
 	wsqp = getWordSearchQueryParamsFromRequest(c)
 
 	if wsqp.Wordpattern == "" {
@@ -55,7 +65,7 @@ func wordSearchCommonPart(c *gin.Context) (wsqp *wordSearchQueryParams, fd []*wo
 	LimitLimit(&wsqp.Limit)
 	wsqp.Sduserid = user.GetSDUserIdOrZero(c)
 
-	fd = readWordSearchQueryFromDb(wsqp)
+	wsmr, fd = readWordSearchQueryFromDb(wsqp)
 	return
 }
 
@@ -74,17 +84,32 @@ type TlwsRecordForWordSearch = struct {
 // https://eax.me/postgresql-full-text-search/
 
 func readWordSearchQueryFromDb(wsqp *wordSearchQueryParams) (
-	fd []*wordSearchQueryRecord) {
-	var queryText string
-	/* queryText = `select tsense.*,
-	   (select jsonb_agg(row_to_json(detail))
-	    from (select tlws.*, tlanguage.slug languageslug
-											from tlws
-											left join tlanguage on tlws.languageid = tlanguage.id
-											where senseid=tsense.id order by languageslug) as detail)
-				as lwsjson from tsense	where oword like :wordpattern
-				order by oword, theme, id offset :offset limit :limit` */
-	queryText = "select * from fnwordsearch(:sduserid,:wordpattern,:offset,:limit)"
+	wsmr *wordSearchMasterRecord, fd []*wordSearchQueryRecord) {
+	wsmr = readWordSearchMasterRecordFromDb(wsqp)
+	fd = readWordSearchSensesFromDb(wsqp)
+	return
+}
+
+func readWordSearchMasterRecordFromDb(wsqp *wordSearchQueryParams) (
+	wmsr *wordSearchMasterRecord) {
+	queryText := "select * from fnwordsearchmasterrecord(:sduserid)"
+	reply, err1 := sddb.NamedReadQuery(queryText, wsqp)
+	apperror.Panic500AndErrorIf(err1, "Db query failed")
+	wmsr = &wordSearchMasterRecord{}
+	dataFound := false
+	for reply.Next() {
+		err1 = reply.StructScan(wmsr)
+		dataFound = true
+	}
+	if !dataFound {
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "No data found")
+	}
+	sddb.FatalDatabaseErrorIf(err1, "Error obtaining data from users profile: %#v", err1)
+	return
+}
+
+func readWordSearchSensesFromDb(wsqp *wordSearchQueryParams) (fd []*wordSearchQueryRecord) {
+	queryText := "select * from fnwordsearch(:sduserid,:wordpattern,:offset,:limit)"
 	reply, err1 := sddb.NamedReadQuery(queryText, wsqp)
 	apperror.Panic500AndErrorIf(err1, "Db query failed")
 	defer sddb.CloseRows(reply)
