@@ -23,6 +23,9 @@ insert into tlanguage (id, slug, commentary, ownerid)
     ,(4, 'ру-1С', '1С предприятие',2)
     ,(5, 'ру-excel', 'Microsoft Excel',null);
 
+alter table sduser_profile add constraint fk_sduser_profile_favorite_tlanguageid
+  foreign key (favorite_tlanguageid) references tlanguage (id);
+
 create table tsense (
   id serial primary KEY,
   oword varchar(512) not null,

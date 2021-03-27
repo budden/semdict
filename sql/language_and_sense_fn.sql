@@ -3,7 +3,7 @@
 \set ON_ERROR_STOP on
 --*/ 
 
-
+-- fncanuserchangetlws says if the user can change this tlws
 create or replace function fncanuserchangetlws(
   p_sduserid bigint, p_tlws_ownerid bigint, p_tlanguage_ownerid bigint)
 returns int
@@ -81,13 +81,16 @@ create or replace function fnwordsearch(
     (select jsonb_agg(row_to_json(detail)) 
      from 
       (select tlws.*, tlanguage.slug languageslug,
-       fncanuserchangetlws(p_sduserid,tlws.ownerid,tlanguage.ownerid) as canedit
+       fncanuserchangetlws(p_sduserid,tlws.ownerid,tlanguage.ownerid) as canedit,
+       case when tlws.languageid = coalesce(sduser_profile.favorite_tlanguageid,0)
+       then 0 else 1 end as prefer_favorite_language
 		   from tlws
   			 left join tlanguage on tlws.languageid = tlanguage.id
-	  		 where tlws.senseid=tsense.id order by languageslug
+	  		 where tlws.senseid=tsense.id order by prefer_favorite_language, languageslug
       ) as detail
     ) as lwsjson 
     from tsense	
+    left join sduser_profile on sduser_profile.id = p_sduserid
     where tsense.oword like p_wordpattern
 		order by tsense.oword, tsense.theme, senseid 
     offset p_offset limit p_limit); return; end;
