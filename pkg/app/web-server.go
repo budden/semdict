@@ -107,13 +107,23 @@ func initRouter() *gin.Engine {
 
 	engine := gin.New()
 
-	engine.Use(gin.Logger(), user.SetUserStatus(), apperror.HandlePanicInRequestHandler())
+	engine.Use(gin.Logger(), user.SetUserStatusMiddleware(), SetNoCacheMiddleware(), apperror.HandlePanicInRequestHandlerMiddleware())
 
 	setupTemplates(engine)
 	setupRoutes(engine)
 
 	//engine.GET("/captcha/:imagefilename", ReverseProxy)
 	return engine
+}
+
+func SetNoCacheMiddleware() gin.HandlerFunc {
+	return setNoCacheMiddlewareFn
+}
+
+func setNoCacheMiddlewareFn(c *gin.Context) {
+	// https://developer.mozilla.org/ru/docs/Web/HTTP/Caching
+	c.Writer.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	c.Next()
 }
 
 func castAsHTML(s string) template.HTML {

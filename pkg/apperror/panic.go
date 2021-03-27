@@ -43,10 +43,10 @@ func (be *AppErr) Error() string {
 	return fmt.Sprintf("AppErr: %s", be.Message)
 }
 
-// HandlePanicInRequestHandler returns a middleware
+// HandlePanicInRequestHandlerMiddleware returns a middleware
 // that, for our known "good" panics recovers and
 // writes a 500, otherwise it prints the panic and exits the app.
-func HandlePanicInRequestHandler() gin.HandlerFunc {
+func HandlePanicInRequestHandlerMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {

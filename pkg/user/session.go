@@ -15,7 +15,7 @@ import (
 )
 
 // EnsureLoggedIn causes a request to be aborted with an error
-// if the user is not logged in. Can only be used downstream from SetUserStatus
+// if the user is not logged in. Can only be used downstream from SetUserStatusMiddleware
 // middleware
 func EnsureLoggedIn(c *gin.Context) {
 	if !IsLoggedIn(c) {
@@ -24,7 +24,7 @@ func EnsureLoggedIn(c *gin.Context) {
 }
 
 // EnsureNotLoggedIn ensures that a request will be aborted with an error
-// if the user is already logged in.  Can only be used downstream from SetUserStatus
+// if the user is already logged in.  Can only be used downstream from SetUserStatusMiddleware
 // middleware
 func EnsureNotLoggedIn(c *gin.Context) {
 	if IsLoggedIn(c) {
@@ -35,18 +35,18 @@ func EnsureNotLoggedIn(c *gin.Context) {
 }
 
 // IsLoggedIn is true if the user is logged in with valid credentials.
-// Can only be used downstream from SetUserStatus middleware
+// Can only be used downstream from SetUserStatusMiddleware middleware
 func IsLoggedIn(c *gin.Context) bool {
 	loggedInInterface, exists := c.Get("is_logged_in")
 	loggedIn := loggedInInterface.(bool)
 	if !exists {
-		apperror.GracefullyExitAppIf(apperror.ErrDummy, "Only call this one after SetUserStatus")
+		apperror.GracefullyExitAppIf(apperror.ErrDummy, "Only call this one after SetUserStatusMiddleware")
 	}
 	return loggedIn
 }
 
 // GetSDUserIdOrZero returns sduserid for a logged in user, or 0 for a not logged
-// Use downstream from SetUserStatus middleware
+// Use downstream from SetUserStatusMiddleware middleware
 func GetSDUserIdOrZero(c *gin.Context) int32 {
 	if !IsLoggedIn(c) {
 		return 0
@@ -62,8 +62,8 @@ func GetSDUserIdOrZero(c *gin.Context) int32 {
 	return -1 // this must never happen
 }
 
-// SetUserStatus sets a flag indicating whether the request was from an authenticated user or not
-func SetUserStatus() gin.HandlerFunc {
+// SetUserStatusMiddleware sets a flag indicating whether the request was from an authenticated user or not
+func SetUserStatusMiddleware() gin.HandlerFunc {
 	return setUserStatusFn
 }
 
