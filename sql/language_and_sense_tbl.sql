@@ -58,7 +58,7 @@ create table tlws (
   languageid bigint not null references tlanguage,
   word varchar(512) not null,
   senseid bigint not null references tsense,
-  commentary text null,
+  commentary text not null default '',
   ownerid bigint null references sduser
 );
 

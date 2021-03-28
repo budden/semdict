@@ -37,7 +37,7 @@
         {{ range $index1, $lwsRecord := $wordSearchQueryRecord.LwsArray }}
         <p><i>{{ $lwsRecord.Languageslug }}</i>  
         {{ if eq $lwsRecord.Canedit 1 }}
-        <a href="/lwsedit/{{ $lwsRecord.Id }}">edit</a>{{else}} : {{end}}
+        <a href="/lwsedit/{{ $wordSearchQueryRecord.Senseid }}/{{ $lwsRecord.LanguageId }}/{{ $lwsRecord.Id }}">edit</a>{{else}} : {{end}}
             {{ $lwsRecord.Word }}
         </p>
         {{ end }}

@@ -49,7 +49,7 @@ func sanitizeLwsEditData(pad *lwsEditSubmitDataType) {
 	// example just from the title page of https://github.com/microcosm-cc/bluemonday
 	p := bluemonday.UGCPolicy()
 	pad.Commentary = p.Sanitize(pad.Commentary)
-	matched, err := regexp.Match(`^[0-9a-zA-Zа-яА-ЯёЁ\p{L} ]+$`, []byte(pad.Commentary))
+	matched, err := regexp.Match(`^[0-9a-zA-Zа-яА-ЯёЁ\p{L} ]+$`, []byte(pad.Word))
 	if (err != nil) || !matched {
 		// https://www.linux.org.ru/forum/development/14877320
 		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Word can only contain Russian and latin letters, digits and spaces")
@@ -72,7 +72,7 @@ func extractLwsDataFromRequest(c *gin.Context, pad *lwsEditSubmitDataType, forIn
 
 func writeLwsToDb(pad *lwsEditSubmitDataType) (newProposalid int64) {
 	res, err1 := sddb.NamedUpdateQuery(
-		`select fnsavelws(:sduserid, :lwsid, :languageid, :word, :senseid, :commentary)`, pad)
+		`select fnsavelws(:sduserid, :lwsid, :languageid, :word, :senseid, :commentary, 'save')`, pad)
 	apperror.Panic500AndErrorIf(err1, "Failed to update an lws")
 	dataFound := false
 	for res.Next() {

@@ -3,13 +3,14 @@
 <!-- See https://semaphoreci.com/community/tutorials/test-driven-development-of-go-web-applications-with-gin -->
 
 {{ template "header-start.t.html" .}}
-<title>Semdict - new translation</title>
+<title>Semdict - edit translation</title>
 {{ template "header-end.t.html" .}}
 
 <body>
  <p><a href="/menu">Menu</a></p>
- <form class="form" action="/lwsnewsubmit" method="POST">
+ <form class="form" action="/lwseditsubmit" method="POST">
   <div class="form-group" style="display:none">
+    <input type="text" class="form-control" id="lwsid" name="lwsid" value="{{.Lep.Lwsid}}" readonly>
     <input type="text" class="form-control" id="senseid" name="senseid" value="{{.Lep.Senseid}}" readonly>
     <input type="text" class="form-control" id="languageid" name="languageid" value="{{.Lep.Languageid}}" readonly>
   </div>
@@ -18,14 +19,14 @@
   <small><p><i>Sense owner:</i> {{ .Led.Ownernickname }}</p></small>
   <hr>
   <div class="form-group">
-    <label for="oword">New translation to {{ .Led.Languageslug }}</label>
+    <label for="oword">Translation to {{ .Led.Languageslug }}</label>
     <input type="text" name="word" class="form-control" id="word"
-    value=""
-    placeholder="Your translation"
+    value="{{ .Led.Word }}"
     autofocus=true
     required></div>
   </div>
-  <button type="submit" name="action" value="create" class="btn btn-primary">Create</button>
+  <button type="submit" name="action" value="save" class="btn btn-primary">Save</button>
+  <button type="submit" name="action" value="delete" class="btn btn-primary">Delete</button>
  </form>
 </body>
 <script src="/static/bootstrap-3.3.2/js/bootstrap.js"></script>

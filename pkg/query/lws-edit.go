@@ -12,20 +12,17 @@ import (
 )
 
 // parameters
-type lwsNewEditParamsType struct {
-	Sduserid   int64
+type lwsEditParamsType struct {
+	Lwsid      int64 // 0 when creating
+	Sduserid   int64 // taken from sesion, 0 when not logged in
 	Senseid    int64
 	Languageid int64
 }
 
-type lwsEditParamsType struct {
-	Sduserid int64
-	Lwsid    int64
-}
-
 // data for the form obtained from the DB
-type lwsNewEditDataType struct {
-	Id            int64 // sense id, unnecessary
+type lwsEditDataType struct {
+	Word          string
+	Commentary    string
 	Languageslug  string
 	OWord         string
 	Theme         string
@@ -36,21 +33,26 @@ type lwsNewEditDataType struct {
 
 // SenseViewHTMLTemplateParamsType are params for senseview.t.html
 type lwsNewEditHTMLTemplateParamsType struct {
-	Lnep   *lwsNewEditParamsType
-	Lned   *lwsNewEditDataType
+	Lep    *lwsEditParamsType
+	Led    *lwsEditDataType
 	Phrase template.HTML
 }
 
 // read the sense, see the vsense view and senseViewParamsType for the explanation
-func readLwsNewEditDataFromDb(lnep *lwsNewEditParamsType) (lned *lwsNewEditDataType) {
+func readLwsNewEditDataFromDb(lnep *lwsEditParamsType) (lned *lwsEditDataType) {
 	reply, err1 := sddb.NamedReadQuery(
-		`select tsense.*, coalesce(sense_owner.nickname,cast('' as varchar(128))) as ownernickname,
-			tlanguage.slug as languageslug
-		 from tsense left join sduser as sense_owner on tsense.ownerid = sense_owner.id
+		`select 
+ 		coalesce(tlws.word,'') as word,
+	 	coalesce(tlws.commentary,'') as commentary,
+			tsense.oword, tsense.phrase, tsense.phrase, coalesce(sense_owner.nickname,cast('' as varchar(128))) as ownernickname,
+			coalesce(tlanguage.slug,'') as languageslug
+		 from tsense 
+			left join tlws on tlws.id = :lwsid and tlws.senseid = :senseid
+			left join sduser as sense_owner on tsense.ownerid = sense_owner.id
 			left join tlanguage on tlanguage.id = :languageid
 			where tsense.id = :senseid`, &lnep)
 	apperror.Panic500AndErrorIf(err1, "Failed to extract data, sorry")
-	lned = &lwsNewEditDataType{}
+	lned = &lwsEditDataType{}
 	dataFound := false
 	for reply.Next() {
 		err1 = reply.StructScan(lned)
@@ -63,15 +65,9 @@ func readLwsNewEditDataFromDb(lnep *lwsNewEditParamsType) (lned *lwsNewEditDataT
 	return
 }
 
-func LwsEditGetHandler(c *gin.Context) {
-	lnep := &lwsNewEditParamsType{Sduserid: int64(user.GetSDUserIdOrZero(c))}
-	lnep.Senseid = extractIdFromRequest(c, "senseid")
-
-}
-
 func LwsNewEditRequestHandler(c *gin.Context) {
 
-	lnep := &lwsNewEditParamsType{Sduserid: int64(user.GetSDUserIdOrZero(c))}
+	lnep := &lwsEditParamsType{Sduserid: int64(user.GetSDUserIdOrZero(c))}
 	lnep.Senseid = extractIdFromRequest(c, "senseid")
 	lnep.Languageid = extractIdFromRequest(c, "languageid")
 
@@ -81,5 +77,21 @@ func LwsNewEditRequestHandler(c *gin.Context) {
 
 	c.HTML(http.StatusOK,
 		"lws-new-edit.t.html",
-		lwsNewEditHTMLTemplateParamsType{Lnep: lnep, Lned: lned, Phrase: phrase})
+		lwsNewEditHTMLTemplateParamsType{Lep: lnep, Led: lned, Phrase: phrase})
+}
+
+func LwsEditGetHandler(c *gin.Context) {
+
+	lnep := &lwsEditParamsType{Sduserid: int64(user.GetSDUserIdOrZero(c))}
+	lnep.Senseid = extractIdFromRequest(c, "senseid")
+	lnep.Languageid = extractIdFromRequest(c, "languageid")
+	lnep.Lwsid = extractIdFromRequest(c, "lwsid")
+
+	lned := readLwsNewEditDataFromDb(lnep)
+
+	phrase := template.HTML(lned.Phrase)
+
+	c.HTML(http.StatusOK,
+		"lws-edit.t.html",
+		lwsNewEditHTMLTemplateParamsType{Lep: lnep, Led: lned, Phrase: phrase})
 }

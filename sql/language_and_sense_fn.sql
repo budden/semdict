@@ -52,12 +52,12 @@ language plpgsql as $$
     -- check rights (later)
     -- perform an action
 
-    if coalesce(dialect_ownerid,0) = p_sduserid then
+    if coalesce(v_dialect_ownerid,0) = p_sduserid then
       v_ownerid = null;
     else
       v_ownerid = p_sduserid; end if;
 
-    if action = "create" then
+    if action = 'create' then
       insert into tlws 
       (languageid, word, senseid, commentary, ownerid)
       values
@@ -68,7 +68,7 @@ language plpgsql as $$
       if v_affected_count != 1 then
         raise exception 'expected to insert exactly one record, which didn''t happen'; end if;
       return query (select p_lwsid);
-    elsif action="save" then
+    elsif action='save' then
       if p_lwsid is null then
         raise exception 'p_lwsid is null'; end if;
       update tlws 
@@ -79,7 +79,7 @@ language plpgsql as $$
       if v_affected_count != 1 then
         raise exception 'expected to update exactly one record, which didn''t hapen'; end if;
       return query (select p_lwsid);
-    elsif action="delete" then
+    elsif action='delete' then
       raise exception 'sorry, not implemented yet';
     else 
       raise exception 'bad action'; end if;
