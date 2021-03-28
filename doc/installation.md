@@ -12,8 +12,8 @@ on the hosting PC controlled via ssh:
 cd ~
 mkdir install_golang
 cd install_golang
-wget https://dl.google.com/go/go1.11.6.linux-amd64.tar.gz
-sudo tar -C /usr/local -xzf go1.11.6.linux-amd64.tar.gz
+wget https://dl.google.com/go/go1.16.2.linux-amd64.tar.gz
+sudo tar -C /usr/local -xzf go1.16.2.linux-amd64.tar.gz
 mkdir ~/go
 
 # the way env vars are set up depends on your shell and if it is local
