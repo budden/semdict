@@ -58,7 +58,7 @@ func readLwsNewEditDataFromDb(lnep *lwsNewEditParamsType) (lned *lwsNewEditDataT
 	return
 }
 
-func TlwsNewEditRequestHandler(c *gin.Context) {
+func LwsNewEditRequestHandler(c *gin.Context) {
 
 	lnep := &lwsNewEditParamsType{Sduserid: int64(user.GetSDUserIdOrZero(c))}
 	lnep.Senseid = extractIdFromRequest(c, "senseid")
@@ -69,6 +69,6 @@ func TlwsNewEditRequestHandler(c *gin.Context) {
 	phrase := template.HTML(lned.Phrase)
 
 	c.HTML(http.StatusOK,
-		"tlws-new-edit.t.html",
+		"lws-new-edit.t.html",
 		lwsNewEditHTMLTemplateParamsType{Lnep: lnep, Lned: lned, Phrase: phrase})
 }

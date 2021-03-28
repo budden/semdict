@@ -31,14 +31,14 @@
         <p>{{ if not (eq 0 $.Wsmr.FavoriteLanguageId) }}
         {{if eq 0 $wordSearchQueryRecord.HasFavoriteLanguageTranslation}}
         <b>{{ $.Wsmr.FavoriteLanguageSlug }}</b></i>
-            <a href="/tlwsnewedit/{{ $wordSearchQueryRecord.Senseid  }}/{{ $.Wsmr.FavoriteLanguageId }}">Add</a></p>
+            <a href="/lwsnewedit/{{ $wordSearchQueryRecord.Senseid  }}/{{ $.Wsmr.FavoriteLanguageId }}">Add</a></p>
         {{end}}{{end}}
 
-        {{ range $index1, $TlwsRecord := $wordSearchQueryRecord.LwsArray }}
-        <p><i>{{ $TlwsRecord.Languageslug }}</i>  
-        {{ if eq $TlwsRecord.Canedit 1 }}
-        <a href="/tlwsedit/{{ $TlwsRecord.Id }}">edit</a>{{else}} : {{end}}
-            {{ $TlwsRecord.Word }}
+        {{ range $index1, $lwsRecord := $wordSearchQueryRecord.LwsArray }}
+        <p><i>{{ $lwsRecord.Languageslug }}</i>  
+        {{ if eq $lwsRecord.Canedit 1 }}
+        <a href="/lwsedit/{{ $lwsRecord.Id }}">edit</a>{{else}} : {{end}}
+            {{ $lwsRecord.Word }}
         </p>
         {{ end }}
     {{end}}

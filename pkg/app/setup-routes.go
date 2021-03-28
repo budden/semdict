@@ -16,6 +16,7 @@ func setupRoutes(engine *gin.Engine) {
 	engine.GET("/sensebyidview/:senseid", query.SenseByIdViewDirHandler)
 
 	engine.GET("/senseedit/:senseid", query.SenseEditDirHandler)
+	engine.POST("/senseeditsubmit", query.SenseEditSubmitPostHandler)
 	// sensedeleteconfirm returns a form which asks if you really want to delete the item,
 	// and, if yes, posts /sensedelete request
 	engine.GET("/sensedeleteconfirm/:senseid", query.SenseDeleteConfirmRequestHandler)
@@ -26,7 +27,9 @@ func setupRoutes(engine *gin.Engine) {
 	engine.GET("/sensenewedit", query.SenseNewEditRequestHandler)
 	engine.POST("/sensenewsubmit", query.SenseNewSubmitPostHandler)
 
-	engine.GET("/tlwsnewedit/:senseid/:languageid", query.TlwsNewEditRequestHandler)
+	engine.GET("/lwsnewedit/:senseid/:languageid", query.LwsNewEditRequestHandler)
+	engine.POST("/lwsnewsubmit", query.LwsNewSubmitPostHandler)
+	engine.POST("/lwseditsubmit", query.LwsEditSubmitPostHandler)
 
 	engine.GET("/registrationform", user.RegistrationFormPageHandler)
 	engine.POST("/registrationsubmit", user.RegistrationSubmitPostHandler)
@@ -37,5 +40,4 @@ func setupRoutes(engine *gin.Engine) {
 	engine.GET("/logout", user.Logout)
 	engine.Static("/static", *TemplateBaseDir+"static")
 
-	engine.POST("/senseeditsubmit", query.SenseEditSubmitPostHandler)
 }
