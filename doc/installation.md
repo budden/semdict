@@ -6,7 +6,7 @@ but we trying to save development effort just now :) Not all prerequisites are l
 follow the manual and you'll find more.
 
 ### Golang
-- golang 1.11.6 (other versions not tested), see golang home page for the instructions, we did the following
+- golang 1.16.2 (other versions not tested), see golang home page for the instructions, we did the following
 on the hosting PC controlled via ssh:
 ```
 cd ~
