@@ -26,6 +26,8 @@ func setupRoutes(engine *gin.Engine) {
 	engine.GET("/sensenewedit", query.SenseNewEditRequestHandler)
 	engine.POST("/sensenewsubmit", query.SenseNewSubmitPostHandler)
 
+	engine.GET("/tlwsnewedit/:senseid/:languageid", query.TlwsNewEditRequestHandler)
+
 	engine.GET("/registrationform", user.RegistrationFormPageHandler)
 	engine.POST("/registrationsubmit", user.RegistrationSubmitPostHandler)
 	engine.GET("/registrationconfirmation", user.RegistrationConfirmationPageHandler)

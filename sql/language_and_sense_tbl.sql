@@ -58,6 +58,7 @@ create table tlws (
   languageid bigint not null references tlanguage,
   senseid bigint not null references tsense,
   word varchar(512) not null,
+  comment text not null,
   ownerid bigint null references sduser
 );
 
@@ -65,6 +66,7 @@ comment on table tlws is 'tlws is a language-word-sense relation, that is, trans
 comment on column tlws.id is 'id is a surrogate key and serves as slug';
 comment on column tlws.languageid is 'dialect we are translating the sense to';
 comment on column tlws.word is 'translation, that is, word or a phrase in the language referenced which can be used to express a sense';
+comment on column tlws.explanation is 'comment establishing a chosen translation';
 comment on column tlws.ownerid is 'Owner of the relation. If none, language''s owner is implied.';
 
 insert into tlws (languageid, senseid, word) values

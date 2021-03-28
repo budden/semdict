@@ -14,13 +14,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Params to show a sense.
+// Params of a request to show a sense, including implicit Sduserid, obtained from session
 type senseViewParamsType struct {
 	Sduserid int64
 	Senseid  int64
 }
 
-// senseDataForEditType is also used for a view.
+// senseDataForEditType is obtained from the DB also used for a view.
 type senseDataForEditType struct {
 	Id             int64
 	OWord          string

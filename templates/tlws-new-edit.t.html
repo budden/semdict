@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<!-- See https://semaphoreci.com/community/tutorials/test-driven-development-of-go-web-applications-with-gin -->
+
+{{ template "header-start.t.html" .}}
+<title>Semdict - new translation</title>
+{{ template "header-end.t.html" .}}
+
+<body>
+ <p><a href="/menu">Menu</a></p>
+ <form class="form" action="/tlwsnewsubmit" method="POST">
+  <div class="form-group" style="display:none">
+    <input type="text" class="form-control" id="senseid" name="senseid" value="{{.Lnep.Senseid}}" readonly>
+    <input type="text" class="form-control" id="languageid" name="languageid" value="{{.Lnep.Languageid}}" readonly>
+  </div>
+  <p><b>{{ .Lned.OWord}}</b>|<i>Theme:</i> {{ .Lned.Theme}}</p>
+  <p><i>Phrase:</i> {{ .Phrase}}</p>
+  <small><p><i>Sense owner:</i> {{ .Lned.Ownernickname }}</p></small>
+  <hr>
+  <div class="form-group">
+    <label for="oword">New translation to {{ .Lned.Languageslug }}</label>
+    <input type="text" name="word" class="form-control" id="word"
+    value=""
+    placeholder="Your translation"
+    autofocus=true
+    required></div>
+  </div>
+  <button type="submit" name="action" value="create" class="btn btn-primary">Create</button>
+ </form>
+</body>
+<script src="/static/bootstrap-3.3.2/js/bootstrap.js"></script>
+<link href="/static/select2-4.0.7/dist/css/select2.css" rel="stylesheet" />
+<script src="/static/select2-4.0.7/dist/js/select2.js"></script>  
+</html>

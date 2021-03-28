@@ -28,10 +28,10 @@
             <i>Theme:</i>{{ $wordSearchQueryRecord.Theme }}&VerticalBar;
         <i>Phrase:</i>{{ castAsHTML $wordSearchQueryRecord.Phrase }}</p>
 
-        <p>{{ if not (eq 0 $.Wsmr.FavoriteLanguageId) }}</p>
+        <p>{{ if not (eq 0 $.Wsmr.FavoriteLanguageId) }}
         {{if eq 0 $wordSearchQueryRecord.HasFavoriteLanguageTranslation}}
-        <p><b>{{ $.Wsmr.FavoriteLanguageSlug }}</b></i>
-            <a href="/tlwsnew/{{ $wordSearchQueryRecord.Senseid  }}/{{ $.Wsmr.FavoriteLanguageId }}">Add</a></p>
+        <b>{{ $.Wsmr.FavoriteLanguageSlug }}</b></i>
+            <a href="/tlwsnewedit/{{ $wordSearchQueryRecord.Senseid  }}/{{ $.Wsmr.FavoriteLanguageId }}">Add</a></p>
         {{end}}{{end}}
 
         {{ range $index1, $TlwsRecord := $wordSearchQueryRecord.LwsArray }}
