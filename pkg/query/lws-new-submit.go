@@ -23,30 +23,23 @@ type lwsNewSubmitDataType = lwsEditSubmitDataType
 func sanitizeNewLwsData(pad *lwsNewSubmitDataType) {
 	// example just from the title page of https://github.com/microcosm-cc/bluemonday
 	p := bluemonday.UGCPolicy()
-	pad.Phrase = p.Sanitize(pad.Phrase)
-	matched, err := regexp.Match(`^[0-9a-zA-Zа-яА-ЯёЁ\p{L} ]+$`, []byte(pad.OWord))
+	pad.Word = p.Sanitize(pad.Word)
+	matched, err := regexp.Match(`^[0-9a-zA-Zа-яА-ЯёЁ\p{L} ]+$`, []byte(pad.Word))
 	if (err != nil) || !matched {
 		// https://www.linux.org.ru/forum/development/14877320
 		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Word can only contain Russian or latin letters, digits and spaces")
 	}
 }
 
-func extractDataFromLwsNewSubmitRequest(c *gin.Context, pad *lwsEditSubmitDataType) {
-	pad.Sduserid = int64(user.GetSDUserIdOrZero(c))
-	pad.OWord = c.PostForm("oword")
-	pad.Theme = c.PostForm("theme")
-	pad.Phrase = c.PostForm("phrase")
-}
-
 func LwsNewSubmitPostHandler(c *gin.Context) {
 	user.EnsureLoggedIn(c)
 	pad := &lwsNewSubmitDataType{}
-	extractDataFromLwsNewSubmitRequest(c, pad)
+	extractLwsDataFromRequest(c, pad, true)
 	sanitizeNewLwsData(pad)
-	newLwsId := makeNewLwsidInDb(pad)
+	_ = makeNewLwsidInDb(pad)
 	// https://github.com/gin-gonic/gin/issues/444
 	c.Redirect(http.StatusFound,
-		"/lwsbyidview/"+strconv.FormatInt(newLwsId, 10))
+		"/sensebyidview/"+strconv.FormatInt(pad.Senseid, 10))
 }
 
 func makeNewLwsidInDb(sap *lwsNewSubmitDataType) (id int64) {

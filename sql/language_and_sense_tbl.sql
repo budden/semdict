@@ -56,11 +56,14 @@ insert into tsense (oword, theme, phrase, ownerid)
 create table tlws (
   id serial primary KEY,
   languageid bigint not null references tlanguage,
-  senseid bigint not null references tsense,
   word varchar(512) not null,
+  senseid bigint not null references tsense,
   commentary text null,
   ownerid bigint null references sduser
 );
+
+-- one can (in a future) have several possible translations for a sense
+create unique index tlws_key on tlws (languageid, senseid, word);
 
 comment on table tlws is 'tlws is a language-word-sense relation, that is, translation variant';
 comment on column tlws.id is 'id is a surrogate key and serves as slug';

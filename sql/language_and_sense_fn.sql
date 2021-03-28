@@ -28,8 +28,64 @@ language plpgsql immutable as $$
 $$;
 
 
--- fnSaveSense saves the sense. p_evenifidentical must be false for now
--- Use cases:
+create or replace function fnsavelws(
+  p_sduserid bigint, 
+  p_lwsid bigint, 
+  p_languageid bigint, 
+  p_word varchar(512),
+  p_senseid bigint,
+  p_commentary text,
+  action varchar(64) -- create, save, delete
+)
+returns table (r_tlwsid bigint)
+language plpgsql as $$
+  declare v_dialect_ownerid bigint; 
+  declare v_ownerid bigint;
+  declare v_affected_count int;
+
+  begin
+
+    select ownerid from tlanguage 
+    where id = p_languageid 
+    into v_dialect_ownerid;
+
+    -- check rights (later)
+    -- perform an action
+
+    if coalesce(dialect_ownerid,0) = p_sduserid then
+      v_ownerid = null;
+    else
+      v_ownerid = p_sduserid; end if;
+
+    if action = "create" then
+      insert into tlws 
+      (languageid, word, senseid, commentary, ownerid)
+      values
+      (p_languageid, p_word, p_senseid, p_commentary, v_ownerid) 
+      returning id into p_lwsid;
+
+      get diagnostics v_affected_count = row_count;
+      if v_affected_count != 1 then
+        raise exception 'expected to insert exactly one record, which didn''t happen'; end if;
+      return query (select p_lwsid);
+    elsif action="save" then
+      if p_lwsid is null then
+        raise exception 'p_lwsid is null'; end if;
+      update tlws 
+      set word = p_word, commentary = p_commentary, ownerid = v_ownerid
+      where id = p_lwsid and 
+      --- next conditions are an additional checks
+      languageid = p_languageid and senseid = p_senseid;
+      if v_affected_count != 1 then
+        raise exception 'expected to update exactly one record, which didn''t hapen'; end if;
+      return query (select p_lwsid);
+    elsif action="delete" then
+      raise exception 'sorry, not implemented yet';
+    else 
+      raise exception 'bad action'; end if;
+  return; end;
+$$;
+
 create or replace function fnsavesense(
     p_sduserid bigint, p_senseid bigint, p_oword text, p_theme text,
     p_phrase text, p_ownerid bigint

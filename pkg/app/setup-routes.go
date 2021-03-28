@@ -29,6 +29,7 @@ func setupRoutes(engine *gin.Engine) {
 
 	engine.GET("/lwsnewedit/:senseid/:languageid", query.LwsNewEditRequestHandler)
 	engine.POST("/lwsnewsubmit", query.LwsNewSubmitPostHandler)
+	engine.POST("/lwsedit/:lwsid", query.LwsEditGetHandler)
 	engine.POST("/lwseditsubmit", query.LwsEditSubmitPostHandler)
 
 	engine.GET("/registrationform", user.RegistrationFormPageHandler)

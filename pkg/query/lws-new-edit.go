@@ -18,6 +18,11 @@ type lwsNewEditParamsType struct {
 	Languageid int64
 }
 
+type lwsEditParamsType struct {
+	Sduserid int64
+	Lwsid    int64
+}
+
 // data for the form obtained from the DB
 type lwsNewEditDataType struct {
 	Id            int64 // sense id, unnecessary
@@ -56,6 +61,12 @@ func readLwsNewEditDataFromDb(lnep *lwsNewEditParamsType) (lned *lwsNewEditDataT
 		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Data not found")
 	}
 	return
+}
+
+func LwsEditGetHandler(c *gin.Context) {
+	lnep := &lwsNewEditParamsType{Sduserid: int64(user.GetSDUserIdOrZero(c))}
+	lnep.Senseid = extractIdFromRequest(c, "senseid")
+
 }
 
 func LwsNewEditRequestHandler(c *gin.Context) {
