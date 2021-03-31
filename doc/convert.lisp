@@ -1,5 +1,7 @@
 (in-package :cl-user)
 
+(named-readtables:in-readtable :buddens-readtable-a)
+
 (proclaim '(optimize debug))
 (declaim (optimize debug))
 
@@ -8,7 +10,29 @@
   (defstruct Дя
     Текст
     Url
-    Комментарий))
+    Комментарий)
+
+  (defmethod make-load-form ((self Дя) &optional environment)
+    (make-load-form-saving-slots self :environment environment))
+
+  (defstruct Пользователь
+    Id
+    Nickname
+    Registrationemail)
+
+  (defmethod make-load-form ((self Пользователь) &optional environment)
+    (make-load-form-saving-slots self :environment environment))
+
+  (defstruct Диалект
+    Id ; номер колонки
+    Slug
+    Commentary
+    Ownerid)
+
+  (defmethod make-load-form ((self Пользователь) &optional environment)
+    (make-load-form-saving-slots self :environment environment))
+
+)
 
 (defparameter *xml* 
   (with-open-file (s "c:/promo.yar/google-to-semdict/Англо-Русский\ словарь\ терминов\ и\ слов\ для\ включения\ в\ программы\ -\ 2021-03-29.fods")
@@ -185,4 +209,81 @@
 (print (mapcar 'содержимое-ячеек-строки 
                `(,*строка-с-формулой* ,*строка-с-комментарием*)))
 
+(defparameter *первый-диалект* 3)
+(defparameter *за-концом-диалектов* 16)
 
+(defparameter *пользователи* 
+  (with-open-file (in "c:/promo.yar/google-to-semdict/users.lisp")
+    (read in)))
+
+
+(defun список-диалектов ()
+  (perga-implementation:perga
+   (let Список-Дя (содержимое-ячеек-строки *строка-имён-языков*))
+   (let черновик
+     (iterk:iter 
+      (:for id :from 0)
+      (:for дя :in Список-Дя)
+      (assert (null (Дя-Комментарий дя)))
+      (assert (null (Дя-Url дя)))
+      (unless 
+          (member (Дя-Текст дя)
+                  '("Англ слово (сочетание)" "Темы" "Смысл" "Обсуждение" "Далее идут ссылки" "Алексей Дроздов" NIL) :test 'equal)
+        (:collect
+         (MAKE-Диалект :Id id :Slug (Дя-Текст дя) :Commentary (Дя-Текст дя))))))
+   (dolist (ди черновик)
+     (cond
+      ((equal (Диалект-Slug ди) "budden (яп \"Яр\")")
+       (setf (Диалект-Slug ди) "Яр"))
+      ((equal (Диалект-Slug ди) "Другие авторы")
+       (setf (Диалект-Slug ди) "Другие-авторы"))
+      ((equal (Диалект-Slug ди) "Официальный перевод")
+       (setf (Диалект-Slug ди) "Популярные-переводы")
+       (setf (Диалект-Commentary ди) "Популярные-переводы"))))
+   черновик))
+
+(defun назначь-владельцев-диалектов ()
+  (flet ((f1 (d-id o-id)
+           (let ((d (find d-id *диалекты* :test '= :key 'Диалект-Id)))
+             (assert d)
+             (setf (Диалект-Ownerid d) o-id))))
+    (f1 6 3)
+    (f1 7 3)
+    (f1 8 6)
+    (f1 9 4)
+    (f1 10 7)))
+
+
+(defparameter *диалекты*
+  (список-диалектов))
+
+(назначь-владельцев-диалектов)
+
+(defun форматировать-для-insert (данное)
+  (cond
+   ((null данное) 'null)
+   ((stringp данное)
+    (with-output-to-string (п)
+      (princ "'" п)
+      (iterk:iter
+       (:for б :in-vector данное)
+       (case б
+         (#\' (princ "''" п))
+         (t (princ б п))))
+      (princ "'" п)))
+   ((integerp данное)
+    (prin1-to-string данное))
+   (t
+    (error "Не умею такое напечатать для insert"))))
+
+(defun команда-вставки-диалекта (д п)
+  (format п "~&insert into tlanguage (id, slug, commentary, ownerid)
+values (~A, ~A, ~A, ~A)~%"
+          (Диалект-Id д)
+          (форматировать-для-insert (Диалект-Slug д))
+          (форматировать-для-insert (Диалект-Commentary д))
+          (Диалект-Ownerid д)))
+
+(defun команды-вставки-диалектов (п)
+  (dolist (д *диалекты*)
+    (команда-вставки-диалекта д п)))
