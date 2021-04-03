@@ -1,3 +1,4 @@
+
 (in-package :cl-user)
 
 (named-readtables:in-readtable :buddens-readtable-a)
@@ -32,11 +33,38 @@
   (defmethod make-load-form ((self Пользователь) &optional environment)
     (make-load-form-saving-slots self :environment environment))
 
+  (defstruct Lws
+    Languageid
+    Word
+    Senseid
+    Commentary)
+
+  (defmethod make-load-form ((self Lws) &optional environment)
+    (make-load-form-saving-slots self :environment environment))
+
 )
 
 (defparameter *xml* 
-  (with-open-file (s "c:/promo.yar/google-to-semdict/Англо-Русский\ словарь\ терминов\ и\ слов\ для\ включения\ в\ программы\ -\ 2021-03-29.fods")
+  (with-open-file (s "c:/promo.yar/google-to-semdict/Англо-Русский\ словарь\ терминов\ и\ слов\ для\ включения\ в\ программы\ -\ 2021-03-29-правленый.fods")
 (xmls:parse s)))
+
+
+(defun имя-тега (тег)
+  (caar тег))
+
+(defun список-атрибутов-тега (тег имя-тега)
+  "Имя-тега задаётся для проверки, что это действительно правильно переданный
+тег. Если несколвозможно более одного вида тега, надо вернуть nil"
+  (when имя-тега
+    (assert (string= (имя-тега тег) имя-тега)))
+  (second тег))
+
+(defun значение-атрибута-тега (тег имя-тега имя-атрибута)
+  "Имя-тега задаётся для проверки, что это действительно правильно переданный
+тег. Из-за того XML игнорирует пр-ва имён, атрибуты могут дублироваться - в этом случае возвращается первый попавшийся"
+  (let ((атрибуты (список-атрибутов-тега тег имя-тега)))
+    (second (assoc имя-атрибута атрибуты
+                   :test 'string=))))
 
 ;;; инспектируем *xml* и достаём оттуда 
 
@@ -49,15 +77,18 @@
 ;;; Колонки и строки вынимаем руками
 
 (defparameter *колонки*
-  (subseq *лист-словарь* 3 16))
+  (subseq *лист-словарь* 3 14))
 
 (defparameter *строки*
-  (subseq *лист-словарь* 16 139))
+  (subseq *лист-словарь* 14 139))
 
 (defparameter *строка-имён-языков* 
   (nth 0 *строки*))
 
+(defparameter *индекс-строки-с-первым-смыслом* 1) 
+
 (defun формула-только-url (ячейка)
+  "Возвращает два значения - url, отформатированный как html, и текст"
   (let* ((список-где-формула (fourth (second ячейка)))
          (возможно-слово-формула (car список-где-формула))
          (формула 
@@ -78,7 +109,9 @@
    (let text (fourth seq))
    (assert
     (equal (fifth seq) ")"))
-   (format nil "<a href=\"~A\">~A</a>" url text)))      
+   (values 
+    (format nil "<a href=\"~A\">~A</a>" url text)
+    text)))     
 
 
 (defun очисть-абзац-от-формата (абзац &key комментарий)
@@ -188,29 +221,60 @@
      (("p" . "urn:oasis:names:tc:opendocument:xmlns:text:1.0") NIL "aka")))))
 
 
+
+(assert '(string= (значение-атрибута-тега '(("table-cell" . "urn:oasis:names:tc:opendocument:xmlns:table:1.0")
+  (("value-type" "string") ("value-type" "string")
+   ("number-columns-repeated" "2"))
+  (("p" . "urn:oasis:names:tc:opendocument:xmlns:text:1.0") NIL "ПРАВЬМЯ"))
+                                          "table-cell"
+                                          "number-columns-repeated")
+         "2"))
+                                                                   
+
 (defun содержимое-ячейки (ячейка)
+  "Одна ячейка в XML формате может порождать от 0 до Эн ячеек, 
+поэтому мы возвращаем список из порождённых ячеек"
   (perga-implementation:perga
-   (let url (формула-только-url ячейка))
+   (let к-во-повторов (значение-атрибута-тега ячейка nil "number-columns-repeated"))
+   (when к-во-повторов
+     (setq к-во-повторов (parse-integer к-во-повторов)))
+   (flet повтори-ячейку (дя)
+     (let рез nil)
+     (dotimes (и (or к-во-повторов 1))
+       (push (COPY-Дя дя) рез))
+     рез)
+   (let имя-тега (имя-тега ячейка))
+   (when (string= имя-тега "covered-table-cell")
+     (return-from содержимое-ячейки
+                  (повтори-ячейку (make-Дя))))
+   (assert (string= имя-тега "table-cell"))
+   (:@ multiple-value-bind (url текст-url) (формула-только-url ячейка))
    (when url
      (return-from содержимое-ячейки
-                  (MAKE-Дя :Url url)))
+                  (повтори-ячейку (MAKE-Дя :Url url :Текст текст-url))))
    (let комментарий (первый-комментарий ячейка))
    (let текст (текст-ячейки ячейка))
-   (MAKE-Дя :Текст текст :Комментарий комментарий)))
+   (повтори-ячейку (MAKE-Дя :Текст текст :Комментарий комментарий))))
+
+(defparameter *первый-диалект* 3)
+(defparameter *за-концом-диалектов* 17)
 
 (defun содержимое-ячеек-строки (строка)
+  "Урезаем до последнего диалекта"
   (perga-implementation:perga
    (let ячейки (nthcdr 2 строка))
-   (mapcar #'содержимое-ячейки ячейки)))
+   (let рез nil)
+   (dolist (я ячейки)
+     (setf рез (nconc рез (содержимое-ячейки я))))
+   (subseq рез 0 *за-концом-диалектов*)))
 
 (defparameter *строка-с-формулой* (nth 19 *строки*))
+
+;; строка с комментарием нужна нам только для разработки/тестирования
 (defparameter *строка-с-комментарием* (nth 3 *строки*))
 
 (print (mapcar 'содержимое-ячеек-строки 
                `(,*строка-с-формулой* ,*строка-с-комментарием*)))
-
-(defparameter *первый-диалект* 3)
-(defparameter *за-концом-диалектов* 16)
 
 (defparameter *пользователи* 
   (with-open-file (in "c:/promo.yar/google-to-semdict/users.lisp")
@@ -242,6 +306,9 @@
        (setf (Диалект-Commentary ди) "Популярные-переводы"))))
    черновик))
 
+(defparameter *диалекты*
+  (список-диалектов))
+
 (defun назначь-владельцев-диалектов ()
   (flet ((f1 (d-id o-id)
            (let ((d (find d-id *диалекты* :test '= :key 'Диалект-Id)))
@@ -252,10 +319,6 @@
     (f1 8 6)
     (f1 9 4)
     (f1 10 7)))
-
-
-(defparameter *диалекты*
-  (список-диалектов))
 
 (назначь-владельцев-диалектов)
 
@@ -276,9 +339,22 @@
    (t
     (error "Не умею такое напечатать для insert"))))
 
+(defun команда-вставки-пользователя (поль п)
+  (format п "~&insert into sduser (id, nickname, registrationemail, salt, hash, registrationtimestamp)
+values (~A, ~A, ~A, '', '', current_timestamp);~%"
+          (Пользователь-Id поль)
+          (форматировать-для-insert (Пользователь-Nickname поль))
+          (форматировать-для-insert (Пользователь-Registrationemail поль))
+          ))
+
+(defun команды-вставки-пользователей (п)
+  (dolist (пол *пользователи*)
+    (команда-вставки-пользователя пол п)))
+
+
 (defun команда-вставки-диалекта (д п)
   (format п "~&insert into tlanguage (id, slug, commentary, ownerid)
-values (~A, ~A, ~A, ~A)~%"
+values (~A, ~A, ~A, ~A);~%"
           (Диалект-Id д)
           (форматировать-для-insert (Диалект-Slug д))
           (форматировать-для-insert (Диалект-Commentary д))
@@ -287,3 +363,80 @@ values (~A, ~A, ~A, ~A)~%"
 (defun команды-вставки-диалектов (п)
   (dolist (д *диалекты*)
     (команда-вставки-диалекта д п)))
+
+
+(defun команды-вставки-строки (сп номер-строки п)
+  (perga-implementation:perga
+   (let Senseid (+ номер-строки 1))
+   (let сч -1)
+   (let oword "")
+   (let theme "")
+   (let phrase "")
+   (let senses nil)
+   (dolist (я сп)
+     (incf сч)
+     (let номер-колонки (+ сч 1))
+     (cond
+      ((= сч 0) ; слово
+       (setf oword (Дя-Текст я))
+       (assert (null (Дя-Url я)))
+       (assert (null (Дя-Комментарий я))))
+      ((= сч 1) ; тема
+       (setf theme (Дя-Текст я))
+       (assert (null (Дя-Url я)))
+       (assert (null (Дя-Комментарий я))))
+      ((= сч 2) ; смысл
+       (setf phrase (Дя-Текст я))
+       (assert (null (Дя-Url я)))
+       (assert (null (Дя-Комментарий я))))
+      ((and (<= *первый-диалект* сч) (< сч *за-концом-диалектов*))
+       (let Word (Дя-Текст я))
+       (cond
+        ((or
+          (and (= номер-строки 17) (= номер-колонки 9)))
+         (format t "~&-- пропускаю ячейку ~S~%" я))
+        ((null Word)
+         (assert (null (Дя-Url я)))
+         (assert (null (Дя-Комментарий я))))
+        (t
+         (let lws (MAKE-Lws :Languageid сч 
+                            :Word (Дя-Текст я) 
+                            :Senseid Senseid 
+                            :Commentary
+                            (budden-tools:str++ 
+                             (or (Дя-Url я) "")
+                             (or (Дя-Комментарий я) ""))))
+         (push lws senses))))
+      (t ; что за мусор? Не пропустим!
+       (error "Чё это"))))
+   (format п "~&insert into tsense (id, oword, theme, phrase)
+values (~A, ~A, ~A, ~A);~%"
+           Senseid
+           (форматировать-для-insert oword)
+           (форматировать-для-insert theme)
+           (форматировать-для-insert phrase)
+           )
+   (dolist (lws senses)
+     (format п "~&insert into tlws (languageid, word, senseid, commentary)
+                values (~A, ~A, ~A, ~A);~%"
+             (Lws-Languageid lws)
+             (форматировать-для-insert (Lws-Word lws))
+             Senseid
+             (форматировать-для-insert (Lws-Commentary lws))))))
+
+
+(defun команды-вставки-строк (п)
+  (perga-implementation:perga
+   (let номер-строки 1)
+   (dolist (стр (subseq *строки* *индекс-строки-с-первым-смыслом*))
+     (let ячейки (содержимое-ячеек-строки стр))
+     (команды-вставки-строки ячейки номер-строки п)
+     (incf номер-строки))))
+
+(with-open-file (п "c:/promo.yar/google-to-semdict/final-script.sql"
+                   :direction :output
+                   :if-exists :supersede)
+  (команды-вставки-пользователей п)
+  (команды-вставки-диалектов п)
+  (команды-вставки-строк п))
+
