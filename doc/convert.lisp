@@ -1,4 +1,3 @@
-
 (in-package :cl-user)
 
 (named-readtables:in-readtable :buddens-readtable-a)
@@ -286,13 +285,13 @@
    (let Список-Дя (содержимое-ячеек-строки *строка-имён-языков*))
    (let черновик
      (iterk:iter 
-      (:for id :from 0)
+      (:for id :from 1)
       (:for дя :in Список-Дя)
       (assert (null (Дя-Комментарий дя)))
       (assert (null (Дя-Url дя)))
       (unless 
           (member (Дя-Текст дя)
-                  '("Англ слово (сочетание)" "Темы" "Смысл" "Обсуждение" "Далее идут ссылки" "Алексей Дроздов" NIL) :test 'equal)
+                  '("Англ слово (сочетание)" "Темы" "Смысл" #|"Обсуждение"|# "Далее идут ссылки" "Алексей Дроздов" NIL) :test 'equal)
         (:collect
          (MAKE-Диалект :Id id :Slug (Дя-Текст дя) :Commentary (Дя-Текст дя))))))
    (dolist (ди черновик)
@@ -314,11 +313,11 @@
            (let ((d (find d-id *диалекты* :test '= :key 'Диалект-Id)))
              (assert d)
              (setf (Диалект-Ownerid d) o-id))))
-    (f1 6 3)
     (f1 7 3)
-    (f1 8 6)
-    (f1 9 4)
-    (f1 10 7)))
+    (f1 8 3)
+    (f1 9 6)
+    (f1 10 4)
+    (f1 11 7)))
 
 (назначь-владельцев-диалектов)
 
@@ -341,10 +340,13 @@
 
 (defun команда-вставки-пользователя (поль п)
   (format п "~&insert into sduser (id, nickname, registrationemail, salt, hash, registrationtimestamp)
-values (~A, ~A, ~A, '', '', current_timestamp);~%"
+values (~A, ~A, ~A, '', '', current_timestamp);
+insert into sduser_profile (id) values (~A);
+~%"
           (Пользователь-Id поль)
           (форматировать-для-insert (Пользователь-Nickname поль))
           (форматировать-для-insert (Пользователь-Registrationemail поль))
+          (Пользователь-Id поль)
           ))
 
 (defun команды-вставки-пользователей (п)
@@ -358,7 +360,7 @@ values (~A, ~A, ~A, ~A);~%"
           (Диалект-Id д)
           (форматировать-для-insert (Диалект-Slug д))
           (форматировать-для-insert (Диалект-Commentary д))
-          (Диалект-Ownerid д)))
+          (форматировать-для-insert (Диалект-Ownerid д))))
 
 (defun команды-вставки-диалектов (п)
   (dolist (д *диалекты*)
@@ -399,7 +401,7 @@ values (~A, ~A, ~A, ~A);~%"
          (assert (null (Дя-Url я)))
          (assert (null (Дя-Комментарий я))))
         (t
-         (let lws (MAKE-Lws :Languageid сч 
+         (let lws (MAKE-Lws :Languageid номер-колонки 
                             :Word (Дя-Текст я) 
                             :Senseid Senseid 
                             :Commentary
@@ -409,21 +411,22 @@ values (~A, ~A, ~A, ~A);~%"
          (push lws senses))))
       (t ; что за мусор? Не пропустим!
        (error "Чё это"))))
-   (format п "~&insert into tsense (id, oword, theme, phrase)
-values (~A, ~A, ~A, ~A);~%"
+   (when (and oword (not (string= oword "")))
+     (format п "~&insert into tsense (id, oword, theme, phrase, ownerid)
+values (~A, ~A, coalesce(~A,''), coalesce(~A,''), 1);~%"
            Senseid
            (форматировать-для-insert oword)
            (форматировать-для-insert theme)
            (форматировать-для-insert phrase)
            )
-   (dolist (lws senses)
-     (format п "~&insert into tlws (languageid, word, senseid, commentary)
-                values (~A, ~A, ~A, ~A);~%"
-             (Lws-Languageid lws)
-             (форматировать-для-insert (Lws-Word lws))
-             Senseid
-             (форматировать-для-insert (Lws-Commentary lws))))))
-
+     (dolist (lws senses)
+       (format п "~&insert into tlws (languageid, word, senseid, commentary)
+                  values (~A, ~A, ~A, ~A);~%"
+               (Lws-Languageid lws)
+               (форматировать-для-insert (Lws-Word lws))
+               Senseid
+               (форматировать-для-insert (Lws-Commentary lws)))))))
+  
 
 (defun команды-вставки-строк (п)
   (perga-implementation:perga
@@ -436,6 +439,15 @@ values (~A, ~A, ~A, ~A);~%"
 (with-open-file (п "c:/promo.yar/google-to-semdict/final-script.sql"
                    :direction :output
                    :if-exists :supersede)
+  (format п "~A" "
+\\set ON_ERROR_STOP on
+delete from tlws;
+delete from sduser_profile where id>2;
+update sduser_profile set favorite_tlanguageid=null;
+delete from sduser where id>2;
+delete from tlanguage;
+delete from tsense;
+")
   (команды-вставки-пользователей п)
   (команды-вставки-диалектов п)
   (команды-вставки-строк п))
