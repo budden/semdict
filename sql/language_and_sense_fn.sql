@@ -127,7 +127,7 @@ create or replace function fnwordsearchmasterrecord(
   language plpgsql as $$
   begin
   if coalesce(p_sduserid,0) = 0 then
-    return query(select cast(0 as bigint), cast('' as varchar(128)));
+    return query(select cast(0 as int), cast('' as varchar(128)));
     return;
   else
     return query(select
