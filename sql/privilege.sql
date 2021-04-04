@@ -82,6 +82,7 @@ language plpgsql strict as $$
   end if; end;
 $$;
 
+
 -- tests
 /* create or replace function test_privilege() returns void
 language plpgsql strict as $$

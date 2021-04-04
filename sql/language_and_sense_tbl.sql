@@ -18,11 +18,6 @@ comment on column tlanguage.slug is 'slug is a human-readable abbreviated identi
 comment on column tlanguage.commentary is 'commentary is a full descriptive name of the dialect';
 comment on column tlanguage.ownerid is 'ownerid specifies an owner of the language. If NULL, language is "common", so that everyone can add tlws records referencing the language';
 
-insert into tlanguage (id, slug, commentary, ownerid) 
-  values (2,'ру','русский',1), (3,'中','中文',null)
-    ,(4, 'ру-1С', '1С предприятие',2)
-    ,(5, 'ру-excel', 'Microsoft Excel',null);
-
 alter table sduser_profile add constraint fk_sduser_profile_favorite_tlanguageid
   foreign key (favorite_tlanguageid) references tlanguage (id);
 
@@ -40,18 +35,6 @@ comment on column tsense.oword is 'oword = original word. English word or a coll
 comment on column tsense.phrase is 'Phrase in «Common Russian» that expesses one specific sense of the word';
 comment on column tsense.theme is 'Theme is useful as a search criteria in a combination with the word. Theme is set in Russian';
 comment on column tsense.ownerid is 'Owner of the sense. Normally, tzar owns senses, except for new ones.';
-
-insert into tsense (oword, theme, phrase, ownerid)
-  VALUES
-  ('golang','ЯП','Язык программирования, созданный гуглом в 2000s', 1);
-
-insert into tsense (oword, theme, phrase, ownerid)
-  VALUES
-  ('canvas','ГПИ','пространство на экранной форме, на котором можно рисовать', 1);
-
-insert into tsense (oword, theme, phrase, ownerid)
-  VALUES
-  ('operator','ЯП','+, -, *, /, >>, «и», «или» и тому подобное', 1);
 
 create table tlws (
   id serial primary KEY,
@@ -72,8 +55,6 @@ comment on column tlws.word is 'translation, that is, word or a phrase in the la
 comment on column tlws.commentary is 'comment establishing a chosen translation';
 comment on column tlws.ownerid is 'Owner of the relation. If none, language''s owner is implied.';
 
-insert into tlws (languageid, senseid, word) values
-  (2,2,'холст'), (4,2,'канва'),(5,2,'Гоу'),(2,3,'операция'),(4,3,'оператор');
 
 
 \echo *** language_and_sense_tbl.sql Done
