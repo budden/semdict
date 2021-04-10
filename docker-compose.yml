@@ -1,0 +1,39 @@
+version: '2.4'
+services:
+  postgres:
+    image: postgres:11
+    command: -c shared_preload_libraries='pg_stat_statements' -c pg_stat_statements.max=10000 -c pg_stat_statements.track=all
+    environment:
+      - TZ=UTC
+      - POSTGRES_DB=sduser_db
+      - POSTGRES_USER=semdict
+      - POSTGRES_PASSWORD=semdict123
+    ports:
+      - 127.0.0.1:5432:5432
+
+
+  configure:
+    build:
+      context: .
+      target: 'configure'
+      args:
+        - APP_VERSION=develop
+    command:
+      - /bin/sh
+      - -c
+      - |
+
+        # обновление миграций (безопасно для многократного запуска)
+        /configure.sh migrate-pg-up
+
+    environment:
+      PG_HOST: 'postgres'
+      PG_PORT: '5432'
+      PG_ADDR: 'postgres:5432'
+      PG_USERNAME: 'semdict'
+      PG_PWD: 'semdict123'
+      PG_DB: 'sduser_db'
+
+    volumes:
+      - ./configure.sh:/configure.sh:ro
+      - ./migrations:/migrations:ro
