@@ -9,6 +9,14 @@ import (
 func setupRoutes(engine *gin.Engine) {
 	engine.GET("/", homePageHandler)
 	engine.GET("/menu", menuPageHandler)
+
+	engine.GET("/profile", query.ProfilePageHandler)
+	engine.GET("/profileedit", query.ProfileEditPageHandler)
+	engine.POST("/profileeditsubmit", query.ProfileEditSubmitPageHandler)
+
+	engine.GET("/changepasswordform", user.ChangePasswordFormPageHandler)
+	engine.POST("/changepasswordsubmit", user.ChangePasswordSubmitPageHandler)
+
 	engine.GET("/wordsearchform", query.WordSearchFormRouteHandler)
 	engine.GET("/wordsearchresultform", query.WordSearchResultRouteHandler)
 	engine.GET("/wordsearchquery", query.WordSearchQueryRouteHandler)
@@ -36,6 +44,9 @@ func setupRoutes(engine *gin.Engine) {
 	engine.GET("/registrationform", user.RegistrationFormPageHandler)
 	engine.POST("/registrationsubmit", user.RegistrationSubmitPostHandler)
 	engine.GET("/registrationconfirmation", user.RegistrationConfirmationPageHandler)
+
+	engine.GET("/restorepasswordform", user.RestorePasswordFormPageHandler)
+	engine.POST("/restorepasswordsubmit", user.RestorePasswordSubmitPageHandler)
 
 	engine.GET("/loginform", user.LoginFormPageHandler)
 	engine.POST("/loginsubmit", user.LoginSubmitPostHandler) // FIXME rename handler
