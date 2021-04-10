@@ -48,6 +48,7 @@ func deleteSenseFromDb(spdp *senseDeleteParamsType) {
 	reply, err1 := sddb.NamedUpdateQuery(
 		`delete from tsense where id = :senseid returning id`, &spdp)
 	apperror.Panic500AndErrorIf(err1, "Failed to delete a sense, sorry")
+	defer sddb.CloseRows(reply)()
 	var dataFound bool
 	for reply.Next() {
 		dataFound = true

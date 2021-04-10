@@ -64,6 +64,7 @@ func readSenseFromDb(svp *senseViewParamsType) (dataFound bool, ad *senseDataFor
 	reply, err1 := sddb.NamedReadQuery(
 		`select * from tsense where id = :senseid`, &svp)
 	apperror.Panic500AndErrorIf(err1, "Failed to extract a sense, sorry")
+	defer sddb.CloseRows(reply)()
 	ad = &senseDataForEditType{}
 	for reply.Next() {
 		err1 = reply.StructScan(ad)

@@ -52,6 +52,7 @@ func readLwsNewEditDataFromDb(lnep *lwsEditParamsType) (lned *lwsEditDataType) {
 			left join tlanguage on tlanguage.id = :languageid
 			where tsense.id = :senseid`, &lnep)
 	apperror.Panic500AndErrorIf(err1, "Failed to extract data, sorry")
+	defer sddb.CloseRows(reply)()
 	lned = &lwsEditDataType{}
 	dataFound := false
 	for reply.Next() {

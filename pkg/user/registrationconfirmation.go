@@ -46,6 +46,7 @@ func processRegistrationConfirmationWithSDUsersDbStage1(rd *RegistrationData) {
 			`select * from process_registrationconfirmation(:confirmationkey, :nickname)`,
 			rd)
 		apperror.Panic500AndErrorIf(err1, "Failed to confirm registration, sorry")
+		defer reply.Close()
 		for reply.Next() {
 			err1 = reply.Scan(&rd.UserID)
 			//fmt.Printf("UserID = %v\n", rd.UserID)

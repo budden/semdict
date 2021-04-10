@@ -105,6 +105,7 @@ func getAndValidateToken(c *gin.Context) (tokenPresent, tokenValid bool, sduseri
 				where eid=:token and expireat > current_timestamp limit 1`,
 			params)
 		apperror.Panic500AndErrorIf(err, "Failed to check validity of your session, sorry. Please logout and retry")
+		defer sddb.CloseRows(res)()
 		for res.Next() {
 			err1 := res.Scan(&sduserid)
 			apperror.GracefullyExitAppIf(err1, "Failed to check if session is present, error is «%#v»", err1)
@@ -177,6 +178,7 @@ func getSDUserDataFromDb(nickname string, sud *SDUserData) {
 	params := map[string]interface{}{"nickname": nickname}
 	res, err := sddb.NamedReadQuery("select * from sduser where nickname = :nickname limit 1", params)
 	apperror.Panic500If(err, "Unable to login, sorry")
+	defer sddb.CloseRows(res)()
 	dataFound := false
 	for res.Next() {
 		err1 := res.StructScan(sud)
@@ -193,6 +195,7 @@ func isUserHavePrivilege(sduserid int32, privilegekind privilegecode.Enum) (gran
 	params := map[string]interface{}{"sduserid": sduserid, "privilegekind": privilegekind}
 	res, err := sddb.NamedReadQuery("select isuserhaveprivilege(:sduserid, :privilegekind)", params)
 	apperror.GracefullyExitAppIf(err, "Error obtaining user privilege: «%s»", err)
+	defer sddb.CloseRows(res)()
 	dataFound := false
 	for res.Next() {
 		err1 := res.Scan(&granted)

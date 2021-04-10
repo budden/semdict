@@ -53,6 +53,7 @@ func readWordSearchFormFromDb(frp *wordSearchQueryParams) (fd *wordSearchFormDat
 	reply, err1 := sddb.NamedReadQuery(
 		`select 1 as dummyid, cast(:wordpattern as text) as wordpattern`, frp)
 	apperror.Panic500AndErrorIf(err1, "Db query failed")
+	defer sddb.CloseRows(reply)()
 	fd = &wordSearchFormDataType{}
 	dataFound := false
 	for reply.Next() {
