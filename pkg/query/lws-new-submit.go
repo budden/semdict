@@ -48,6 +48,7 @@ func makeNewLwsidInDb(sap *lwsNewSubmitDataType) (id int64) {
 			values (:languageid, :senseid, :word, :commentary) 
 			returning id`, &sap)
 	apperror.Panic500AndErrorIf(err1, "Failed to insert a lws, sorry")
+	defer sddb.CloseRows(reply)()
 	var dataFound bool
 	for reply.Next() {
 		err1 = reply.Scan(&id)

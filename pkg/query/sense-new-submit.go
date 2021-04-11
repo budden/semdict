@@ -46,6 +46,7 @@ func makeNewSenseidInDb(sap *senseNewSubmitDataType) (id int64) {
 			values (:sduserid, :oword, :theme, :phrase) 
 			returning id`, &sap)
 	apperror.Panic500AndErrorIf(err1, "Failed to insert a sense, sorry")
+	defer sddb.CloseRows(reply)()
 	var dataFound bool
 	for reply.Next() {
 		err1 = reply.Scan(&id)

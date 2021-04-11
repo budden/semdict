@@ -95,6 +95,7 @@ func readWordSearchMasterRecordFromDb(wsqp *wordSearchQueryParams) (
 	queryText := "select * from fnwordsearchmasterrecord(:sduserid)"
 	reply, err1 := sddb.NamedReadQuery(queryText, wsqp)
 	apperror.Panic500AndErrorIf(err1, "Db query failed")
+	defer sddb.CloseRows(reply)()
 	wmsr = &wordSearchMasterRecord{}
 	dataFound := false
 	for reply.Next() {
@@ -112,7 +113,7 @@ func readWordSearchSensesFromDb(wsqp *wordSearchQueryParams) (fd []*wordSearchQu
 	queryText := "select * from fnwordsearch(:sduserid,:wordpattern,:offset,:limit)"
 	reply, err1 := sddb.NamedReadQuery(queryText, wsqp)
 	apperror.Panic500AndErrorIf(err1, "Db query failed")
-	defer sddb.CloseRows(reply)
+	defer sddb.CloseRows(reply)()
 	fd = make([]*wordSearchQueryRecord, wsqp.Limit)
 	var last int
 	for last = 0; reply.Next(); last++ {

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+{{ template "header-start.t.html" .}}
+<title>Semantic dictionary</title>
+{{ template "header-end.t.html" .}}
+<body>
+<p><a href="/menu">Menu</a></p>
+<p>Edit profile</p>
+<hr>
+<form class="form" action="/profileeditsubmit" method="POST">
+    <div class="form-group">
+        <label for="tlanguage">Select language, or a dialect, or a source of translation.</label>
+        <select class="form-control" name="tlanguage" id="tlanguage">
+            <option></option>
+            {{ range $index, $Record := .D }}
+            <option value="{{ $Record.ID }}">{{ $Record.Slug }}</option>
+            {{ end }}
+        </select>
+    </div>
+    <hr>
+    <button type="submit" name="action" value="save" class="btn btn-primary">Save</button>
+</form>
+</body>
+</html>

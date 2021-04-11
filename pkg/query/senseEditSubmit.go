@@ -71,6 +71,7 @@ func writeToDb(pad *senseEditSubmitDataType) (newProposalid int64) {
 	res, err1 := sddb.NamedUpdateQuery(
 		`select fnsavesense(:sduserid, :senseid, :oword, :theme, :phrase, :ownerid)`, pad)
 	apperror.Panic500AndErrorIf(err1, "Failed to update a sense")
+	defer sddb.CloseRows(res)()
 	dataFound := false
 	for res.Next() {
 		err1 = res.Scan(&newProposalid)

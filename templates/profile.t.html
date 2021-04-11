@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+{{ template "header-start.t.html" .}}
+<title>Semantic dictionary</title>
+{{ template "header-end.t.html" .}}
+<body>
+<p><a href="/menu">Menu</a></p>
+<hr>
+<p>{{.Pdt.Nickname}}</p>
+<p>{{.Pdt.Email}}</p>
+<p>{{.Pdt.Languageslug}}</p>
+<p>{{.Pdt.Languagecommentary}}</p>
+<hr>
+<li><a href="/profileedit">Edit profile.</a></li>
+<li><a href="/changepasswordform">Change password</a></li>
+</body>
+</html>

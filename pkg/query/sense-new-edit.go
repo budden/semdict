@@ -33,7 +33,7 @@ func AllKnownThemes() (records []*ThemeRecord) {
 	// https://stackoverflow.com/questions/56178312/run-a-sql-query-without-parameters
 	reply, err1 := sddb.ReadQuery(queryText)
 	apperror.Panic500AndErrorIf(err1, "Db query failed")
-	defer sddb.CloseRows(reply)
+	defer sddb.CloseRows(reply)()
 	records = make([]*ThemeRecord, 0)
 	var last int
 	for last = 0; reply.Next(); last++ {

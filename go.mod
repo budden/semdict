@@ -6,7 +6,7 @@ require (
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-mail/mail v2.3.1+incompatible
-	github.com/jackc/pgx/v4 v4.10.1 // indirect
+	github.com/jackc/pgx/v4 v4.10.1
 	github.com/jmoiron/sqlx v1.3.1
 	github.com/microcosm-cc/bluemonday v1.0.4
 	github.com/pkg/errors v0.9.1
