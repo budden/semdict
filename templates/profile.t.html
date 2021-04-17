@@ -6,10 +6,9 @@
 <body>
 <p><a href="/menu">Menu</a></p>
 <hr>
-<p>{{.Pdt.Nickname}}</p>
-<p>{{.Pdt.Email}}</p>
-<p>{{.Pdt.Languageslug}}</p>
-<p>{{.Pdt.Languagecommentary}}</p>
+<p><i>Имя пользователя:</i> {{.Pdt.Nickname}}</p>
+<p><i>E-mail (не виден другим пользователям):</i> {{.Pdt.Email}}</p>
+<p><i>Выбранный язык:</i> {{.Pdt.Languageslug}} ({{.Pdt.Languagecommentary}})</p>
 <hr>
 <li><a href="/profileedit">Edit profile.</a></li>
 <li><a href="/changepasswordform">Change password</a></li>
