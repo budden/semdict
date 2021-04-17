@@ -22,11 +22,11 @@ type lwsEditParamsType struct {
 // data for the form obtained from the DB
 type lwsEditDataType struct {
 	Word          string
-	Commentary    string
+	Commentary    template.HTML
 	Languageslug  string
 	OWord         string
 	Theme         string
-	Phrase        string
+	Phrase        template.HTML
 	OwnerId       sql.NullInt64 // owner of a sense
 	Ownernickname string        // owner of a sense (direct or implied)
 }
@@ -90,9 +90,7 @@ func LwsEditGetHandler(c *gin.Context) {
 
 	lned := readLwsNewEditDataFromDb(lnep)
 
-	phrase := template.HTML(lned.Phrase)
-
 	c.HTML(http.StatusOK,
 		"lws-edit.t.html",
-		lwsNewEditHTMLTemplateParamsType{Lep: lnep, Led: lned, Phrase: phrase})
+		lwsNewEditHTMLTemplateParamsType{Lep: lnep, Led: lned})
 }

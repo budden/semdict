@@ -24,6 +24,7 @@ func sanitizeNewLwsData(pad *lwsNewSubmitDataType) {
 	// example just from the title page of https://github.com/microcosm-cc/bluemonday
 	p := bluemonday.UGCPolicy()
 	pad.Word = p.Sanitize(pad.Word)
+	pad.Commentary = p.Sanitize(pad.Commentary)
 	matched, err := regexp.Match(`^[0-9a-zA-Zа-яА-ЯёЁ\p{L} ]+$`, []byte(pad.Word))
 	if (err != nil) || !matched {
 		// https://www.linux.org.ru/forum/development/14877320
@@ -44,8 +45,8 @@ func LwsNewSubmitPostHandler(c *gin.Context) {
 
 func makeNewLwsidInDb(sap *lwsNewSubmitDataType) (id int64) {
 	reply, err1 := sddb.NamedUpdateQuery(
-		`insert into tlws (languageid, senseid, word, commentary) 
-			values (:languageid, :senseid, :word, :commentary) 
+		`insert into tlws (languageid, senseid, word, commentary, ownerid) 
+			values (:languageid, :senseid, :word, :commentary, :sduserid) 
 			returning id`, &sap)
 	apperror.Panic500AndErrorIf(err1, "Failed to insert a lws, sorry")
 	defer sddb.CloseRows(reply)()
