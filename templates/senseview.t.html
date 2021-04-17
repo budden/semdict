@@ -7,9 +7,21 @@
     {{ template "header-end.t.html" .}}
     <body>
         <p><a href="/menu">Menu</a></p>
-        <p><b>{{ .Sdfe.OWord}}</b>|Theme: {{ .Sdfe.Theme}}</p>
+        <p><b>{{ (index . 0).OWord}}</b>|Theme: {{ (index . 0).Theme}}</p>
         <hr>
         <p>Phrase:</p>
-        <p>{{ .Phrase}}</p>
+        <p>{{ (index . 0).Phrase}}</p>
+        <hr>
+        {{ range $i, $v := .}}
+        {{ if $v.Word }}
+        <p><b>{{$v.LanguageSlug}}</b> - {{$v.LanguageCommentary}} <br>
+        {{$v.Word}}
+        <br>
+            Commentary: <p>{{$v.WordCommentary}}</p>
+        <br>
+        </p>
+        <hr>
+        {{end}}
+        {{end}}
         <script src="/static/bootstrap-3.3.2/js/bootstrap.js"></script>
         </body></html>

@@ -43,19 +43,16 @@ type SenseViewHTMLTemplateParamsType struct {
 }
 
 func SenseByIdViewDirHandler(c *gin.Context) {
-	svp := &senseViewParamsType{Sduserid: int64(user.GetSDUserIdOrZero(c))}
+	senseID := extractIdFromRequest(c, "senseid")
 
-	paramValue := extractIdFromRequest(c, "senseid")
-	svp.Senseid = paramValue
-	dataFound, senseDataForEdit := readSenseFromDb(svp)
+	senseDataList := readSenseWithWordLanguageFromDb(senseID)
 
-	if dataFound {
-		phraseHTML := template.HTML(senseDataForEdit.Phrase)
+	if len(senseDataList) > 0 {
 		c.HTML(http.StatusOK,
 			"senseview.t.html",
-			SenseViewHTMLTemplateParamsType{Svp: svp, Sdfe: senseDataForEdit, Phrase: phraseHTML})
+			senseDataList)
 	} else {
-		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Sorry, no sense (yet?) with id = «%d»", svp.Senseid)
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Sorry, no sense (yet?) with id = «%d»", senseID)
 	}
 }
 
@@ -71,6 +68,60 @@ func readSenseFromDb(svp *senseViewParamsType) (dataFound bool, ad *senseDataFor
 		dataFound = true
 	}
 	sddb.FatalDatabaseErrorIf(err1, "Error obtaining data of sense: %#v", err1)
+	return
+}
+
+type senseDataWithWordLanguage struct {
+	SenseID            int64          `db:"sense_id"`
+	OWord              string         `db:"oword"`
+	Theme              string         `db:"theme"`
+	Phrase             template.HTML  `db:"phrase"`
+	SenseOwnerID       int64          `db:"sense_owner_id"`
+	LanguageID         *int64         `db:"language_id"`
+	LanguageSlug       *string        `db:"language_slug"`
+	LanguageCommentary *string        `db:"language_commentary"`
+	LanguageOwnerID    *int64         `db:"language_owner_id"`
+	WordID             *int64         `db:"word_id"`
+	Word               *string        `db:"word"`
+	WordCommentary     *template.HTML `db:"word_commentary"`
+	WordOwnerID        *int64         `db:"word_owner_id"`
+}
+
+// read the sense with words by language.
+func readSenseWithWordLanguageFromDb(senseID int64) (d []*senseDataWithWordLanguage) {
+	reply, err := sddb.NamedReadQuery(
+		`
+SELECT ts.id         sense_id,
+       ts.oword,
+       ts.theme,
+       ts.phrase,
+       ts.ownerid    sense_owner_id,
+       t.languageid  language_id,
+       tl.slug       language_slug,
+       tl.commentary language_commentary,
+       tl.ownerid    language_owner_id,
+       t.id          word_id,
+       t.word,
+       t.commentary  word_commentary,
+       t.ownerid     word_owner_id
+FROM tsense AS ts
+         LEFT JOIN tlws AS t ON t.senseid = ts.id
+         LEFT JOIN tlanguage tl on tl.id = t.languageid
+WHERE ts.id = :senseid
+ORDER BY tl.id;
+`, &struct {
+			Senseid int64
+		}{
+			Senseid: senseID,
+		})
+	apperror.Panic500AndErrorIf(err, "Failed to extract a sense, sorry")
+	defer sddb.CloseRows(reply)()
+	for reply.Next() {
+		v := &senseDataWithWordLanguage{}
+		err = reply.StructScan(v)
+		sddb.FatalDatabaseErrorIf(err, "Error obtaining data of sense: %#v", err)
+		d = append(d, v)
+	}
 	return
 }
 
