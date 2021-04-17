@@ -32,10 +32,10 @@ func LwsEditSubmitPostHandler(c *gin.Context) {
 	extractLwsDataFromRequest(c, pad, false)
 	if pad.Action == "save" {
 		sanitizeLwsEditData(pad)
-		newLwsId := writeLwsToDb(pad)
+		writeLwsToDb(pad)
 		// https://github.com/gin-gonic/gin/issues/444
 		c.Redirect(http.StatusFound,
-			"/sensebyidview/"+strconv.FormatInt(newLwsId, 10))
+			"/sensebyidview/"+strconv.FormatInt(pad.Senseid, 10))
 	} else if pad.Action == "delete" {
 		c.Redirect(http.StatusFound,
 			"/lwsdeleteconfirm/"+strconv.FormatInt(pad.Lwsid, 10))

@@ -33,6 +33,7 @@ func setupRoutes(engine *gin.Engine) {
 
 	// sensenewedit accepts an «oword» query parameter
 	engine.POST("/sensenewedit", query.SenseNewEditRequestHandler)
+	engine.GET("/sensenewedit", query.SenseNewEditRequestHandler)
 	engine.POST("/sensenewsubmit", query.SenseNewSubmitPostHandler)
 
 	engine.GET("/lwsnewedit/:senseid/:languageid", query.LwsNewEditRequestHandler)

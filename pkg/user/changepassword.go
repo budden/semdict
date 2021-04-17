@@ -44,7 +44,13 @@ func ChangePasswordSubmitPageHandler(c *gin.Context) {
 
 	sduserID := GetSDUserIdOrZero(c)
 	if sduserID > 0 {
-
+		oldPwd := c.PostForm("old_password")
+		d := SDUserData{ID: sduserID}
+		selectSdUserFromDB(&d)
+		if !CheckPasswordAgainstSaltAndHash(oldPwd, d.Salt, d.Hash) {
+			c.HTML(http.StatusOK, "general.t.html", shared.GeneralTemplateParams{Message: "Invalid password."})
+			return
+		}
 		if err := processChangePasswordSubmitWithDb(&changePasswordData{
 			Sduserid: sduserID,
 			Salt:     salt,
@@ -153,4 +159,17 @@ WHERE nickname = (SELECT nickname FROM sduser WHERE registrationemail = :email)
 		}
 		apperror.Panic500AndErrorIf(err1, "Failed confirmation link")
 	}
+}
+
+func selectSdUserFromDB(d *SDUserData) {
+	reply, err := sddb.NamedReadQuery(
+		`select * from sduser WHERE id = :id ;
+`, d)
+	apperror.Panic500AndErrorIf(err, "Failed select sduser")
+	defer sddb.CloseRows(reply)()
+	for reply.Next() {
+		err = reply.StructScan(d)
+		apperror.Panic500AndErrorIf(err, "Failed scan to sduser")
+	}
+	return
 }

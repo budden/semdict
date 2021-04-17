@@ -5,6 +5,7 @@ package query
 import (
 	"database/sql"
 	"encoding/json"
+	"html/template"
 
 	"github.com/budden/semdict/pkg/apperror"
 	"github.com/budden/semdict/pkg/sddb"
@@ -72,6 +73,7 @@ func wordSearchCommonPart(c *gin.Context) (wsqp *wordSearchQueryParams,
 type TlwsRecordForWordSearch = struct {
 	Id           int64
 	Word         string
+	Commentary   template.HTML
 	OwnerId      int64
 	SenseId      int64
 	LanguageId   int64
