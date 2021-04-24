@@ -19,6 +19,7 @@ type profileParamsType struct {
 type profileDataType struct {
 	Nickname           string
 	Email              string
+	LanguageId         *int64
 	Languageslug       string
 	Languagecommentary string
 }
@@ -34,6 +35,7 @@ func readProfileDataFromDb(pp *profileParamsType) (pd *profileDataType) {
 select
     sduser.nickname                   as nickname,
     sduser.registrationemail          as email,
+	tlanguage.id 					  as languageid,
     coalesce(tlanguage.slug,'')       as languageslug,
     coalesce(tlanguage.commentary,'') as languagecommentary
 from sduser

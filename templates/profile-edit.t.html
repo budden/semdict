@@ -11,9 +11,16 @@
     <div class="form-group">
         <label for="tlanguage">Select language, or a dialect, or a source of translation.</label>
         <select class="form-control" name="tlanguage" id="tlanguage">
-            <option></option>
+            {{ $PD := .PD }}
+            {{ if $PD.LanguageId }}
+                <option value="{{ $PD.LanguageId }}">{{ $PD.Languageslug }}</option>
+            {{ else }}
+                <option></option>
+            {{end}}
             {{ range $index, $Record := .D }}
-            <option value="{{ $Record.ID }}">{{ $Record.Slug }}</option>
+                    {{if ne $PD.Languageslug $Record.Slug }}
+                        <option value="{{ $Record.ID }}">{{ $Record.Slug }}</option>
+                    {{ end }}
             {{ end }}
         </select>
     </div>

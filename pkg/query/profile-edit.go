@@ -25,7 +25,8 @@ type profileEditDataType struct {
 
 // profileHTMLTemplateParamsType are params for profile.t.html
 type profileEditHTMLTemplateParamsType struct {
-	D []*profileEditDataType
+	D  []*profileEditDataType
+	PD *profileDataType
 }
 
 func readProfileEditDataFromDb(p *profileEditParamsType) (d []*profileEditDataType) {
@@ -52,9 +53,11 @@ from tlanguage;
 func ProfileEditPageHandler(c *gin.Context) {
 	sduserID := user.GetSDUserIdOrZero(c)
 	if sduserID > 0 {
+		pd := readProfileDataFromDb(&profileParamsType{Sduserid: sduserID})
 		d := readProfileEditDataFromDb(&profileEditParamsType{Sduserid: sduserID})
 		c.HTML(http.StatusOK, "profile-edit.t.html", profileEditHTMLTemplateParamsType{
-			D: d,
+			D:  d,
+			PD: pd,
 		})
 		return
 	}
