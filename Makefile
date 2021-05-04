@@ -11,6 +11,17 @@ setup:
 	@echo "➡️ Rebuild configure service"
 	docker-compose build --force-rm configure
 
+initial-setup-ssl:
+	@echo "➡️ Primary setup SSL (once for domain)"
+	docker-compose up -d certbot
+
+rerun-ssl:
+	@echo "➡️ TODO"
+
+run-proxy:
+	@echo "➡️ Launch reverse-proxy"
+	docker-compose up -d webserver443
+
 down:
 	docker-compose down --volumes --remove-orphans
 

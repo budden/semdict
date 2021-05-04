@@ -10,7 +10,27 @@ services:
       - POSTGRES_PASSWORD=semdict123
     ports:
       - 127.0.0.1:5432:5432
+    volumes:
+      - ./_data/pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sduser_db"]
 
+  semdict-server:
+    build:
+      context: .
+      target: 'semdict-server'
+      dockerfile: Dockerfile
+    env_file: .env
+    container_name: semdict-server
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    volumes:
+      - ./semdict.config.json.example2:/semdict.config.json:ro
+    ports:
+      - 127.0.0.1:$APP_PORT:$APP_PORT
+    environment:
+      PORT: $APP_PORT
 
   configure:
     build:
@@ -37,3 +57,62 @@ services:
     volumes:
       - ./configure.sh:/configure.sh:ro
       - ./migrations:/migrations:ro
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    env_file: .env
+    volumes:
+      - certbot-webroot:/var/www/html
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+    depends_on:
+      - webserver80
+    command: certonly --webroot --webroot-path=/var/www/html --email $LETSENCRYPT_EMAIL --agree-tos --no-eff-email -d $DOMAIN
+
+  webserver80:
+    image: nginx:mainline-alpine
+    container_name: webserver80
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "80:80"
+    volumes:
+      - certbot-webroot:/var/www/html
+      - ./webserver80:/etc/nginx/conf.d/webserver80
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+    command:
+      - /bin/sh
+      - -c
+      - |
+        rm -rf /etc/nginx/conf.d/default.conf
+        envsubst '$$DOMAIN' < /etc/nginx/conf.d/webserver80 > /etc/nginx/conf.d/default.conf
+        exec nginx -g 'daemon off;'
+
+  webserver443:
+    image: nginx:mainline-alpine
+    container_name: webserver443
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "443:443"
+    volumes:
+      - certbot-webroot:/var/www/html
+      - ./webserver443:/etc/nginx/conf.d/webserver443
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+    command:
+      - /bin/sh
+      - -c
+      - |
+        rm -rf /etc/nginx/conf.d/default.conf
+        envsubst '$$DOMAIN $$APP_INTERNAL_URL' < /etc/nginx/conf.d/webserver443 > /etc/nginx/conf.d/default.conf
+        exec nginx -g 'daemon off;'
+    depends_on:
+      - webapp
+
+volumes:
+  certbot-etc:
+  certbot-var:
+  certbot-webroot:

@@ -9,3 +9,5 @@ GRTAGS
 main
 __debug_bin
 /.idea
+.env
+_data

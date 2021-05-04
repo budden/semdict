@@ -23,8 +23,11 @@ func ChangePasswordFormPageHandler(c *gin.Context) {
 			Email:           email,
 			Confirmationkey: confirmationkey,
 		}
-		processCheckConfirmationCodeWithDb(d)
-		c.HTML(http.StatusOK, "changepasswordform.t.html", d)
+		if processCheckConfirmationCodeWithDb(d) {
+			c.HTML(http.StatusOK, "changepasswordform.t.html", d)
+		} else {
+			c.HTML(http.StatusOK, "general.t.html", shared.GeneralTemplateParams{Message: "The confirmation link is invalid."})
+		}
 		return
 	}
 	c.HTML(http.StatusOK, "general.t.html", shared.GeneralTemplateParams{Message: "Register or login."})
@@ -140,7 +143,7 @@ WHERE nickname = (SELECT nickname FROM sduser WHERE registrationemail = :email)
 	})
 }
 
-func processCheckConfirmationCodeWithDb(d *changePasswordData) {
+func processCheckConfirmationCodeWithDb(d *changePasswordData) bool {
 	reply, err1 := sddb.NamedReadQuery(
 		`
 select count(1)
@@ -154,11 +157,12 @@ WHERE nickname = (SELECT nickname FROM sduser WHERE registrationemail = :email)
 	for reply.Next() {
 		var r int64
 		err1 = reply.Scan(&r)
-		if err1 == nil && r > 0 {
-			return
+		if err1 == nil {
+			return r > 0
 		}
 		apperror.Panic500AndErrorIf(err1, "Failed confirmation link")
 	}
+	return false
 }
 
 func selectSdUserFromDB(d *SDUserData) {
