@@ -11,7 +11,7 @@
  ],
  "SiteRoot": "localhost",
  "UnderAProxy": 0,
- "ServerPort": "8085",
+ "ServerPort": "8081",
  "SMTPServer": "",
  "SMTPUser": "",
  "SMTPPassword": "",

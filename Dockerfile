@@ -27,6 +27,7 @@ FROM alpine:3.11 as semdict-server
     WORKDIR /
     COPY --from=semdict-server-builder /semdict-server .
     COPY --from=semdict-server-builder /go/src/github.com/budden/semdict/templates ./templates
+    COPY --from=semdict-server-builder /go/src/github.com/budden/semdict/static ./static
     ENTRYPOINT /semdict-server
 
 
