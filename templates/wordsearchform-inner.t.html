@@ -7,35 +7,6 @@
     <input type="text" name="wordpattern" class="form-control" id="wordpattern"
       placeholder="Word pattern; «%» matches any string" value="{{.Wsqp.Wordpattern}}" autofocus> </div>
   <div class="form-group">
-    <div class="panel panel-default" id="advanced">
-      <div class="panel-heading inactive">
-        <h4 class="panel-title">
-          <a class="accordion-toggle" data-toggle="collapse" data-parent="#advanced" href="#advanced-detail">
-            <span class="glyphicon glyphicon-chevron-down"></span>Advanced</a></h4>
-      </div>
-      <div id="advanced-detail" class="panel-collapse collapse">
-        <div class="panel-body well">
-          <div class="form-group">
-            <label for="limit" style="vertical-align:top">Results/page</label>
-            <select id="limit" name="limit" size=3>
-              <!-- fixme render this one with template, setting the selected value from the data-->
-              <option selected="selected">10</option>
-              <option>50</option>
-              <option value="0">All(&le;5000)</option>
-            </select></div>
-          <!-- div class="form-group">
-            FIXME render this one with template, setting the selected value from the data
-            <label for="languageid" style="vertical-align:top">Language</label>
-            <select id="languageid" name="languageid" size=1>
-              <option selected="selected" value="0">All</option>
-              <option>English</option>
-              <option>Русский</option>
-            </select></div -->
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="form-group">
     <button type="submit" class="btn btn-primary">Search</button></div>
 </form>
 
