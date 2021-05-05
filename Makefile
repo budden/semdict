@@ -6,8 +6,8 @@ up:
 
 setup:
 	docker-compose up --detach --force-recreate --renew-anon-volumes --remove-orphans postgres
-	@echo "➡️ Wait 30 seconds to start the infrastructure (pg)"
-	sleep 30
+	@echo "➡️ Wait 10 seconds to start the infrastructure (pg)"
+	sleep 10
 	@echo "➡️ Rebuild configure service"
 	docker-compose build --force-rm configure
 
