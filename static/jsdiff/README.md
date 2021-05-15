@@ -1,9 +1,9 @@
-Installation sequence for those files is like this:
-1. Make new_dir
+Последовательность установки этих файлов выглядит следующим образом:
+1. Сделать new_dir
 2. cd new_dir
-3. npm init, press enter many times and "yes" when it asks
+3. npm init, нажмите enter много раз и "да", когда он спросит
 4. npm install diff --save
-5. Steal new_dir/node_modules/diff/dist/*.js to here.
+5. Украсть new_dir/node_modules/diff/dist/*.js сюда.
 
 
-(Repo is at https://github.com/kpdecker/jsdiff , it has a web page example)
+(Репо находится на сайте https://github.com/kpdecker/jsdiff , там есть пример веб-страницы).
