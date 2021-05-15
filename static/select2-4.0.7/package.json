@@ -1,6 +1,6 @@
 {
   "name": "select2",
-  "description": "Select2 is a jQuery based replacement for select boxes. It supports searching, remote data sets, and infinite scrolling of results.",
+  "description": "Select2-это замена полей выбора на основе jQuery. Он поддерживает поиск, удаленные наборы данных и бесконечную прокрутку результатов.",
   "homepage": "https://select2.org",
   "author": {
     "name": "Kevin Brown",
