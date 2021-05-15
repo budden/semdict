@@ -1,13 +1,13 @@
-# "semdict" - E-mail based user registration in golang + postgresql
+# "semdict" - Регистрация пользователя по электронной почте в golang + postgresql
 
-## Requirements
-We're only currently installing via building from sources. That is suboptimal for servers, 
-but we trying to save development effort just now :) Not all prerequisites are listed here, 
-follow the manual and you'll find more.
+## Требования
+В настоящее время мы устанавливаем только через сборку из источников. Это неоптимально для серверов,
+но сейчас мы пытаемся сэкономить усилия по разработке :) Не все необходимые условия перечислены здесь,
+следуйте руководству, и вы найдёте больше.
 
 ### Golang
-- golang 1.16.2 (other versions not tested), see golang home page for the instructions, we did the following
-on the hosting PC controlled via ssh:
+- golang 1.16.2 (другие версии не тестировались), инструкции см. на домашней странице golang, мы сделали следующее
+на хостинговом компьютере, управляемом через ssh:
 ```
 cd ~
 mkdir install_golang
@@ -33,9 +33,8 @@ echo $GOPATH
 ```
 
 ### Postgresql
-- postgresql 9.6.10 (other versions not tested). On Debian 9, it's just `apt-get install postgresql`
-- tcl extension, `apt-get install postgresql-pltcl`
-
+- postgresql 9.6.10 (другие версии не тестировались). В Debian 9 это просто `apt-get install postgresql`
+- расширение tcl, `apt-get install postgresql-pltcl`
 
 ## Building
 
@@ -65,17 +64,17 @@ mv ckeditor ckeditor_4.11.3_basic
 cd .. 
 ```
 
-## Unit tests
+## Модульные тесты
 ```
 cd pkg
 go test ./...
 cd ..
 ```
 
-## Setup database
+## Настройка базы данных
 
-### Allow access for a root
-We run service as root. Maybe it's a shame.
+### Разрешить доступ для root
+Мы запускаем службу от имени root. Может быть, это позор.
 ```
 sudo su - postgres
 
@@ -106,7 +105,7 @@ sudo psql postgres://localhost/postgres
 \quit
 ```
 
-### Create a database
+### Создание базы данных
 
 ```
 cd $GOPATH/src/github.com/budden/semdict
@@ -121,7 +120,7 @@ sudo psql -f sql/recreate_sduser_db.sql postgres://localhost/postgres
 # Must pass w/o errors and end with "CREATE VIEW"
 ```
 
-### Test run as an application
+### Тестовый запуск в качестве приложения
 
 Create semdict.config.json like this:
 ```
@@ -139,17 +138,17 @@ Create semdict.config.json like this:
 }
 
 ```
-Now run application:
+Теперь запустите приложение:
 ```
 sudo ./semdict
 ```
-Access http://your_server:8085 - it should welcome message. Kill app with ^C.
+Доступ http://your_server:8085 - там должно быть приветственное сообщение. Убить приложение с помощью ^C.
 
 
-### Install
+### Установка
 mc
-I needed to install pkg-config package before this run successfully, your
-mileage my vary.
+Мне нужно было установить пакет pkg-config до успешного запуска, ваш
+пробег может варьироваться.
 ```
 sudo sh install.sh
 ```
@@ -159,4 +158,4 @@ sudo sh install.sh
 sudo cp /etc/semdict/semdict.config.json.example /etc/semdict/semdict.config.json
 sudo vi /etc/semdict/semdict.config.json
 ```
-Fill your config with all the data you need.
+Заполните свою конфигурацию всеми необходимыми данными.
