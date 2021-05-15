@@ -7,7 +7,7 @@ define([
   './select2/utils'
 ], function ($, _, Select2, Defaults, Utils) {
   if ($.fn.select2 == null) {
-    // All methods that should return the element
+    // Все методы, которые должны возвращать элемент
     var thisMethods = ['open', 'close', 'destroy'];
 
     $.fn.select2 = function (options) {
@@ -38,7 +38,7 @@ define([
           ret = instance[options].apply(instance, args);
         });
 
-        // Check if we should be returning `this`
+        // Проверьте, должны ли мы возвращать `это`
         if ($.inArray(options, thisMethods) > -1) {
           return this;
         }
