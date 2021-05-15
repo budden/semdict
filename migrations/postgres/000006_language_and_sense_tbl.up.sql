@@ -10,10 +10,10 @@ create table tlanguage (
                            ownerid bigint references sduser
 );
 
-comment on table tlanguage is 'tlanguage is a language, or a dialect, or a source of translation';
-comment on column tlanguage.slug is 'slug is a human-readable abbreviated identifier';
-comment on column tlanguage.commentary is 'commentary is a full descriptive name of the dialect';
-comment on column tlanguage.ownerid is 'ownerid specifies an owner of the language. If NULL, language is "common", so that everyone can add tlws records referencing the language';
+comment on table tlanguage is 'tlanguage-это язык, или диалект, или источник перевода';
+comment on column tlanguage.slug is 'slug-это сокращенный идентификатор, читаемый человеком';
+comment on column tlanguage.commentary is 'комментарий - это полное описательное название диалекта';
+comment on column tlanguage.ownerid is 'ownerid указывает владельца языка. Если NULL, язык является "общим", так что каждый может добавлять записи tlws, ссылающиеся на язык';
 
 alter table sduser_profile add constraint fk_sduser_profile_favorite_tlanguageid
     foreign key (favorite_tlanguageid) references tlanguage (id);
@@ -26,12 +26,12 @@ create table tsense (
                         ownerid bigint not null references sduser
 );
 
-comment on table tsense is 'tsense stored a record for a specific sense of an English word. (Sense X Language X Word) is a (many X many X many) relation. ';
-comment on column tsense.id is 'id serves as a slug of a sense';
-comment on column tsense.oword is 'oword = original word. English word or a collocation';
-comment on column tsense.phrase is 'Phrase in «Common Russian» that expesses one specific sense of the word';
-comment on column tsense.theme is 'Theme is useful as a search criteria in a combination with the word. Theme is set in Russian';
-comment on column tsense.ownerid is 'Owner of the sense. Normally, tzar owns senses, except for new ones.';
+comment on table tsense is 'tsense ценз хранил запись для определенного смысла английского слова. (Смысл X Язык X Слово) - это отношение (много X много X много). ';
+comment on column tsense.id is 'id служит слизняком(slug) смысла';
+comment on column tsense.oword is 'oword = оригинальное слово. Английское слово или словосочетание';
+comment on column tsense.phrase is 'Фраза на «общерусском языке», выражающая один специфический смысл этого слова';
+comment on column tsense.theme is 'Тема полезна в качестве критерия поиска в сочетании со словом. Тема задана на русском языке';
+comment on column tsense.ownerid is 'Обладатель чувства. Обычно царь владеет чувствами, за исключением новых.';
 
 create table tlws (
                       id serial primary KEY,
@@ -45,9 +45,9 @@ create table tlws (
 -- one can (in a future) have several possible translations for a sense
 create unique index tlws_key on tlws (languageid, senseid, word);
 
-comment on table tlws is 'tlws is a language-word-sense relation, that is, translation variant';
-comment on column tlws.id is 'id is a surrogate key and serves as slug';
-comment on column tlws.languageid is 'dialect we are translating the sense to';
-comment on column tlws.word is 'translation, that is, word or a phrase in the language referenced which can be used to express a sense';
-comment on column tlws.commentary is 'comment establishing a chosen translation';
-comment on column tlws.ownerid is 'Owner of the relation. If none, language''s owner is implied.';
+comment on table tlws is 'tlws - это отношение язык-слово-смысл, то есть вариант перевода';
+comment on column tlws.id is 'id является суррогатным ключом и служит в качестве слизняка(slug)';
+comment on column tlws.languageid is 'диалект, на который мы переводим смысл';
+comment on column tlws.word is 'перевод, то есть слово или фраза на указанном языке, которые могут быть использованы для выражения смысла';
+comment on column tlws.commentary is 'комментарий к выбранному переводу';
+comment on column tlws.ownerid is 'Владелец отношения. Если нет, подразумевается владелец языка.';
