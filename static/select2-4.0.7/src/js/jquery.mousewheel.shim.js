@@ -1,6 +1,6 @@
 define([
   'jquery'
 ], function ($) {
-  // Used to shim jQuery.mousewheel for non-full builds.
+  // Используется для прокладки jQuery.mousewheel для неполных сборок.
   return $;
 });
