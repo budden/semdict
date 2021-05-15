@@ -1,12 +1,12 @@
-  // Autoload the jQuery bindings
-  // We know that all of the modules exist above this, so we're safe
+  // Автоматическая загрузка привязок jQuery
+  // Мы знаем, что все модули существуют выше этого, поэтому мы в безопасности
   var select2 = S2.require('jquery.select2');
 
-  // Hold the AMD module references on the jQuery function that was just loaded
-  // This allows Select2 to use the internal loader outside of this file, such
-  // as in the language files.
+  // Удерживайте ссылки на модули AMD в только что загруженной функции jQuery
+  // Это позволяет Select2 использовать внутренний загрузчик вне этого файла, 
+  // например, в языковых файлах.
   jQuery.fn.select2.amd = S2;
 
-  // Return the Select2 instance for anyone who is importing it.
+  // Верните экземпляр Select2 для всех, кто его импортирует.
   return select2;
 }));
