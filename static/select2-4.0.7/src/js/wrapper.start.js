@@ -2,21 +2,21 @@
  * Select2 <%= package.version %>
  * https://select2.github.io
  *
- * Released under the MIT license
+ * Выпущен под лицензией MIT
  * https://github.com/select2/select2/blob/master/LICENSE.md
  */
 ;(function (factory) {
   if (typeof define === 'function' && define.amd) {
-    // AMD. Register as an anonymous module.
+    // AMD. Зарегистрируйте как анонимный модуль.
     define(['jquery'], factory);
   } else if (typeof module === 'object' && module.exports) {
     // Node/CommonJS
     module.exports = function (root, jQuery) {
       if (jQuery === undefined) {
-        // require('jQuery') returns a factory that requires window to
-        // build a jQuery instance, we normalize how we use modules
-        // that require this pattern but the window provided is a noop
-        // if it's defined (how jquery works)
+        // require('jQuery') возвращает фабрику, где window создаёт экземпляр jQuery,
+        // нормализуя используемые модули, требующие этот шаблон, 
+        // но предоставленное окно, если оно определено,
+        // является noop (так работает jquery)
         if (typeof window !== 'undefined') {
           jQuery = require('jquery');
         }
@@ -28,11 +28,11 @@
       return jQuery;
     };
   } else {
-    // Browser globals
+    // Браузерные глобали
     factory(jQuery);
   }
 } (function (jQuery) {
-  // This is needed so we can catch the AMD loader configuration and use it
-  // The inner file should be wrapped (by `banner.start.js`) in a function that
-  // returns the AMD loader references.
-  var S2 =
+  // Это необходимо для того, чтобы мы могли поймать конфигурацию загрузчика AMD и использовать её
+  // Внутренний файл должен быть обернут (по `banner.start.js`) в функции, которая возвращает ссылки на загрузчик AMD.
+  //
+  var S2 = 
