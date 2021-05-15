@@ -1,8 +1,8 @@
 # "semdict" - Регистрация пользователя по электронной почте в golang + postgresql
 
 ## Требования
-В настоящее время мы устанавливаем только через сборку из источников. Это неоптимально для серверов,
-но сейчас мы пытаемся сэкономить усилия по разработке :) Не все необходимые условия перечислены здесь,
+В настоящее время установка идёт только через сборку из источников. Это неоптимально для серверов,
+но сейчас мы пытаемся сэкономить усилия по разработке :) Не все необходимые предпосылки перечислены здесь,
 следуйте руководству, и вы найдёте больше.
 
 ### Golang
@@ -16,19 +16,19 @@ wget https://dl.google.com/go/go1.16.2.linux-amd64.tar.gz
 sudo tar -C /usr/local -xzf go1.16.2.linux-amd64.tar.gz
 mkdir ~/go
 
-# the way env vars are set up depends on your shell and if it is local
-# or remote machine. this one is for remote
+# способ настройки параметров env зависит от вашей оболочки и от того, является ли она локальной или удаленной машиной. 
+# это для дистанционного управления
 vi ~/.profile
-# add these lines at the end of ~/.profile
+# добавьте эти строки в конце ~/.profile
 PATH=$PATH:/usr/local/go/bin
 export GOPATH=$HOME/go
-# end of lines to add to ~/.profile
+# конец строк для добавления ~/.profile
 
-# logout and login again
+# выход из системы и повторный вход в систему
 
-# the following must work
+# должно сработать следующее
 go version 
-# the following must be non-empty
+# следующее должно быть непустым
 echo $GOPATH
 ```
 
@@ -48,7 +48,7 @@ go get ./...
 go get github.com/budden/semdict
 cd $GOPATH/src/github.com/budden/semdict
 
-# FIXME use vendoring instead!
+# FIXME вместо этого используйте вендоринг!
 go get ./...
 
 go generate
@@ -84,24 +84,23 @@ create role root;
 alter role root login;
 alter role root createdb;
 \quit
-# we left psql
+# мы ушли из psql
 exit
-# we left sudo su - postgres and 
-# now we're again in our server user's account 
+# мы покинули sudo su - postgres и 
+# теперь снова находимся в учетной записи пользователя нашего сервера 
 
 sudo vi /etc/postgresql/9.6/main/pg_hba.conf
 
-# Add the following line at the beginning of meaningful 
-# lines in the file, formatted by an 
-# analogy with others (by spaces)
+# Добавьте следующую строку в начале значимых строк в файле, 
+# отформатированном по аналогии с другими (пробелами)
 host    all             root            127.0.0.1/32            trust
 
-# Restart postgres and check if we're ok
+# Перезагрузите postgres и проверьте, все ли у нас в порядке
 sudo service postgresql restart
 sudo psql postgres://localhost/postgres
 
-# psql welcome message and prompt must appear. 
-# Now quit psql
+# должно появиться приветственное сообщение psql и приглашение. 
+# Теперь выйдите из psql
 \quit
 ```
 
@@ -109,20 +108,20 @@ sudo psql postgres://localhost/postgres
 
 ```
 cd $GOPATH/src/github.com/budden/semdict
-# just loading the script does not work, because (I guess) I forgot to describe how to enable calling shell from Postgres scripts.
-# So 
+# просто загрузка скрипта не работает, потому что (я думаю) Я забыл описать, как включить вызов оболочки из сценариев Postgres.
+# Так 
 vi sql/recreate_sduser_db.sql
-# in the definition of the :thisdir, replace `echo $GOPATH...` with its actual value, that is, /root/go... (no quotes)
+# в определении :thisdir замените `echo $GOPATH...` на его фактическое значение, то есть /root/go... (без кавычек)
 # ESC :wq!
 
 sudo psql -f sql/recreate_sduser_db.sql postgres://localhost/postgres
 
-# Must pass w/o errors and end with "CREATE VIEW"
+# Должен пройти без ошибок и закончиться "CREATE VIEW"
 ```
 
 ### Тестовый запуск в качестве приложения
 
-Create semdict.config.json like this:
+Создайте semdict.config.json следующим образом:
 ```
 {"Comment":["My"
  ,"config"]
@@ -142,8 +141,7 @@ Create semdict.config.json like this:
 ```
 sudo ./semdict
 ```
-Доступ http://your_server:8085 - там должно быть приветственное сообщение. Убить приложение с помощью ^C.
-
+Доступ http://your_server:8085 - там должно быть приветственное сообщение. Убить приложение можно с помощью ^C.
 
 ### Установка
 mc
