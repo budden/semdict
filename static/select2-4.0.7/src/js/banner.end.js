@@ -1,4 +1,4 @@
-  // Return the AMD loader configuration so it can be used outside of this file
+  // Верните конфигурацию загрузчика AMD, чтобы её можно было использовать вне этого файла
   return {
     define: S2.define,
     require: S2.require
