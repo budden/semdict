@@ -151,7 +151,7 @@ mc
 sudo sh install.sh
 ```
 
-### Write actual config file
+### Написать фактический конфигурационный файл
 ```
 sudo cp /etc/semdict/semdict.config.json.example /etc/semdict/semdict.config.json
 sudo vi /etc/semdict/semdict.config.json
