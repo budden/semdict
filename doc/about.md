@@ -1,14 +1,14 @@
-# What is this for?
+# Для чего это нужно?
 
-Initially it was an attempt to create an IT explanatory dictionary with a translation option. 
-Due to the lack of resources, it degenerated into just an excercise and "proof of concept" 
-showing that I can write couple lines of code and which I can demonstrate to potential employers :) 
+Изначально это была попытка создать толковый словарь ИТ с возможностью перевода. 
+Из-за нехватки ресурсов он выродился в просто упражнение и "доказательство концепции"
+, показывающее, что я могу написать пару строк кода и что я могу продемонстрировать потенциальным работодателям :) 
 
-# What is here? 
+# Что здесь? 
 
-There are «Sign up» functionality, cookie based stateful sessions which are stored in the sddb. 
-Session key is used to authenticate logged in user. Sign up page sends a registration confirmation E-mail with 
-a confirmation key. 
+Существуют функции «Регистрации», сеансы с отслеживанием состояния на основе файлов cookie, которые хранятся в sddb. 
+Ключ сеанса используется для аутентификации вошедшего в систему пользователя. Страница регистрации отправляет электронное письмо с подтверждением
+регистрации и ключом подтверждения. 
 
 # Technology stack
 
@@ -24,7 +24,7 @@ a confirmation key.
 - VS Code
 - git
 
-# Security
+# Безопасность
 
 Service is currently deployed on a VPS server at the www.semantic-dict.ru. Service runs beyond nginx. 
 SSL setup of nginx is tuned with the help of [this article](https://habr.com/ru/post/325230/)
