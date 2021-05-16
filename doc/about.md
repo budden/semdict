@@ -10,7 +10,7 @@
 Ключ сеанса используется для аутентификации вошедшего в систему пользователя. Страница регистрации отправляет электронное письмо с подтверждением
 регистрации и ключом подтверждения. 
 
-# Technology stack
+# Технологический стёк
 
 - golang
 - pkg/errors
@@ -26,27 +26,27 @@
 
 # Безопасность
 
-Service is currently deployed on a VPS server at the www.semantic-dict.ru. Service runs beyond nginx. 
-SSL setup of nginx is tuned with the help of [this article](https://habr.com/ru/post/325230/)
-and qualifies as "A+" at the https://www.ssllabs.com/ssltest/ 
+В настоящее время служба развёрнута на сервере VPS в www.semantic-dict.ru. Сервис работает за пределами nginx. 
+Настройка SSL nginx ведётся с помощью [этой статьи](https://habr.com/ru/post/325230/)
+и квалифицируется как "А+" в https://www.ssllabs.com/ssltest/ 
 
-Passwords are hashed and salted. Confirmation keys and session ids are generated with a cryptographic RNG. 
+Пароли хэшируются и засаливаются. Ключи подтверждения и идентификаторы сеанса генерируются с помощью криптографического RNG.
 
-# Fault-tolerance
+# Отказоустойчивость
 
-Engine runs as a systemd service. Gin tends to swallow every panic at the boundary of request handler, put 
-it to the log and continue to work. For instance, if something bad happened in a database transaction, like
-"failed to rollback while processing panic", is there a meaningful way to continue? With current library stack, 
-"handling" this error implies just printing the message and ignoring the consequences. In particular, database connection 
-will return to the connection pool in a messy state, which will obviously impact subsequent activity. 
+Движок работает как служба systemd. Джин склонен проглатывать каждую панику на границе обработчика запросов, заносить
+ее в журнал и продолжать работать. Например, если в транзакции базы данных произошло что-то плохое, например
+"не удалось откатить во время обработки паники", есть ли разумный способ продолжить? С текущим стеком библиотек
+"обработка" этой ошибки подразумевает просто печать сообщения и игнорирование последствий. В частности, соединение с базой
+данных вернется в пул соединений в беспорядочном состоянии, что, очевидно, повлияет на последующую активность. 
 
-We took more stringest approach to error handling. There is a set of "known" errors, like "bad credentials", or
-"non-unique key" which we are capturing and handling. All other things cause service to complain to the log and then quit. It is up to systemd to start a new instance. There is a "graceful" exit (we wait couple seconds to let http server to quit and close database connection politely) for some dedicated "half-known" errors, and "hard" crash where we just call os.Exit() after printing a notice about the error. 
+Мы использовали более строгий подход к обработке ошибок. Существует набор "известных" ошибок, таких как "неверные учётные данные" или
+"неуникальный ключ", которые мы фиксируем и обрабатываем. Всё остальное заставляет службу жаловаться в журнал, а затем завершать работу. Запуск нового экземпляра зависит от systemd. Существует "изящный" выход (мы ждем пару секунд, чтобы позволить http-серверу выйти и вежливо закрыть соединение с базой данных) для некоторых выделенных "полуизвестных" ошибок и "жёсткого" сбоя, когда мы просто вызываем os.Exit() после печати уведомления об ошибке. 
 
-To implement it we had to re-think the recommended approach to the error handling in golang. Later we found that our 
-insights are very similar to the opinions expressed by "pro" golang developers, like this one: [Panic like a pro](https://hackernoon.com/panic-like-a-pro-89044d5a2d35)
+Чтобы реализовать его, нам пришлось переосмыслить рекомендуемый подход к обработке ошибок в golang. Позже мы обнаружили, что наши
+идеи очень похожи на мнения, высказанные "профессиональными" разработчиками golang, например: [Паника, как у профессионала](https://hackernoon.com/panic-like-a-pro-89044d5a2d35)
 
-We didn't really run this service in production, so it is not yet know how successful our current error handling is, 
-but we believe it is a "right thing", and after some tuning it would work fine. 
+На самом деле мы не запускали эту службу в производстве, поэтому пока неизвестно, насколько успешна наша текущая обработка ошибок,
+но мы считаем, что это "правильная вещь", и после некоторой настройки она будет работать нормально. 
 
 
