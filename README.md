@@ -56,4 +56,4 @@ make run
 - одно соединение, пул соединений или что? (теперь используйте пул и сбой, если что-то не так)
 
 # Установка
-См. [installation.md в каталоге doc](doc/installation.md)
+См. [installation.md в каталоге doc](doc/installation.md) 
