@@ -1,4 +1,4 @@
-/* Example of nested records in the template:
+/* Пример вложенных записей в шаблоне:
 
 package main
 

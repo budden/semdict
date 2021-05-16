@@ -1,13 +1,13 @@
-# "semdict" - E-mail based user registration in golang + postgresql
+# "semdict" - Регистрация пользователя по электронной почте в golang + postgresql
 
-## Requirements
-We're only currently installing via building from sources. That is suboptimal for servers, 
-but we trying to save development effort just now :) Not all prerequisites are listed here, 
-follow the manual and you'll find more.
+## Требования
+В настоящее время установка идёт только через сборку из источников. Это неоптимально для серверов,
+но сейчас мы пытаемся сэкономить усилия по разработке :) Не все необходимые предпосылки перечислены здесь,
+следуйте руководству, и вы найдёте больше.
 
 ### Golang
-- golang 1.16.2 (other versions not tested), see golang home page for the instructions, we did the following
-on the hosting PC controlled via ssh:
+- golang 1.16.2 (другие версии не тестировались), инструкции см. на домашней странице golang, мы сделали следующее
+на хостинговом компьютере, управляемом через ssh:
 ```
 cd ~
 mkdir install_golang
@@ -16,26 +16,25 @@ wget https://dl.google.com/go/go1.16.2.linux-amd64.tar.gz
 sudo tar -C /usr/local -xzf go1.16.2.linux-amd64.tar.gz
 mkdir ~/go
 
-# the way env vars are set up depends on your shell and if it is local
-# or remote machine. this one is for remote
+# способ настройки параметров env зависит от вашей оболочки и от того, является ли она локальной или удаленной машиной. 
+# это для дистанционного управления
 vi ~/.profile
-# add these lines at the end of ~/.profile
+# добавьте эти строки в конце ~/.profile
 PATH=$PATH:/usr/local/go/bin
 export GOPATH=$HOME/go
-# end of lines to add to ~/.profile
+# конец строк для добавления ~/.profile
 
-# logout and login again
+# выход из системы и повторный вход в систему
 
-# the following must work
+# должно сработать следующее
 go version 
-# the following must be non-empty
+# следующее должно быть непустым
 echo $GOPATH
 ```
 
 ### Postgresql
-- postgresql 9.6.10 (other versions not tested). On Debian 9, it's just `apt-get install postgresql`
-- tcl extension, `apt-get install postgresql-pltcl`
-
+- postgresql 9.6.10 (другие версии не тестировались). В Debian 9 это просто `apt-get install postgresql`
+- расширение tcl, `apt-get install postgresql-pltcl`
 
 ## Building
 
@@ -49,7 +48,7 @@ go get ./...
 go get github.com/budden/semdict
 cd $GOPATH/src/github.com/budden/semdict
 
-# FIXME use vendoring instead!
+# FIXME вместо этого используйте вендоринг!
 go get ./...
 
 go generate
@@ -65,17 +64,17 @@ mv ckeditor ckeditor_4.11.3_basic
 cd .. 
 ```
 
-## Unit tests
+## Модульные тесты
 ```
 cd pkg
 go test ./...
 cd ..
 ```
 
-## Setup database
+## Настройка базы данных
 
-### Allow access for a root
-We run service as root. Maybe it's a shame.
+### Разрешить доступ для root
+Мы запускаем службу от имени root. Может быть, это позор.
 ```
 sudo su - postgres
 
@@ -85,45 +84,44 @@ create role root;
 alter role root login;
 alter role root createdb;
 \quit
-# we left psql
+# мы ушли из psql
 exit
-# we left sudo su - postgres and 
-# now we're again in our server user's account 
+# мы покинули sudo su - postgres и 
+# теперь снова находимся в учетной записи пользователя нашего сервера 
 
 sudo vi /etc/postgresql/9.6/main/pg_hba.conf
 
-# Add the following line at the beginning of meaningful 
-# lines in the file, formatted by an 
-# analogy with others (by spaces)
+# Добавьте следующую строку в начале значимых строк в файле, 
+# отформатированном по аналогии с другими (пробелами)
 host    all             root            127.0.0.1/32            trust
 
-# Restart postgres and check if we're ok
+# Перезагрузите postgres и проверьте, все ли у нас в порядке
 sudo service postgresql restart
 sudo psql postgres://localhost/postgres
 
-# psql welcome message and prompt must appear. 
-# Now quit psql
+# должно появиться приветственное сообщение psql и приглашение. 
+# Теперь выйдите из psql
 \quit
 ```
 
-### Create a database
+### Создание базы данных
 
 ```
 cd $GOPATH/src/github.com/budden/semdict
-# just loading the script does not work, because (I guess) I forgot to describe how to enable calling shell from Postgres scripts.
-# So 
+# просто загрузка скрипта не работает, потому что (я думаю) Я забыл описать, как включить вызов оболочки из сценариев Postgres.
+# Так 
 vi sql/recreate_sduser_db.sql
-# in the definition of the :thisdir, replace `echo $GOPATH...` with its actual value, that is, /root/go... (no quotes)
+# в определении :thisdir замените `echo $GOPATH...` на его фактическое значение, то есть /root/go... (без кавычек)
 # ESC :wq!
 
 sudo psql -f sql/recreate_sduser_db.sql postgres://localhost/postgres
 
-# Must pass w/o errors and end with "CREATE VIEW"
+# Должен пройти без ошибок и закончиться "CREATE VIEW"
 ```
 
-### Test run as an application
+### Тестовый запуск в качестве приложения
 
-Create semdict.config.json like this:
+Создайте semdict.config.json следующим образом:
 ```
 {"Comment":["My"
  ,"config"]
@@ -139,24 +137,23 @@ Create semdict.config.json like this:
 }
 
 ```
-Now run application:
+Теперь запустите приложение:
 ```
 sudo ./semdict
 ```
-Access http://your_server:8085 - it should welcome message. Kill app with ^C.
+Доступ http://your_server:8085 - там должно быть приветственное сообщение. Убить приложение можно с помощью ^C.
 
-
-### Install
+### Установка
 mc
-I needed to install pkg-config package before this run successfully, your
-mileage my vary.
+Мне нужно было установить пакет pkg-config до успешного запуска, ваш
+пробег может варьироваться.
 ```
 sudo sh install.sh
 ```
 
-### Write actual config file
+### Написать фактический конфигурационный файл
 ```
 sudo cp /etc/semdict/semdict.config.json.example /etc/semdict/semdict.config.json
 sudo vi /etc/semdict/semdict.config.json
 ```
-Fill your config with all the data you need.
+Заполните свою конфигурацию всеми необходимыми данными.
