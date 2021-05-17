@@ -26,7 +26,7 @@ create table tsense (
                         ownerid bigint not null references sduser
 );
 
-comment on table tsense is 'tsense ценз хранил запись для определенного смысла английского слова. (Смысл X Язык X Слово) - это отношение (много X много X много). ';
+comment on table tsense is 'tsense хранит запись для определенного смысла английского слова. (Смысл X Язык X Слово) - это отношение (много X много X много). ';
 comment on column tsense.id is 'id служит слизняком(slug) смысла';
 comment on column tsense.oword is 'oword = оригинальное слово. Английское слово или словосочетание';
 comment on column tsense.phrase is 'Фраза на «общерусском языке», выражающая один специфический смысл этого слова';
