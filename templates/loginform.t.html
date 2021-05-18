@@ -36,18 +36,18 @@
         
         </script> -->
 
-  <p><a href="/menu">Menu</a></p>
+  <p><a href="/menu">Меню</a></p>
   <form class="form" action="/loginsubmit" method="POST">
   <div class="form-group">
-   <label for="nickname">Nickname</label>
+   <label for="nickname">Прозвище</label>
    <input type="text" class="form-control" id="nickname" 
-   name="nickname" placeholder="Nickname" 
+   name="nickname" placeholder="Прозвище" 
    required>
   </div>
   <div class="form-group">
-   <label for="password">Password</label>
+   <label for="password">Пароль</label>
    <input name="password" type="password" class="form-control" id="password"
-   placeholder="Password"
+   placeholder="Пароль"
    required>
   </div>
 
@@ -55,23 +55,23 @@
      <p>Type the numbers you see in the picture below:</p>
      <p><img id=image src="/captcha/{ {.CaptchaID} }.png" alt="Captcha image"></p>
      <select id="lang" onchange="changeLang()">
-        <option value="en">English</option>
-        <option value="ja">Japanese</option>
-        <option value="ru">Russian</option>
-        <option value="zh">Chinese</option>
-       </select> | <a href="#" onclick="playAudio()">Play Audio</a>
+        <option value="en">Английский</option>
+        <option value="ja">Японский</option>
+        <option value="ru">Русский</option>
+        <option value="zh">Китайский</option>
+       </select> | <a href="#" onclick="playAudio()">Воспроизвести аудио</a>
      <audio id=audio controls style="display:none" src="/captcha/{ {.CaptchaID} }.wav" preload=none>
-       You browser doesn't support audio.
-       <a href="/captcha/download/{ {.CaptchaID} }.wav">Download file</a> to play it in the external player.
+       Ваш браузер не поддерживает аудио.
+       <a href="/captcha/download/{ {.CaptchaID} }.wav">Загрузите файл</a>, чтобы воспроизвести его во внешнем проигрывателе.
      </audio>
      <input type=hidden name=captchaId value="{ {.CaptchaID} }"><br>
      <input name=captchaSolution>
    </div class="form-group">
   -->
-  <button type="submit" class="btn btn-primary">Log in</button>
+  <button type="submit" class="btn btn-primary">Войти</button>
  </form>
- <p><a href="/registrationform">New user? Sign up!</a></p>
- <p><a href="/restorepasswordform">Restore password.</a></p>
+ <p><a href="/registrationform">Новый пользователь? Подпишитесь!</a></p>
+ <p><a href="/restorepasswordform">Восстановить пароль.</a></p>
 </body>
 
 </html>
