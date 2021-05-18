@@ -2,15 +2,15 @@
 <html>
 
 {{ template "header-start.t.html" .}}
-<title>Word search result</title>
+<title>Результат поиска слов</title>
 {{ template "header-end.t.html" .}}
 
 <body>
-    <p><a href="/menu">Menu</a></p>
+    <p><a href="/menu">Меню</a></p>
     {{ template "wordsearchform-inner.t.html" . }}
-    <p>Word search results: «{{.Wsqp.Wordpattern}}»</p>
+    <p>Результаты поиска слов: «{{.Wsqp.Wordpattern}}»</p>
     {{if .IsLoggedIn}}
-    <a href="/sensenewedit?oword={{.Wsqp.Wordpattern}}">Add new «{{.Wsqp.Wordpattern}}»</a>
+    <a href="/sensenewedit?oword={{.Wsqp.Wordpattern}}">Добавить новый «{{.Wsqp.Wordpattern}}»</a>
     {{end}}
     </p>
     {{range $index, $wordSearchQueryRecord := .Records}}
@@ -22,25 +22,25 @@
             
             {{if $.IsLoggedIn}}
             <a href="/senseedit/{{ $wordSearchQueryRecord.Senseid }}">
-                    edit-sense</a>
+                    править смысл</a>
             {{else}}&VerticalBar;{{end}}              
 
-            <i>Theme:</i>{{ $wordSearchQueryRecord.Theme }}&VerticalBar;
-        <i>Phrase:</i>{{ castAsHTML $wordSearchQueryRecord.Phrase }}</p>
+            <i>Тема:</i>{{ $wordSearchQueryRecord.Theme }}&VerticalBar;
+        <i>Фраза:</i>{{ castAsHTML $wordSearchQueryRecord.Phrase }}</p>
 
         <p>{{ if not (eq 0 $.Wsmr.FavoriteLanguageId) }}
         {{if eq 0 $wordSearchQueryRecord.HasFavoriteLanguageTranslation}}
         <b>{{ $.Wsmr.FavoriteLanguageSlug }}</b></i>
-            <a href="/lwsnewedit/{{ $wordSearchQueryRecord.Senseid  }}/{{ $.Wsmr.FavoriteLanguageId }}">Add</a></p>
+            <a href="/lwsnewedit/{{ $wordSearchQueryRecord.Senseid  }}/{{ $.Wsmr.FavoriteLanguageId }}">Добавить</a></p>
         {{end}}{{end}}
         <br>
         {{ range $index1, $lwsRecord := $wordSearchQueryRecord.LwsArray }}
         <p><i>{{ $lwsRecord.Languageslug }}</i>  
         {{ if eq $lwsRecord.Canedit 1 }}
-        <a href="/lwsedit/{{ $wordSearchQueryRecord.Senseid }}/{{ $lwsRecord.LanguageId }}/{{ $lwsRecord.Id }}">edit</a>{{else}} : {{end}}
+        <a href="/lwsedit/{{ $wordSearchQueryRecord.Senseid }}/{{ $lwsRecord.LanguageId }}/{{ $lwsRecord.Id }}">править</a>{{else}} : {{end}}
             {{ $lwsRecord.Word }}
             <br>
-            Commentary: <p>{{$lwsRecord.Commentary}} </p>
+            Комментарий: <p>{{$lwsRecord.Commentary}} </p>
             <br>
         </p>
         {{ end }}
