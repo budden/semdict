@@ -3,33 +3,33 @@
 <!-- See https://semaphoreci.com/community/tutorials/test-driven-development-of-go-web-applications-with-gin -->
 
 {{ template "header-start.t.html" .}}
-<title>Semdict - new translation</title>
+<title>Semdict - новый перевод</title>
 {{ template "header-end.t.html" .}}
 
 <body>
 <script type="text/javascript" src="/static/ckeditor_4.11.3_basic/ckeditor.js"></script>
- <p><a href="/menu">Menu</a></p>
+ <p><a href="/menu">Меню</a></p>
  <form class="form" action="/lwsnewsubmit" method="POST">
   <div class="form-group" style="display:none">
     <input type="text" class="form-control" id="senseid" name="senseid" value="{{.Lep.Senseid}}" readonly>
     <input type="text" class="form-control" id="languageid" name="languageid" value="{{.Lep.Languageid}}" readonly>
   </div>
-  <p><b>{{ .Led.OWord}}</b>|<i>Theme:</i> {{ .Led.Theme}}</p>
+  <p><b>{{ .Led.OWord}}</b>|<i>Тема:</i> {{ .Led.Theme}}</p>
   <p><i>Phrase:</i> {{ .Phrase}}</p>
-  <small><p><i>Sense owner:</i> {{ .Led.Ownernickname }}</p></small>
+  <small><p><i>Владелец смысла:</i> {{ .Led.Ownernickname }}</p></small>
   <hr>
   <div class="form-group">
-    <label for="word">New translation to {{ .Led.Languageslug }}</label>
+    <label for="word">Новый перевод на {{ .Led.Languageslug }}</label>
     <input type="text" name="word" class="form-control" id="word"
     value=""
-    placeholder="Your translation"
+    placeholder="Ваш перевод"
     autofocus=true
     required></div>
-     <label for="Commentary">Commentary</label>
+     <label for="Commentary">Комментарий</label>
      <textarea rows="10" cols="80" class="form-control" id="Commentary" name="Commentary">
      </textarea>
   </div>
-  <button type="submit" name="action" value="create" class="btn btn-primary">Create</button>
+  <button type="submit" name="action" value="create" class="btn btn-primary">Создать</button>
  </form>
 </body>
 <script src="/static/bootstrap-3.3.2/js/bootstrap.js"></script>
