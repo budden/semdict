@@ -8,7 +8,7 @@
 <body>
     <p><a href="/menu">Меню</a></p>
     {{ template "wordsearchform-inner.t.html" . }}
-    <p>Word search results: «{{.Wsqp.Wordpattern}}»</p>
+    <p>Результаты поиска слов: «{{.Wsqp.Wordpattern}}»</p>
     {{if .IsLoggedIn}}
     <a href="/sensenewedit?oword={{.Wsqp.Wordpattern}}">Добавить новый «{{.Wsqp.Wordpattern}}»</a>
     {{end}}
@@ -22,7 +22,7 @@
             
             {{if $.IsLoggedIn}}
             <a href="/senseedit/{{ $wordSearchQueryRecord.Senseid }}">
-                    править-смысл</a>
+                    править смысл</a>
             {{else}}&VerticalBar;{{end}}              
 
             <i>Тема:</i>{{ $wordSearchQueryRecord.Theme }}&VerticalBar;
@@ -37,10 +37,10 @@
         {{ range $index1, $lwsRecord := $wordSearchQueryRecord.LwsArray }}
         <p><i>{{ $lwsRecord.Languageslug }}</i>  
         {{ if eq $lwsRecord.Canedit 1 }}
-        <a href="/lwsedit/{{ $wordSearchQueryRecord.Senseid }}/{{ $lwsRecord.LanguageId }}/{{ $lwsRecord.Id }}">edit</a>{{else}} : {{end}}
+        <a href="/lwsedit/{{ $wordSearchQueryRecord.Senseid }}/{{ $lwsRecord.LanguageId }}/{{ $lwsRecord.Id }}">править</a>{{else}} : {{end}}
             {{ $lwsRecord.Word }}
             <br>
-            Commentary: <p>{{$lwsRecord.Commentary}} </p>
+            Комментарий: <p>{{$lwsRecord.Commentary}} </p>
             <br>
         </p>
         {{ end }}
