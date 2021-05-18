@@ -2,16 +2,16 @@
 <html xmlns="http://www.w3.org/1999/html">
     <!-- See https://tehnojam.pro/category/development/razrabotka-web-prilozhenij-i-mikroservisov-na-golang-s-gin.t.html -->
     {{ template "header-start.t.html" .}}
-    <title>Semantic dictionary</title>
+    <title>Семантический словарь</title>
     {{ template "header-end.t.html" .}}
     <body>
      <ul>
         {{if .IsLoggedIn}}<li><a href="/profile">Profile</a></li>{{end}}
-      <li><a href="/wordsearchform">Word search</a></li>
-      {{if not .IsLoggedIn}}<li><a href="/loginform">Login or Sign Up</a></li>{{end}}
-     {{if .IsLoggedIn}}<li><a href="/logout">Log out</a></li>{{end}}
-     <li><a href="https://github.com/budden/semdict">Project sources</a></li>
-     <li><p><a href="https://github.com/budden/semdict/blob/master/doc/тз/общее.md">Requirement specifications (in Russian)</a></p></li>
+      <li><a href="/wordsearchform">Поиск слов</a></li>
+      {{if not .IsLoggedIn}}<li><a href="/loginform">Войти или Зарегистрироваться</a></li>{{end}}
+     {{if .IsLoggedIn}}<li><a href="/logout">Выйти из системы</a></li>{{end}}
+     <li><a href="https://github.com/budden/semdict">Источники проекта</a></li>
+     <li><p><a href="https://github.com/budden/semdict/blob/master/doc/тз/общее.md">Спецификации требований (по-русски)</a></p></li>
      </ul>
     </body>
 </html>
