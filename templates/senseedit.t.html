@@ -3,12 +3,12 @@
 <!-- See https://semaphoreci.com/community/tutorials/test-driven-development-of-go-web-applications-with-gin -->
 
 {{ template "header-start.t.html" .}}
-<title>Semantic dictionary</title>
+<title>Семантический словарь</title>
 {{ template "header-end.t.html" .}}
 
 <body>
  <script type="text/javascript" src="/static/ckeditor_4.11.3_basic/ckeditor.js"></script>
- <p><a href="/menu">Menu</a></p>
+ <p><a href="/menu">Меню</a></p>
  <p>Edit sense</p>
  <form class="form" action="/senseeditsubmit" method="POST">
   <div class="form-group" style="display:none">
@@ -16,27 +16,27 @@
     <input type="text" class="form-control" id="ownerid" name="ownerid" value="{{.Ad.OwnerId}}" readonly>
   </div>
   <div class="form-group">
-    <label for="oword">English word</label>
+    <label for="oword">Английское слово</label>
     <input type="text" name="oword" class="form-control" id="oword"
-    placeholder="An English word, abbrev, or collocation which can denote the sense"
+    placeholder="Английское слово, аббревиатура или словосочетание, которое может обозначать смысл"
     value="{{ .Ad.OWord }}"
     required></div>
     <div class="form-group">
-      <label for="theme">Theme (in Russian) for the sense disambiguation. Press SPACE to select</label>
+      <label for="theme">Тема (на русском языке) для смысла неоднозначности. Нажмите ПРОБЕЛ, чтобы выбрать</label>
       <select class="form-control js-example-basic-single" name="theme" id="theme">
         {{ range $index, $ThemeRecord := .Ad.Allth }}
         <option value="{{ $ThemeRecord.Theme }}">{{ $ThemeRecord.Theme }}</option>
         {{ end }}
        </select> 
     <div class="form-group">
-   <label for="phrase">Phrase</label>
+   <label for="phrase">Фраза</label>
    <textarea rows="10" cols="80" class="form-control" id="phrase" name="phrase"
-    placeholder="Express the sense in detail in Russian">
+    placeholder="Выразите смысл подробно на русском языке">
     {{.Ad.Phrase}}
     </textarea></div>
   </div>
-  <button type="submit" name="action" value="save" class="btn btn-primary">Save</button>
-  <button type="submit" name="action" accesskey="n" value="delete" class="btn btn-primary">Delete (alt-n)</button>
+  <button type="submit" name="action" value="save" class="btn btn-primary">Сохранить</button>
+  <button type="submit" name="action" accesskey="n" value="delete" class="btn btn-primary">Удалить (alt-n)</button>
  </form>
 </body>
 <script src="/static/bootstrap-3.3.2/js/bootstrap.js"></script>
