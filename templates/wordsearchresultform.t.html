@@ -26,7 +26,7 @@
             {{else}}&VerticalBar;{{end}}              
 
             <i>Тема:</i>{{ $wordSearchQueryRecord.Theme }}&VerticalBar;
-        <i>Phrase:</i>{{ castAsHTML $wordSearchQueryRecord.Phrase }}</p>
+        <i>Фраза:</i>{{ castAsHTML $wordSearchQueryRecord.Phrase }}</p>
 
         <p>{{ if not (eq 0 $.Wsmr.FavoriteLanguageId) }}
         {{if eq 0 $wordSearchQueryRecord.HasFavoriteLanguageTranslation}}
