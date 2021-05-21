@@ -1,13 +1,13 @@
 {
  "Comment": [
-  "Example config file. Copy this one to the semdict.config.json and edit.",
-  "UnderAProxy is an integer value with legal values of 0 (false) and 1 (true)",
-  "Set UnderAProxy to 0 if gin is used as a web server (standalone mode)",
-  "UnderAProxy to 1 when semdict is started as a service behind a TLS-enabled reverse proxy (service mode)",
-  "ServerPort is included into the registration E-mails only is UnderAProxy == 1.",
-  "TLSCertFile and TLSKeyFile (PEM format) can only be used in a standalone mode to enable https",
-  "Pass empty strings to use plain http",
-  "If an SMTPServer is set to an empty string, emails are printed to stdout instead of actually being sent"
+  "Пример конфигурационного файла. Скопируйте этот файл в файл semdict.config.json и отредактируйте.",
+  "UnderAProxy-это целочисленное значение с допустимыми значениями 0 (false) и 1 (true)",
+  "Установите UnderAProxy в 0, если gin используется в качестве веб-сервера (автономный режим)",
+  "UnderAProxy до 1, когда semdict запускается как служба за обратным прокси-сервером с поддержкой TLS (режим службы)",
+  "Серверный порт, включенный в регистрационные электронные письма, является только UnderAProxy == 1.",
+  "TLSCertFile и TLSKeyFile (формат PEM) можно использовать только в автономном режиме для включения https",
+  "Передайте пустые строки для использования обычного http",
+  "Если для SMTPServer задана пустая строка, электронные письма печатаются в stdout вместо фактической отправки"
  ],
  "SiteRoot": "localhost",
  "UnderAProxy": 0,
