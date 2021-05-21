@@ -1,72 +1,72 @@
-# Semantic dictionary - a sense-based English-Russian dictionary
+# Семантический словарь - смысловой англо-русский словарь
 
-# Quick start
+# Быстрый старт
 
-First to setting variables `.env` from `.env.example`
+Сначала установите переменные `.env` из `.env.example`
 
 ```bash
-# run once at the start of work
+# запускается один раз в начале работы
 make setup
 
-# run every time migrations changes?
+# запускать каждый раз при изменении миграций?
 make up
 
-# start local server (for develop)
+# запустить локальный сервер (для разработки)
 make run
 
-# start server in docker infa
+# запуск сервера в docker infa
 make semdict-server
 
-# run once at setup SSL for domain
+# запустить один раз при настройке SSL для домена
 make initial-setup-ssl
 
-# start reverse proxy with configured ssl
+# запуск обратного прокси с настроенным ssl
 make run-proxy
 ```
 
-## Concept
+## Концепция
 
-### Idea of "semantic dictionary"
+### Идея "семантического словаря"
 
-There are two differences to normal Language A to Language B translation dictionary:
+Есть два отличия от обычного словаря перевода с языка A на язык B:
 
-- there is a cell per sense of the word, not a cell per word. Words having multiple meanings have multiple senses.
-- there are many variants of translation, and we track the sources of translation. E.g. Oracle and Microsoft can use different translations of some word sense to Russian. We create "Oracle" dialect to store Oracle's translations and "Microsoft" dialect to store Microsoft's.
+- существует ячейка в смысле слова, а не ячейка в слове. Слова, имеющие несколько значений, имеют несколько смыслов.
+- существует множество вариантов перевода, и мы отслеживаем источники перевода. Например, Oracle и Microsoft могут использовать разные переводы некоторых значений слов на русский язык. Мы создаем диалект "Oracle" для хранения переводов Oracle и диалект "Microsoft" для хранения переводов Microsoft.
 
-### Detailed requirement specifications (in Russian)
+### Подробные спецификации требований (на русском языке)
 
-[Look here](doc/тз/общее.md)
+[Смотри сюда](doc/тз/общее.md)
 
-## State
-Pre-alpha, no deployment. Not all features are implemented.
+## Состояние
+Пре-альфа, без развертывания. Не все функции реализованы.
 
-## Technology
+## Технология
 
-### Done
-- concept of database error handling
-- postgres quoting - sqlx seem to work fine
-- genExpiryDate (schedule an expiry of a link)
-- genNonce (for registration confirmation links)
-- SaltAndHashPassword (safe storing of passwords)
-- run postgres as a user
-- sending e-mails
-- confirm registration
-- ssl locally
-- deploy locally
+### Сделано
+- концепция обработки ошибок базы данных
+- цитирование postgres - sqlx, похоже, работает нормально
+- genExpiryDate (запланируйте истечение срока действия ссылки)
+- genNonce (ссылки для подтверждения регистрации)
+- SaltAndHashPassword (безопасное хранение паролей)
+- запустите postgres от имени пользователя
+- отправка электронных писем
+- подтвердите регистрацию
+- ssl локально
+- развертывание локально
 
 
-## To do
-- sane page titles (otherwise history is ugly)
-- validate e-mails and passwords
-- integration test
-- deploy on hosting
+## Делать
+- вменяемые заголовки страниц (в противном случае история уродлива)
+- проверка электронной почты и паролей
+- интеграционный тест
+- развертывание на хостинге
 
-# Possible future extensions
-- fail2ban integration
-- captcha
-- now cleanup of timed out things is 'lazy'. Implement cleanup goroutine or postgresql service?
-- implement keepalive for the service https://www.linux.org.ru/forum/development/14883028
-- one connect, pool of connections or what? (now using pool and crashing if something is wrong)
+# Возможные будущие расширения
+- интеграция fail2ban
+- капча
+- теперь очистка тайм-аута 'ленива'. Реализовать программу очистки goroutine или службу postgresql?
+- реализовать функцию keepalive для службы https://www.linux.org.ru/forum/development/14883028
+- одно соединение, пул соединений или что? (теперь используйте пул и сбой, если что-то не так)
 
-# Installation
-See [installation.md in doc directory](doc/installation.md)
+# Установка
+См. [installation.md в каталоге doc](doc/installation.md) 
