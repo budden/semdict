@@ -10,16 +10,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// RegistrationConfirmationPageHandler processes a registration confirmation
+// RegistrationConfirmationPageHandler обрабатывает подтверждение регистрации
 func RegistrationConfirmationPageHandler(c *gin.Context) {
 	EnsureNotLoggedIn(c)
 	var rd RegistrationData
-	// fill nickname and confirmationkey
+	// введите псевдоним и ключ подтверждения
 	extractNicknameAndConfirmationKeyFromRequest(c, &rd)
-	// update sdusers_db, fill userid
+	// обновить sdusers_db, заполнить userid
 	processRegistrationConfirmationWithSDUsersDbStage1(&rd)
-	// promote the user to Sd Db. If we crash here, user will be able to login,
-	// (and unable to register again), but wil be missing from the main content db
+	// перевести пользователя в Sd Db. Если здесь произойдет сбой, пользователь сможет войти в систему,
+	// (и не сможет зарегистрироваться снова), но будет отсутствовать в основном контенте db
 	c.HTML(http.StatusMovedPermanently,
 		"registrationconfirmation.t.html",
 		gin.H{})
@@ -33,7 +33,7 @@ func extractNicknameAndConfirmationKeyFromRequest(c *gin.Context, rd *Registrati
 	if !ok1 || !ok2 ||
 		len(nicknames) == 0 ||
 		len(confirmationkeys) == 0 {
-		apperror.Panic500If(apperror.ErrDummy, "Bad registration confirmation URL")
+		apperror.Panic500If(apperror.ErrDummy, "Плохой URL-адрес подтверждения регистрации")
 	}
 	rd.Nickname = nicknames[0]
 	rd.ConfirmationKey = confirmationkeys[0]
@@ -45,17 +45,17 @@ func processRegistrationConfirmationWithSDUsersDbStage1(rd *RegistrationData) {
 		reply, err1 = trans.Tx.NamedQuery(
 			`select * from process_registrationconfirmation(:confirmationkey, :nickname)`,
 			rd)
-		apperror.Panic500AndErrorIf(err1, "Failed to confirm registration, sorry")
+		apperror.Panic500AndErrorIf(err1, "Не удалось подтвердить регистрацию, извините")
 		defer reply.Close()
 		for reply.Next() {
 			err1 = reply.Scan(&rd.UserID)
 			//fmt.Printf("UserID = %v\n", rd.UserID)
-			sddb.FatalDatabaseErrorIf(err1, "Error obtaining id of a new user, err = %#v", err1)
+			sddb.FatalDatabaseErrorIf(err1, "Ошибка при получении идентификатора нового пользователя, err = %#v", err1)
 		}
 		// hence err1 == nil
 		return
 	})
-	// if we have error here, it is an error in commit, so is fatal
-	sddb.FatalDatabaseErrorIf(err, "Failed around registrationconfirmation, error is %#v", err)
+	// если у нас здесь ошибка, то это ошибка в коммите, поэтому она фатальна.
+	sddb.FatalDatabaseErrorIf(err, "Не удалось пройти процедуру подтверждения регистрации, ошибка заключается в следующем %#v", err)
 	return
 }
