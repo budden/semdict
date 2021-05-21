@@ -1,4 +1,4 @@
-// Package unsorted is for new things which are, well, unsorted
+// Пакет unsorted предназначен для новых вещей, которые, в общем, не отсортированы
 package unsorted
 
 import (
@@ -6,11 +6,11 @@ import (
 	"os"
 )
 
-// OpenDevNullForWrite opens /dev/null for write
+// OpenDevNullForWrite открывает /dev/null для записи
 func OpenDevNullForWrite() *os.File {
 	f, err := os.OpenFile(os.DevNull, os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
-		log.Fatal("Failed to open DevNull")
+		log.Fatal("Не удалось открыть DevNull")
 	}
 	return f
 }
