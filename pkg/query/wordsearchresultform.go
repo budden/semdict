@@ -20,7 +20,7 @@ type wordSearchResultFormTemplateParamsType struct {
 }
 
 // WordSearchResultRouteHandler - обработчик для "/wordsearchresult". Поддерживается случай, когда форма поиска
-// заполняет через URL... По идее, это - runWrappedSprav - его частный случай
+// заполняется через URL... По идее, это - runWrappedSprav - его частный случай
 func WordSearchResultRouteHandler(c *gin.Context) {
 	var wsqp *wordSearchQueryParams
 	var wsmr *wordSearchMasterRecord
