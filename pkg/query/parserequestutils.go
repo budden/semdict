@@ -7,8 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetZeroOrOneNonNegativeIntFormValue extracts an (unique) integer value by the key
-// from the request query (URL or form)
+// GetZeroOrOneNonNegativeIntFormValue извлекает (уникальное) целочисленное значение по ключу
+// из запроса (URL или форма)
 func GetZeroOrOneNonNegativeIntFormValue(c *gin.Context, key string) (
 	value int64) {
 	values, ok1 := c.GetQueryArray(key)
@@ -16,7 +16,7 @@ func GetZeroOrOneNonNegativeIntFormValue(c *gin.Context, key string) (
 		return
 	}
 	if len(values) > 1 {
-		apperror.Panic500AndLogAttackIf(apperror.ErrDummy, c, "Query parameter «%s» is duplicated", key)
+		apperror.Panic500AndLogAttackIf(apperror.ErrDummy, c, "Параметр запроса «%s» дублируется", key)
 	}
 	valueS := values[0]
 	if valueS == "" {
@@ -24,9 +24,9 @@ func GetZeroOrOneNonNegativeIntFormValue(c *gin.Context, key string) (
 	}
 	var err error
 	value, err = strconv.ParseInt(valueS, 10, 64)
-	apperror.Panic500AndLogAttackIf(err, c, "Non-integer value of «%s»", key)
+	apperror.Panic500AndLogAttackIf(err, c, "Нецелое значение «%s»", key)
 	if value < 0 {
-		apperror.Panic500AndLogAttackIf(apperror.ErrDummy, c, "Negative value of parameter «%s»", key)
+		apperror.Panic500AndLogAttackIf(apperror.ErrDummy, c, "Отрицательное значение параметра «%s»", key)
 	}
 	return
 }
@@ -34,7 +34,7 @@ func GetZeroOrOneNonNegativeIntFormValue(c *gin.Context, key string) (
 // FIXME искать магическую константу 5000 в шаблонах.
 const MaxDataSetRecordCountLimit = 5000
 
-// If Limit is 0, set it to some reasonable maximum value
+// Если Limit равен 0, установите его на какое-то разумное максимальное значение
 func LimitLimit(limit *int32) {
 	if *limit == 0 {
 		*limit = MaxDataSetRecordCountLimit
@@ -51,7 +51,7 @@ func extractCheckBoxFromRequest(c *gin.Context, paramName string) (res bool) {
 	} else if txt == "off" || txt == "" {
 		res = false
 	} else {
-		apperror.Panic500If(apperror.ErrDummy, "Bad «%s» request parameter value", txt)
+		apperror.Panic500If(apperror.ErrDummy, "Плохое значение параметра запроса «%s»", txt)
 	}
 	return
 }
