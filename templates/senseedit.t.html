@@ -22,7 +22,7 @@
     value="{{ .Ad.OWord }}"
     required></div>
     <div class="form-group">
-      <label for="theme">Тема (на русском языке) для смысла неоднозначности. Нажмите ПРОБЕЛ, чтобы выбрать</label>
+      <label for="theme">Тема (на русском языке) для уточнения смысла. Нажмите ПРОБЕЛ, чтобы выбрать</label>
       <select class="form-control js-example-basic-single" name="theme" id="theme">
         {{ range $index, $ThemeRecord := .Ad.Allth }}
         <option value="{{ $ThemeRecord.Theme }}">{{ $ThemeRecord.Theme }}</option>
