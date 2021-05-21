@@ -45,7 +45,7 @@ func makeNewSenseidInDb(sap *senseNewSubmitDataType) (id int64) {
 		`insert into tsense (ownerid, oword, theme, phrase) 
 			values (:sduserid, :oword, :theme, :phrase) 
 			returning id`, &sap)
-	apperror.Panic500AndErrorIf(err1, "Failed to insert a sense, sorry")
+	apperror.Panic500AndErrorIf(err1, "Не удалось вставить смысл, извините")
 	defer sddb.CloseRows(reply)()
 	var dataFound bool
 	for reply.Next() {
@@ -53,8 +53,8 @@ func makeNewSenseidInDb(sap *senseNewSubmitDataType) (id int64) {
 		dataFound = true
 	}
 	if !dataFound {
-		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Insert didn't return a record")
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Вставка не вернула запись")
 	}
-	sddb.FatalDatabaseErrorIf(err1, "Error obtaining id of a fresh sense: %#v", err1)
+	sddb.FatalDatabaseErrorIf(err1, "Ошибочное получение свежего смысла: %#v", err1)
 	return
 }
