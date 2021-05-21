@@ -1,4 +1,4 @@
-// Package sddb contains things for db connection
+// Пакет sddb содержит элементы для подключения к базе данных
 package sddb
 
 import (
@@ -23,49 +23,48 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-// ConnectionType encapsulates connection with
-// some other minor things like a broken state of a connection pool.
-// There should only one ConnectionType instance for any DB instance
+// ConnectionType инкапсулирует соединение с некоторыми другими незначительными вещами, 
+// такими как нерабочее состояние пула соединений.
+// Для любого экземпляра БД должен существовать только один экземпляр ConnectionType
 type ConnectionType struct {
 	Db *sqlx.DB
 
-	// We hold the mutex for all writes to the database.
-	// This way we control the number of concurrent transactions in the database.
-	// For now we only have one instance of the service, so there will be no more than
-	// one concurrent write to the database. If we have several instances, there will be
-	// no more concurrent writes than there are service instances.
+	// Мы держим мьютекс для всех записей в базу данных.
+	// Таким образом мы контролируем количество одновременных транзакций в базе данных.
+	// Пока у нас только один экземпляр службы, 
+	// поэтому одновременных записей в базу данных будет не более одной.
+	// Если у нас несколько экземпляров, то одновременных записей будет не больше, чем экземпляров сервиса.
 	Mutex *sync.Mutex
 
 	IsDead bool
 }
 
-// TransactionType is a transaction and reference to
-// ConnectionType, which we need due to inability to get db from
-// transaction.
+// TransactionType - это транзакция и ссылка на ConnectionType, 
+// которая нам нужна из-за невозможности получить db из транзакции.
 type TransactionType struct {
 	Conn *ConnectionType
 	Tx   *sqlx.Tx
 }
 
-// sdUsersDb contains, after the call to OpenSdUsersDb, a connection to sdusers_db
+// sdUsersDb содержит, после вызова OpenSdUsersDb, соединение с sdusers_db
 var sdUsersDb *ConnectionType
 
-// OpenSdUsersDb opens given database name
+// OpenSdUsersDb открывает заданное имя базы данных
 func OpenSdUsersDb(dbName string) {
 	if sdUsersDb != nil {
-		log.Fatal("An attempt to re-open SDUsers database")
+		log.Fatal("Попытка повторного открытия базы данных SDUsers")
 	}
 	url := shared.SecretConfigData.PostgresqlServerURL + "/" + dbName
 	sdUsersDb = OpenDb(url, dbName, true)
 	return
 }
 
-// CloseSdUsersDb closes the db
+// CloseSdUsersDb закрывает базу данных
 func CloseSdUsersDb() error {
 	return sdUsersDb.Db.Close()
 }
 
-// PlayWithDb is used to manually test db functionality
+// PlayWithDb используется для ручного тестирования функциональности БД
 func PlayWithDb() {
 	justAQuery := func(query string) {
 		rows, err := sdUsersDb.Db.Query(query)
@@ -94,9 +93,9 @@ func PlayWithDb() {
 			default:
 				fmt.Printf("Error insertiing: %#v\n", err1)
 			} */
-			fmt.Printf("failed to insert: %#v\n", err1)
+			fmt.Printf("не удалось вставить: %#v\n", err1)
 		} else {
-			fmt.Printf("Inserted %#v\n", res)
+			fmt.Printf("Вставлено %#v\n", res)
 		}
 	}
 	genExpiryDate(sdUsersDb.Db)
@@ -106,7 +105,7 @@ const maxOpenConns = 4
 const maxIdleConns = 4
 const connMaxLifetime = 10 * time.Second
 
-// CommitIfActive commits a transaction if it is still active.
+// CommitIfActive фиксирует транзакцию, если она всё ещё активна.
 func CommitIfActive(trans *TransactionType) (err error) {
 	err = trans.Tx.Commit()
 	if err == sql.ErrTxDone {
@@ -115,11 +114,11 @@ func CommitIfActive(trans *TransactionType) (err error) {
 	return
 }
 
-// RollbackIfActive rolls back transaction if it is still active.
-// Defer this one if you're opening any transaction
-// If failed to rollback, will shutdown the application gracefully
-// If already panicking with a non-application error (something unexpected happened),
-// will continue to do the same, just logging the failure to rollback.
+// RollbackIfActive откатывает транзакцию, если она всё ещё активна.
+// Отложите этот вопрос, если вы открываете какую-либо сделку
+// Если откат не удался, приложение будет завершено изящно
+// Если уже возникла паника из-за ошибки, не связанной с приложением (произошло что-то неожиданное), 
+// будет продолжать делать то же самое, просто регистрируя сбой для отката.
 func RollbackIfActive(trans *TransactionType) {
 	err := trans.Tx.Rollback()
 	if err == nil || err == sql.ErrTxDone {
@@ -127,26 +126,26 @@ func RollbackIfActive(trans *TransactionType) {
 	}
 	preExistingPanic := recover()
 	if preExistingPanic == nil {
-		FatalDatabaseErrorIf(apperror.ErrDummy, "Failed to rollback transaction")
+		FatalDatabaseErrorIf(apperror.ErrDummy, "Не удалось выполнить откат транзакции")
 	} else if ae, ok := preExistingPanic.(apperror.Exception500); ok {
 		FatalDatabaseErrorIf(apperror.ErrDummy,
-			"Failed to rollback transaction with Exception500 pending: %#v",
+			"Не удалось откатить транзакцию с ожиданием Exception500: %#v",
 			ae)
 	} else {
 		debug.PrintStack()
-		log.Fatalf("Failed to rollback transaction while panicking with %#v", preExistingPanic)
+		log.Fatalf("Не удалось откатить транзакцию во время паники с %#v", preExistingPanic)
 	}
 }
 
-// OpenDb obtains a connection to db. Connections are pooled, beware.
-// logFriendlyName is for the case when url contains passwords
+// OpenDb получает соединение с db. Соединения объединяются, остерегайтесь.
+// logFriendlyName - для случая, когда url содержит пароли
 func OpenDb(url, logFriendlyName string, withMutex bool) *ConnectionType {
 	var err error
 	var db *sqlx.DB
 	db, err = sqlx.Open("pgx", url)
-	apperror.ExitAppIf(err, 6, "Failed to open «%s» database", logFriendlyName)
+	apperror.ExitAppIf(err, 6, "Не удалось открыть «%s» database", logFriendlyName)
 	err = db.Ping()
-	apperror.ExitAppIf(err, 7, "Failed to ping «%s» database", logFriendlyName)
+	apperror.ExitAppIf(err, 7, "Не удалось выполнить пинг «%s» database", logFriendlyName)
 	// http://go-database-sql.org/connection-pool.t.html
 	db.SetMaxOpenConns(maxOpenConns)
 	db.SetMaxIdleConns(maxIdleConns)
@@ -154,7 +153,7 @@ func OpenDb(url, logFriendlyName string, withMutex bool) *ConnectionType {
 	closer1 := func() {
 		err := db.Close()
 		if err != nil {
-			// we don't know if stdout is writable, but we're in goroutine already
+			// мы не знаем, можно ли записывать stdout, но мы уже находимся в goroutine
 			log.Printf("Error closing database «%s»: %#v\n", logFriendlyName, err)
 		} else {
 			log.Printf("Closed database «%s»\n", logFriendlyName)
@@ -174,22 +173,22 @@ func OpenDb(url, logFriendlyName string, withMutex bool) *ConnectionType {
 func genExpiryDate(db *sqlx.DB) {
 	res1, err2 := db.Query(`select current_timestamp + interval '10' minutes`)
 	if err2 != nil {
-		fmt.Printf("Wow!")
+		fmt.Printf("Вау!")
 		os.Exit(1)
 	}
 	if !res1.Next() {
-		fmt.Printf("No rows here. Why?")
+		fmt.Printf("Здесь нет рядов. почему?")
 		os.Exit(1)
 	}
 	var magic time.Time
 	res1.Scan(&magic)
-	fmt.Printf("Expiry at %s\n", magic.Format("2006-01-02 15:04 -0700"))
+	fmt.Printf("Срок годности по %s\n", magic.Format("2006-01-02 15:04 -0700"))
 }
 
-// WithTransaction opens a transaction in the sdusers_db, then runs body
-// Then, if there is no error, and transaction is still active, commit transaction and returns commit's error
-// If there was an error or panic while executing body, tries to rollback the tran transaction,
-// see RollbackIfActive
+// WithTransaction открывает транзакцию в sdusers_db, затем запускает тело
+// Затем, если ошибки нет, и транзакция всё ещё активна, фиксируем транзакцию и возвращаем ошибку фиксации
+// Если во время выполнения тела произошла ошибка или паника, пытается откатить транзакцию,
+// см. RollbackIfActive
 func WithTransaction(body func(tx *TransactionType) (err error)) (err error) {
 
 	conn := sdUsersDb
@@ -205,11 +204,11 @@ func WithTransaction(body func(tx *TransactionType) (err error)) (err error) {
 	CheckDbAlive()
 	tx, err = conn.Db.Beginx()
 	trans := TransactionType{Conn: conn, Tx: tx}
-	FatalDatabaseErrorIf(err, "Unable to start transaction")
+	FatalDatabaseErrorIf(err, "Невозможно начать транзакцию")
 	defer func() { RollbackIfActive(&trans) }()
 	CheckDbAlive()
 	_, err = tx.Exec(`set transaction isolation level repeatable read`)
-	FatalDatabaseErrorIf(err, "Unable to set transaction isolation level")
+	FatalDatabaseErrorIf(err, "Невозможно установить уровень изоляции транзакции")
 	CheckDbAlive()
 	err = body(&trans)
 	if err == nil {
@@ -219,8 +218,8 @@ func WithTransaction(body func(tx *TransactionType) (err error)) (err error) {
 	return
 }
 
-// NamedUpdateQuery is a query in the sdUsersDb which updates the db. So we hold our mutex
-// to ensure serialization of all writes in scope of instances.
+// NamedUpdateQuery - это запрос в sdUsersDb, который обновляет базу данных. 
+// Поэтому мы держим наш мьютекс для обеспечения сериализации всех записей в области видимости экземпляров.
 func NamedUpdateQuery(sql string, params interface{}) (res *sqlx.Rows, err error) {
 	conn := sdUsersDb
 	CheckDbAlive()
@@ -234,8 +233,8 @@ func NamedUpdateQuery(sql string, params interface{}) (res *sqlx.Rows, err error
 	return
 }
 
-// NamedExec is like sqlx.NamedExec and also holds the mutex. Use it whenever the query executed
-// can update the db
+// NamedExec похож на sqlx.NamedExec и также держит мьютекс.
+// Используйте его всякий раз, когда выполняемый запрос может обновить базу данных
 func NamedExec(sql string, params interface{}) (res sql.Result, err error) {
 	conn := sdUsersDb
 	CheckDbAlive()
@@ -249,8 +248,8 @@ func NamedExec(sql string, params interface{}) (res sql.Result, err error) {
 	return
 }
 
-// NamedReadQuery is for queries which are read-only. We introduce one as we encapsulate
-// sql(x) connection of sdusers_db in the sddb module.
+// NamedReadQuery предназначен для запросов, которые доступны только для чтения.
+// Мы вводим его, когда инкапсулируем sql(x) соединение sdusers_db в модуль sddb.
 func NamedReadQuery(sql string, params interface{}) (res *sqlx.Rows, err error) {
 	conn := sdUsersDb
 	CheckDbAlive()
@@ -258,8 +257,8 @@ func NamedReadQuery(sql string, params interface{}) (res *sqlx.Rows, err error) 
 	return
 }
 
-// ReadQuery is for queries which are read-only. We introduce one as we encapsulate
-// sql(x) connection of sdusers_db in the sddb module.
+// ReadQuery предназначен для запросов, которые доступны только для чтения.
+// Мы вводим его, когда инкапсулируем sql(x) соединение sdusers_db в модуль sddb.
 func ReadQuery(sql string) (res *sqlx.Rows, err error) {
 	conn := sdUsersDb
 	CheckDbAlive()
@@ -267,11 +266,11 @@ func ReadQuery(sql string) (res *sqlx.Rows, err error) {
 	return
 }
 
-// CloseRows are for use with defer to close rows in case rows iteration goes wrong
+// CloseRows предназначены для использования с отсрочкой для закрытия строк в случае, если итерация строк идет неправильно
 func CloseRows(r *sqlx.Rows) func() {
 	return func() {
 		err := r.Close()
-		FatalDatabaseErrorIf(err, "Failed to close rows, «%s»")
+		FatalDatabaseErrorIf(err, "Не удалось закрыть строки, «%s»")
 	}
 }
 
