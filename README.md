@@ -1,26 +1,26 @@
-# Семантический словарь - смысловой англо-русский словарь
+# Семантический словарь - англо-русский словарь на основе смысла
 
 # Быстрый старт
 
-Сначала установите переменные `.env` из `.env.example`
+First to setting variables `.env` from `.env.example`
 
 ```bash
-# запускается один раз в начале работы
+# run once at the start of work
 make setup
 
-# запускать каждый раз при изменении миграций?
+# run every time migrations changes?
 make up
 
-# запустить локальный сервер (для разработки)
+# start local server (for develop)
 make run
 
-# запуск сервера в docker infa
+# start server in docker infa
 make semdict-server
 
-# запустить один раз при настройке SSL для домена
+# run once at setup SSL for domain
 make initial-setup-ssl
 
-# запуск обратного прокси с настроенным ssl
+# start reverse proxy with configured ssl
 make run-proxy
 ```
 
