@@ -1,5 +1,5 @@
 package user
 
-// currently does nothing, but we keep it as an architectural idea
+// в настоящее время ничего не делает, но мы сохраняем его как архитектурную идею
 func init() {
 }
