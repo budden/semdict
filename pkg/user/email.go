@@ -7,27 +7,27 @@ import (
 	"github.com/go-mail/mail"
 )
 
-// if fakeEmail() is true, email is printed to stdout
+// если fakeEmail() равен true, письмо выводится в stdout
 func fakeEmail() bool {
 	return shared.SecretConfigData.SMTPServer == ""
 }
 
-// SendEmail sends an email, or, if fakeEmail() is true, prints it to stdout
-// Sender, SMTP server and credentials are taken from semdict.config.json
-// (loaded when program starts)
+// SendEmail отправляет электронное письмо или, если fakeEmail() равен true, печатает его на stdout
+// Отправитель, SMTP-сервер и учетные данные берутся из файла semdict.config.json
+// (загружается при запуске программы)
 func SendEmail(recieverEMail, subj, html string) (err error) {
 	if fakeEmail() {
 		fmt.Printf(
-			"user.fakeEmail() is true, so printing this EMail:\nTo:«%s»\nSubj:«%s»\n«%s»\n",
+			"user.fakeEmail() равно true, поэтому печатается этот EMail:\nTo:«%s»\nSubj:«%s»\n«%s»\n",
 			recieverEMail, subj, html)
 		return
 	}
 	scd := shared.SecretConfigData
 	m := mail.NewMessage()
-	m.SetHeader("From", scd.SenderEMail)
-	m.SetHeader("To", recieverEMail)
-	m.SetHeader("Subject", subj)
-	m.SetBody("text/html", html)
+	m.SetHeader("От", scd.SenderEMail)
+	m.SetHeader("Для", recieverEMail)
+	m.SetHeader("Тема", subj)
+	m.SetBody("текст/html", html)
 
 	d := mail.NewDialer(scd.SMTPServer, 25, scd.SMTPUser, scd.SMTPPassword)
 
