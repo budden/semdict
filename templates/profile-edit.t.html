@@ -5,11 +5,11 @@
 {{ template "header-end.t.html" .}}
 <body>
 <p><a href="/menu">Меню</a></p>
-<p>Edit profile</p>
+<p>Изменить профиль</p>
 <hr>
 <form class="form" action="/profileeditsubmit" method="POST">
     <div class="form-group">
-        <label for="tlanguage">Выберите язык, диалект или источник перевода.</label>
+        <label for="tlanguage">выберите "любимый" язык.</label>
         <select class="form-control" name="tlanguage" id="tlanguage">
             {{ $PD := .PD }}
             {{ if $PD.LanguageId }}
