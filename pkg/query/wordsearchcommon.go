@@ -31,13 +31,13 @@ type wordSearchQueryParams struct {
 	Limit    int32 // 0 - значит «без ограничения»
 }
 
-// data common to the form
+// данные, общие для формы
 type wordSearchMasterRecord struct {
 	FavoriteLanguageId   int64
 	FavoriteLanguageSlug string
 }
 
-// a record per sense found
+// рекорд по найденным ощущениям
 type wordSearchQueryRecord struct {
 	Senseid int64
 	// Sdusernickname sql.NullString
@@ -48,7 +48,7 @@ type wordSearchQueryRecord struct {
 	Lwsjson                        sql.NullString
 	LwsArray                       []TlwsRecordForWordSearch
 	HasFavoriteLanguageTranslation int64
-	// Proposalid       sql.NullInt64 // is non-null when this record is a proposal.
+	// Proposalid       sql.NullInt64 // не является нулевым, если эта запись является предложением.
 
 }
 
@@ -58,7 +58,7 @@ func wordSearchCommonPart(c *gin.Context) (wsqp *wordSearchQueryParams,
 	wsqp = getWordSearchQueryParamsFromRequest(c)
 
 	if wsqp.Wordpattern == "" {
-		apperror.Panic500AndLogAttackIf(apperror.ErrDummy, c, "Empty search pattern")
+		apperror.Panic500AndLogAttackIf(apperror.ErrDummy, c, "Пустой шаблон поиска")
 	}
 
 	wsqp.Offset = int32(GetZeroOrOneNonNegativeIntFormValue(c, "offset"))
@@ -105,9 +105,9 @@ func readWordSearchMasterRecordFromDb(wsqp *wordSearchQueryParams) (
 		dataFound = true
 	}
 	if !dataFound {
-		apperror.Panic500AndErrorIf(apperror.ErrDummy, "No data found")
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Данные не найдены")
 	}
-	sddb.FatalDatabaseErrorIf(err1, "Error obtaining data from users profile: %#v", err1)
+	sddb.FatalDatabaseErrorIf(err1, "Ошибка при получении данных из профиля пользователя: %#v", err1)
 	return
 }
 
@@ -126,7 +126,7 @@ func readWordSearchSensesFromDb(wsqp *wordSearchQueryParams) (fd []*wordSearchQu
 			json.Unmarshal([]byte(wsqr.Lwsjson.String), &tlws)
 		}
 		wsqr.LwsArray = tlws
-		sddb.FatalDatabaseErrorIf(err1, "Error obtaining data of sense: %#v", err1)
+		sddb.FatalDatabaseErrorIf(err1, "Ошибка при получении данных о смысле: %#v", err1)
 		fd[last] = wsqr
 	}
 	fd = fd[:last]
