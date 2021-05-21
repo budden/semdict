@@ -14,7 +14,7 @@ import (
 // Здесь перечислены все данные.
 // На самом деле это должна быть модель (метаданные) - аналог deftbl из fb2/dict-ripol.lisp или
 // definterface из wrapper.lisp. А структура
-// должна из этого генерироваться. Для переходимости метданные мы можем сделать
+// должна из этого генерироваться. Для переносимости мы можем сделать метданные
 // константой, переменной или функцией, переходить к определению с помощью go to symbol in workspace
 // apperror.Panic500If (почему-то без префикса пакета, ну и ладно - там есть выбор одноимённых)
 type wordSearchFormDataType struct {
@@ -28,7 +28,7 @@ type wordSearchFormTemplateParamsType struct {
 }
 
 // WordSearchFormRouteHandler - обработчик для "/wordsearchform". Поддерживается случай, когда форма поиска
-// заполняет через URL... По идее, это - runWrappedSprav - его частный случай
+// заполняется через URL... По идее, это - runWrappedSprav - его частный случай
 func WordSearchFormRouteHandler(c *gin.Context) {
 	wsqp := getWordSearchQueryParamsFromRequest(c)
 
@@ -61,8 +61,8 @@ func readWordSearchFormFromDb(frp *wordSearchQueryParams) (fd *wordSearchFormDat
 		dataFound = true
 	}
 	if !dataFound {
-		apperror.Panic500AndErrorIf(apperror.ErrDummy, "No data found")
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Данные не найдены")
 	}
-	sddb.FatalDatabaseErrorIf(err1, "Error obtaining data of sense: %#v", err1)
+	sddb.FatalDatabaseErrorIf(err1, "Ошибка при получении данных о смысле: %#v", err1)
 	return
 }
