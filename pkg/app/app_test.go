@@ -10,9 +10,9 @@ import (
 )
 
 func Test_GenerateSecretConfigDataExample(t *testing.T) {
-	// thiss not merely a test, but also an utility: it creates
+	// это не просто тест, но и утилита: она создаёт
 	// semdict.config.json.example
-	// FIXME use make or at least bash script to generate an example2
+	// FIXME используйте make или хотя бы bash скрипт для генерации example2
 	cfn := "../../" + DefaultConfigFileName + ".example"
 	scd, err := SaveSecretConfigDataExample(&cfn)
 	assert.Nilf(t, err, "Error %#v in SaveSecretConfigDataExample", err)
@@ -27,13 +27,13 @@ func Test_Nonce(t *testing.T) {
 	const lengthForNonceTest = 16
 	var unsorted [countOfNonces]string
 
-	// generate them
+	// сгенерируйте их
 	for i := 0; i < countOfNonces; i++ {
 		unsorted[i] = user.GenNonce(lengthForNonceTest)
 	}
 
 	sorted := unsorted[:]
-	// sort them (and destroy unsorted)
+	// сортировать их (и уничтожать несортированные)
 	sort.Slice(sorted, func(n1, n2 int) bool {
 		return sorted[n1] < sorted[n2]
 	})
