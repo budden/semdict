@@ -21,7 +21,7 @@ func TestAll(t *testing.T) {
 	}
 	defer func() {
 		time.Sleep(1 * time.Second)
-		// we can't drop db because server holds the connections.
+		// мы не можем бросить db, поскольку сервер удерживает соединения.
 		t.Run("teardownDatabase", teardownDatabase)
 	}()
 
@@ -33,7 +33,7 @@ func TestAll(t *testing.T) {
 		time.Sleep(1 * time.Second)
 	}()
 
-	// FIXME there must be a better way to wait for server to start
+	// FIXME должен быть лучший способ дождаться запуска сервера
 	time.Sleep(1 * time.Second)
 
 	if !assert.Truef(t,
@@ -52,26 +52,26 @@ func getHomePage(t *testing.T) {
 	url := serviceURL + "/"
 	resp, err := http.Get(url)
 	if err != nil {
-		log.Printf("Failed to GET %s, error is %#v", url, err)
+		log.Printf("Не удалось получить %s, ошибка %#v", url, err)
 		t.Fail()
 		return
 	}
 	defer resp.Body.Close()
 	responseData, err1 := ioutil.ReadAll(resp.Body)
 	if err1 != nil {
-		log.Printf("Failed to read response from %s, error is %#v", url, err)
+		log.Printf("Не удалось прочитать ответ от %s, ошибка %#v", url, err)
 		t.Fail()
 		return
 	}
 
 	responseString := string(responseData)
 
-	if strings.Index(responseString, "Welcome to semantic dictionary") < 0 {
+	if strings.Index(responseString, "Добро пожаловать в семантический словарь") < 0 {
 		t.Fail()
 	}
 }
 
-// Run runs an app
+// Пуск запускает приложение
 func runForTesting() {
 	tbd := "../../"
 	TemplateBaseDir = &tbd
@@ -121,19 +121,19 @@ func dataImportCSV(tableName, fieldDelimiter, fileName string) (err error) {
 
 	var req *http.Request
 	req, err = preparePostRequest(apiURL, fd)
-	// Now that you have a form, you can submit it to your handler.
+	// Теперь, когда у вас есть форма, вы можете отправить её в обработчик.
 	if err != nil {
 		return
 	}
 
-	// Submit the request
+	// Отправить заявку
 	var res *http.Response
 	res, err = client.Do(req)
 	if err != nil {
 		return
 	}
 
-	// Check the response
+	// Проверьте ответ
 	if res.StatusCode != http.StatusOK {
 		err = decodeErrorFromHTTPResponsesBody(res)
 	}
