@@ -5,9 +5,9 @@ import (
 	"sync"
 )
 
-// Mutex we lock for any writes to sdusers_db to minimize parallelism at the db level
-// TODO create an WithMutex fn and use it for all writing queries
-// Also, think about db-level locks (put every update into transaction?)
+// Мы блокируем мьютекс для любых записей в sdusers_db, чтобы минимизировать параллелизм на уровне БД
+// TODO создать фн WithMutex и использовать его для всех запросов на запись
+// Кроме того, подумайте о блокировках на уровне базы данных (помещать каждое обновление в транзакцию?).
 var writeSDUsersMutex sync.Mutex
 
 // PostgresqlErrorCodeUniqueViolation is a unique_violation,
@@ -22,7 +22,7 @@ func isNicknameInValidFormat(nickname string) bool {
 	return err == nil && matched
 }
 
-// password must be from 8 to 25 characters long, must not contain spaces
+// пароль должен быть длиной от 8 до 25 символов и не должен содержать пробелов
 
 func isEmailInValidFormat(email string) bool {
 	//https://socketloop.com/tutorials/golang-validate-email-address-with-regular-expression
