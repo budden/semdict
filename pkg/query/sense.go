@@ -14,20 +14,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Params of a request to show a sense, including implicit Sduserid, obtained from session
+// Параметры запроса на показ смысла, включая неявный Sduserid, полученный из сессии
 type senseViewParamsType struct {
 	Sduserid int64
 	Senseid  int64
 }
 
-// senseDataForEditType is obtained from the DB also used for a view.
+// senseDataForEditType получается из БД, также используемой для представления.
 type senseDataForEditType struct {
 	Id             int64
 	OWord          string
 	Theme          string
 	Phrase         string
 	OwnerId        int64
-	Sdusernickname sql.NullString // owner (direct or implied)
+	Sdusernickname sql.NullString // собственник (прямой или подразумеваемый)
 	Allth          []*ThemeRecord
 }
 
@@ -35,7 +35,7 @@ type senseEditTemplateParams struct {
 	Ad *senseDataForEditType
 }
 
-// SenseViewHTMLTemplateParamsType are params for senseview.t.html
+// SenseViewHTMLTemplateParamsType являются параметрами для senseview.t.html
 type SenseViewHTMLTemplateParamsType struct {
 	Svp    *senseViewParamsType
 	Sdfe   *senseDataForEditType
@@ -52,7 +52,7 @@ func SenseByIdViewDirHandler(c *gin.Context) {
 			"senseview.t.html",
 			senseDataList)
 	} else {
-		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Sorry, no sense (yet?) with id = «%d»", senseID)
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Извините, нет смысла (пока?) с id = «%d»", senseID)
 	}
 }
 
@@ -60,14 +60,14 @@ func SenseByIdViewDirHandler(c *gin.Context) {
 func readSenseFromDb(svp *senseViewParamsType) (dataFound bool, ad *senseDataForEditType) {
 	reply, err1 := sddb.NamedReadQuery(
 		`select * from tsense where id = :senseid`, &svp)
-	apperror.Panic500AndErrorIf(err1, "Failed to extract a sense, sorry")
+	apperror.Panic500AndErrorIf(err1, "Не удалось извлечь смысл, извините")
 	defer sddb.CloseRows(reply)()
 	ad = &senseDataForEditType{}
 	for reply.Next() {
 		err1 = reply.StructScan(ad)
 		dataFound = true
 	}
-	sddb.FatalDatabaseErrorIf(err1, "Error obtaining data of sense: %#v", err1)
+	sddb.FatalDatabaseErrorIf(err1, "Ошибка при получении данных о смысле: %#v", err1)
 	return
 }
 
@@ -87,7 +87,7 @@ type senseDataWithWordLanguage struct {
 	WordOwnerID        *int64         `db:"word_owner_id"`
 }
 
-// read the sense with words by language.
+// читать смысл со словами по языкам.
 func readSenseWithWordLanguageFromDb(senseID int64) (d []*senseDataWithWordLanguage) {
 	reply, err := sddb.NamedReadQuery(
 		`
@@ -114,12 +114,12 @@ ORDER BY tl.id;
 		}{
 			Senseid: senseID,
 		})
-	apperror.Panic500AndErrorIf(err, "Failed to extract a sense, sorry")
+	apperror.Panic500AndErrorIf(err, "Не удалось извлечь смысл, извините")
 	defer sddb.CloseRows(reply)()
 	for reply.Next() {
 		v := &senseDataWithWordLanguage{}
 		err = reply.StructScan(v)
-		sddb.FatalDatabaseErrorIf(err, "Error obtaining data of sense: %#v", err)
+		sddb.FatalDatabaseErrorIf(err, "Ошибка при получении данных о смысле: %#v", err)
 		d = append(d, v)
 	}
 	return
@@ -140,7 +140,7 @@ func SenseEditDirHandler(c *gin.Context) {
 	if !dataFound {
 		c.HTML(http.StatusBadRequest,
 			"general.t.html",
-			shared.GeneralTemplateParams{Message: fmt.Sprintf("Sorry, no sense (yet?) for «%d»", svp.Senseid)})
+			shared.GeneralTemplateParams{Message: fmt.Sprintf("Извините, нет смысла (пока?) для «%d»", svp.Senseid)})
 		return
 	}
 
