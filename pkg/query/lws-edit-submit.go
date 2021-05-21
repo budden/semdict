@@ -16,8 +16,8 @@ import (
 )
 
 type lwsEditSubmitDataType struct {
-	Sduserid   int64 // extracted from the session
-	Lwsid      int64 // must be for save and delete
+	Sduserid   int64 // извлечённые из сессии
+	Lwsid      int64 // должны быть для сохранения и удаления
 	Languageid int64
 	Word       string
 	Senseid    int64
@@ -25,7 +25,7 @@ type lwsEditSubmitDataType struct {
 	Action     string
 }
 
-// LwsEditSubmitPostHandler posts an lws data
+// LwsEditSubmitPostHandler размещает данные lws
 func LwsEditSubmitPostHandler(c *gin.Context) {
 	user.EnsureLoggedIn(c)
 	pad := &lwsEditSubmitDataType{}
@@ -40,7 +40,7 @@ func LwsEditSubmitPostHandler(c *gin.Context) {
 		c.Redirect(http.StatusFound,
 			"/lwsdeleteconfirm/"+strconv.FormatInt(pad.Lwsid, 10))
 	} else {
-		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Unknown action in the form")
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Неизвестное действие в форме")
 	}
 
 }
@@ -52,7 +52,7 @@ func sanitizeLwsEditData(pad *lwsEditSubmitDataType) {
 	matched, err := regexp.Match(`^[0-9a-zA-Zа-яА-ЯёЁ\p{L} ]+$`, []byte(pad.Word))
 	if (err != nil) || !matched {
 		// https://www.linux.org.ru/forum/development/14877320
-		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Word can only contain Russian and latin letters, digits and spaces")
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Слово может содержать только русские и латинские буквы, цифры и пробелы")
 	}
 }
 
@@ -73,7 +73,7 @@ func extractLwsDataFromRequest(c *gin.Context, pad *lwsEditSubmitDataType, forIn
 func writeLwsToDb(pad *lwsEditSubmitDataType) (newProposalid int64) {
 	res, err1 := sddb.NamedUpdateQuery(
 		`select fnsavelws(:sduserid, :lwsid, :languageid, :word, :senseid, :commentary, 'save')`, pad)
-	apperror.Panic500AndErrorIf(err1, "Failed to update an lws")
+	apperror.Panic500AndErrorIf(err1, "Не удалось обновить lws")
 	defer sddb.CloseRows(res)()
 	dataFound := false
 	for res.Next() {
@@ -81,7 +81,7 @@ func writeLwsToDb(pad *lwsEditSubmitDataType) (newProposalid int64) {
 		dataFound = true
 	}
 	if !dataFound {
-		apperror.Panic500AndErrorIf(apperror.ErrDummy, "No proposal id from server")
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Нет идентификатора предложения с сервера")
 	}
 	return
 }
