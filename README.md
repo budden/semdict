@@ -2,27 +2,7 @@
 
 # Quick start
 
-First to setting variables `.env` from `.env.example`
-
-```bash
-# run once at the start of work
-make setup
-
-# run every time migrations changes?
-make up
-
-# start local server (for develop)
-make run
-
-# start server in docker infa
-make semdict-server
-
-# run once at setup SSL for domain
-make initial-setup-ssl
-
-# start reverse proxy with configured ssl
-make run-proxy
-```
+[DEV.md](DEV.md)
 
 ## Concept
 

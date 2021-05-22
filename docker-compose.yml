@@ -110,7 +110,7 @@ services:
         envsubst '$$DOMAIN $$APP_INTERNAL_URL' < /etc/nginx/conf.d/webserver443 > /etc/nginx/conf.d/default.conf
         exec nginx -g 'daemon off;'
     depends_on:
-      - webapp
+      - semdict-server
 
 volumes:
   certbot-etc:

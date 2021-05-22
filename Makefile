@@ -22,8 +22,11 @@ run-proxy:
 	@echo "➡️ Launch reverse-proxy"
 	docker-compose up -d webserver443
 
+run-docker:
+	docker-compose up -d --build semdict-server
+
 down:
 	docker-compose down --volumes --remove-orphans
 
-run: up
+run-local: up
 	go run ./main.go
