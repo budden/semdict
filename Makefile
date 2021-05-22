@@ -22,7 +22,7 @@ run-proxy:
 	@echo "➡️ Launch reverse-proxy"
 	docker-compose up -d webserver443
 
-run-docker:
+run-docker: up
 	docker-compose up -d --build semdict-server
 
 down:
