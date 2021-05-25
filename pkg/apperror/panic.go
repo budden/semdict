@@ -132,7 +132,7 @@ func Panic500AndErrorIf(err error, format string, args ...interface{}) {
 	if err != nil {
 		msg := fmt.Sprintf(format, args...)
 		data := Exception500{Message: msg}
-		log.Printf("Panic500AndErrorIf: ошибка - %#v, сообщение для пользователя - "%s", стёк следующий\n", err, msg)
+		log.Printf("Panic500AndErrorIf: ошибка - %#v, сообщение для пользователя - '%s', стек следующий\n", err, msg)
 		debug.PrintStack()
 		panic(&data)
 	}
@@ -172,6 +172,6 @@ func LogicalPanicIf(subject interface{}, format string, args ...interface{}) {
 	}
 }
 
-// ErrDummy можно использовать в качестве первого аргумента DoSomethingIf(err,...), если 
+// ErrDummy можно использовать в качестве первого аргумента DoSomethingIf(err,...), если
 // реальной ошибки нет
 var ErrDummy = errors.New("Фиктивная ошибка")
