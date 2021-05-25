@@ -1,12 +1,12 @@
 package app
 
-// To run this one you need that current user is able to connect
-// to pgsql via postgres://localhost:5432
-// This is achieved like this (unchecked)
+// Для его запуска необходимо, чтобы текущий пользователь мог подключиться
+// в pgsql через postgres://localhost:5432
+// Это достигается следующим образом (не отмечено)
 /*
-- run psql via `su postgres`
-- create user budden with superuser login
-- create database budden
+- запустите psql через `su postgres`
+- создать пользователя budden с логином суперпользователя
+- создать базу данных буден
 */
 
 import (
@@ -20,18 +20,18 @@ import (
 	"github.com/budden/semdict/pkg/user"
 )
 
-// Run runs an app
+// Пуск запускает приложение
 func Run(commandLineArgs []string) {
 	shutdown.RunSignalListener()
 	err := LoadSecretConfigData(ConfigFileName)
 	apperror.ExitAppIf(err,
 		shared.ExitCodeBadConfigFile,
-		"Failed to load configuation, error is «%s»",
+		"Не удалось загрузить конфигурацию, ошибка «%s»",
 		err)
 	err = ValidateConfiguration()
 	apperror.ExitAppIf(err,
 		shared.ExitCodeBadConfigFile,
-		"Invalid configuation, error is «%s»",
+		"Неверная конфигурация, ошибка «%s»",
 		err)
 	sddb.OpenSdUsersDb("sduser_db")
 	/* playWithPanic()
@@ -41,7 +41,7 @@ func Run(commandLineArgs []string) {
 }
 
 func playWithNonce(length uint8) {
-	fmt.Println("FIXME: test that those numbers are sufficiently random!")
+	fmt.Println("FIXME: проверить, что эти числа достаточно случайны!")
 	for i := 0; i < 5; i++ {
 		str := user.GenNonce(length)
 		fmt.Println("Nonce1:", str)
@@ -56,5 +56,5 @@ func playWithPanic() {
 		}
 	}
 	defer unwind()
-	panic("It's a panic")
+	panic("Это паника")
 }

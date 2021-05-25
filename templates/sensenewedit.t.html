@@ -15,13 +15,13 @@
     <input type="text" class="form-control" id="ownerid" name="ownerid" value="{{.Svp.Sduserid}}" readonly>
   </div>
   <div class="form-group">
-    <label for="oword">Слово (английское слово, аббревиатура или словосочетание, которое может обозначать смысл)</label>
+    <label for="oword">Слово (английское слово, аббревиатура или словосочетание, обозначающее смысл)</label>
     <input type="text" name="oword" class="form-control" id="oword"
     value="{{ .Sdfe.OWord}}"
     autofocus=true
     required></div>
     <div class="form-group">
-      <label for="theme">Тема (на русском языке) для смысла неоднозначности. Нажмите ПРОБЕЛ, чтобы выбрать</label>
+      <label for="theme">Тема (на русском языке) для уточнения смысла. Нажмите ПРОБЕЛ, чтобы выбрать</label>
       <select class="form-control js-example-basic-single" name="theme" id="theme">
         {{ range $index, $ThemeRecord := .Sdfe.Allth }}
         <option value="{{ $ThemeRecord.Theme }}">{{ $ThemeRecord.Theme }}</option>

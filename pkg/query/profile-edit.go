@@ -10,12 +10,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// parameters
+// параметры
 type profileEditParamsType struct {
 	Sduserid int32
 }
 
-// data for the form obtained from the DB
+// данные для формы, полученные из БД
 type profileEditDataType struct {
 	ID         int64
 	Slug       string
@@ -23,7 +23,7 @@ type profileEditDataType struct {
 	Ownerid    *int64
 }
 
-// profileHTMLTemplateParamsType are params for profile.t.html
+// profileHTMLTemplateParamsType являются параметрами для profile.t.html
 type profileEditHTMLTemplateParamsType struct {
 	D  []*profileEditDataType
 	PD *profileDataType
@@ -39,12 +39,12 @@ select id,
        ownerid
 from tlanguage;
 `, &p)
-	apperror.Panic500AndErrorIf(err1, "Failed to extract data, sorry")
+	apperror.Panic500AndErrorIf(err1, "Не удалось извлечь данные, извините")
 	defer sddb.CloseRows(reply)()
 	for reply.Next() {
 		r := &profileEditDataType{}
 		err1 = reply.StructScan(r)
-		sddb.FatalDatabaseErrorIf(err1, "Error obtaining a theme: %#v", err1)
+		sddb.FatalDatabaseErrorIf(err1, "Ошибка при получении темы: %#v", err1)
 		d = append(d, r)
 	}
 	return
@@ -61,5 +61,5 @@ func ProfileEditPageHandler(c *gin.Context) {
 		})
 		return
 	}
-	c.HTML(http.StatusOK, "general.t.html", shared.GeneralTemplateParams{Message: "Register or login."})
+	c.HTML(http.StatusOK, "general.t.html", shared.GeneralTemplateParams{Message: "Регистрация или логин."})
 }

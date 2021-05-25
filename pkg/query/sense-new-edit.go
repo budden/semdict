@@ -32,14 +32,14 @@ func AllKnownThemes() (records []*ThemeRecord) {
 	queryText = `select distinct theme from tsense order by theme`
 	// https://stackoverflow.com/questions/56178312/run-a-sql-query-without-parameters
 	reply, err1 := sddb.ReadQuery(queryText)
-	apperror.Panic500AndErrorIf(err1, "Db query failed")
+	apperror.Panic500AndErrorIf(err1, "Сбой запроса к БД")
 	defer sddb.CloseRows(reply)()
 	records = make([]*ThemeRecord, 0)
 	var last int
 	for last = 0; reply.Next(); last++ {
 		thr := &ThemeRecord{}
 		err1 = reply.StructScan(thr)
-		sddb.FatalDatabaseErrorIf(err1, "Error obtaining a theme: %#v", err1)
+		sddb.FatalDatabaseErrorIf(err1, "Ошибка при получении темы: %#v", err1)
 		records = append(records, thr)
 	}
 	return

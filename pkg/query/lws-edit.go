@@ -11,15 +11,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// parameters
+// параметры
 type lwsEditParamsType struct {
-	Lwsid      int64 // 0 when creating
-	Sduserid   int64 // taken from sesion, 0 when not logged in
+	Lwsid      int64 // 0 при создании
+	Sduserid   int64 // взято из сеанса, 0 при отсутствии входа в систему
 	Senseid    int64
 	Languageid int64
 }
 
-// data for the form obtained from the DB
+// данные для формы, полученные из БД
 type lwsEditDataType struct {
 	Word          string
 	Commentary    template.HTML
@@ -27,18 +27,18 @@ type lwsEditDataType struct {
 	OWord         string
 	Theme         string
 	Phrase        template.HTML
-	OwnerId       sql.NullInt64 // owner of a sense
-	Ownernickname string        // owner of a sense (direct or implied)
+	OwnerId       sql.NullInt64 // обладатель чувства
+	Ownernickname string        // обладатель чувства (прямого или подразумеваемого)
 }
 
-// SenseViewHTMLTemplateParamsType are params for senseview.t.html
+// SenseViewHTMLTemplateParamsType являются параметрами для senseview.t.html
 type lwsNewEditHTMLTemplateParamsType struct {
 	Lep    *lwsEditParamsType
 	Led    *lwsEditDataType
 	Phrase template.HTML
 }
 
-// read the sense, see the vsense view and senseViewParamsType for the explanation
+// читать смысл, см. представление vsense и senseViewParamsType для объяснения
 func readLwsNewEditDataFromDb(lnep *lwsEditParamsType) (lned *lwsEditDataType) {
 	reply, err1 := sddb.NamedReadQuery(
 		`select 
@@ -51,7 +51,7 @@ func readLwsNewEditDataFromDb(lnep *lwsEditParamsType) (lned *lwsEditDataType) {
 			left join sduser as sense_owner on tsense.ownerid = sense_owner.id
 			left join tlanguage on tlanguage.id = :languageid
 			where tsense.id = :senseid`, &lnep)
-	apperror.Panic500AndErrorIf(err1, "Failed to extract data, sorry")
+	apperror.Panic500AndErrorIf(err1, "Не удалось извлечь данные, извините")
 	defer sddb.CloseRows(reply)()
 	lned = &lwsEditDataType{}
 	dataFound := false
@@ -59,9 +59,9 @@ func readLwsNewEditDataFromDb(lnep *lwsEditParamsType) (lned *lwsEditDataType) {
 		err1 = reply.StructScan(lned)
 		dataFound = true
 	}
-	sddb.FatalDatabaseErrorIf(err1, "Error obtaining data: %#v", err1)
+	sddb.FatalDatabaseErrorIf(err1, "Ошибка при получении данных: %#v", err1)
 	if !dataFound {
-		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Data not found")
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Данные не найдены")
 	}
 	return
 }

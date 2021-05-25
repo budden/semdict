@@ -10,12 +10,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// parameters
+// параметры
 type profileParamsType struct {
 	Sduserid int32
 }
 
-// data for the form obtained from the DB
+// Данные для формы, полученной из БД
 type profileDataType struct {
 	Nickname           string
 	Email              string
@@ -24,7 +24,7 @@ type profileDataType struct {
 	Languagecommentary string
 }
 
-// profileHTMLTemplateParamsType are params for profile.t.html
+// profileHTMLTemplateParamsType являются параметрами для profile.t.html
 type profileHTMLTemplateParamsType struct {
 	Pdt *profileDataType
 }
@@ -43,7 +43,7 @@ from sduser
          left join tlanguage on tlanguage.id = profile.favorite_tlanguageid
 where sduser.id = :sduserid;
 `, &pp)
-	apperror.Panic500AndErrorIf(err1, "Failed to extract data, sorry")
+	apperror.Panic500AndErrorIf(err1, "Не удалось извлечь данные, извините")
 	defer sddb.CloseRows(reply)()
 	pd = &profileDataType{}
 	dataFound := false
@@ -51,9 +51,9 @@ where sduser.id = :sduserid;
 		err1 = reply.StructScan(pd)
 		dataFound = true
 	}
-	sddb.FatalDatabaseErrorIf(err1, "Error obtaining data: %#v", err1)
+	sddb.FatalDatabaseErrorIf(err1, "Ошибка при получении данных: %#v", err1)
 	if !dataFound {
-		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Data not found")
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Данные не найдены")
 	}
 	return
 }
@@ -67,5 +67,5 @@ func ProfilePageHandler(c *gin.Context) {
 		})
 		return
 	}
-	c.HTML(http.StatusOK, "general.t.html", shared.GeneralTemplateParams{Message: "Register or login."})
+	c.HTML(http.StatusOK, "general.t.html", shared.GeneralTemplateParams{Message: "Регистрация или логин."})
 }

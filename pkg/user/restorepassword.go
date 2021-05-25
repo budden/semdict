@@ -13,7 +13,7 @@ import (
 	"github.com/budden/semdict/pkg/shared"
 )
 
-// RestorePasswordFormPageHandler renders a /restorepasswordform page
+// RestorePasswordFormPageHandler отображает страницу /restorepasswordform
 func RestorePasswordFormPageHandler(c *gin.Context) {
 	sduserID := GetSDUserIdOrZero(c)
 	if sduserID > 0 {
@@ -23,7 +23,7 @@ func RestorePasswordFormPageHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "restorepasswordform.t.html", nil)
 }
 
-// RestorePasswordSubmitPageHandler processes a /restorepasswordsubmit form post request
+// RestorePasswordSubmitPageHandler обрабатывает пост-запрос формы /restorepasswordsubmit
 func RestorePasswordSubmitPageHandler(c *gin.Context) {
 	email := c.PostForm("email")
 
@@ -43,7 +43,7 @@ func RestorePasswordSubmitPageHandler(c *gin.Context) {
 	c.HTML(http.StatusOK,
 		"general.t.html",
 		shared.GeneralTemplateParams{
-			Message: "If you supplied your valid registration E-mail, then we sent you a message with a reset password link"})
+			Message: "Если вы указали свой действительный регистрационный E-mail, то мы отправили вам сообщение со ссылкой для сброса пароля."})
 }
 
 type restorePasswordData struct {
@@ -54,7 +54,7 @@ type restorePasswordData struct {
 func doRestorePasswordSubmit(c *gin.Context, d *restorePasswordData) (err error) {
 	err = processRestorePasswordSubmitWithDb(d)
 	if err == nil {
-		// sendConfirmationEmail only produces 500 in case of failure
+		// sendConfirmationEmail производит только 500 в случае неудачи
 		sendConfirmationRestorePassword(c, d)
 	}
 	return
@@ -87,27 +87,27 @@ func processRestorePasswordSubmitWithDb(d *restorePasswordData) error {
 
 func sendConfirmationRestorePassword(c *gin.Context, d *restorePasswordData) {
 	scd := shared.SecretConfigData
-	// TODO: if there are no certificate files, use http an7
+	// TODO: если нет файлов сертификатов, используйте http an7
 	confirmationLinkBase := shared.SitesProtocol() + "//" + scd.SiteRoot + shared.SitesPort() + "/changepasswordform"
 	parameters := url.Values{"email": {d.Email}, "confirmationkey": {d.Confirmationkey}}
 	u, err := url.Parse(confirmationLinkBase)
-	apperror.GracefullyExitAppIf(err, "Unable to parse base URL for a confirmation link")
+	apperror.GracefullyExitAppIf(err, "Невозможно разобрать базовый URL для ссылки подтверждения")
 	u.RawQuery = parameters.Encode()
 	confirmationLink := u.String()
 	body := fmt.Sprintf(
-		"Hello, to restore your password, please follow an restore link: <a href=%[1]s>%[1]s</a>",
+		"Здравствуйте, чтобы восстановить пароль, пожалуйста, перейдите по ссылке восстановления: <a href=%[1]s>%[1]s</a>",
 		confirmationLink,
 	)
 
 	err = SendEmail(
 		d.Email,
-		"Restore password of semantic dictionary!",
+		"Восстановите пароль семантического словаря!",
 		body)
 
 	if err != nil {
-		// We assume that failure to send an E-mail can be due to temporary
-		// network issues
-		apperror.Panic500AndLogAttackIf(err, c, "Failed to send a confirmation E-mail")
+		// Мы предполагаем, что неспособность отправить электронное письмо может быть вызвана
+		// временными проблемами в сети
+		apperror.Panic500AndLogAttackIf(err, c, "Не удалось отправить подтверждение по электронной почте")
 	}
 
 	noteRestorePasswordConfirmationEMailSentWithDb(d)
@@ -123,6 +123,6 @@ func noteRestorePasswordConfirmationEMailSentWithDb(d *restorePasswordData) {
 			d)
 		return
 	})
-	sddb.FatalDatabaseErrorIf(err, "Error remembering that E-Mail was sent, error is %#v", err)
+	sddb.FatalDatabaseErrorIf(err, "Ошибка, помнящая, что электронная почта была отправлена, ошибка заключается в следующем %#v", err)
 	return
 }

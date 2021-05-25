@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// ChangePasswordFormPageHandler renders a /changepasswordform page
+// ChangePasswordFormPageHandler отображает страницу /changepasswordform
 func ChangePasswordFormPageHandler(c *gin.Context) {
 	sduserID := GetSDUserIdOrZero(c)
 	if sduserID > 0 {
@@ -26,18 +26,18 @@ func ChangePasswordFormPageHandler(c *gin.Context) {
 		if processCheckConfirmationCodeWithDb(d) {
 			c.HTML(http.StatusOK, "changepasswordform.t.html", d)
 		} else {
-			c.HTML(http.StatusOK, "general.t.html", shared.GeneralTemplateParams{Message: "The confirmation link is invalid."})
+			c.HTML(http.StatusOK, "general.t.html", shared.GeneralTemplateParams{Message: "Ссылка для подтверждения недействительна."})
 		}
 		return
 	}
-	c.HTML(http.StatusOK, "general.t.html", shared.GeneralTemplateParams{Message: "Register or login."})
+	c.HTML(http.StatusOK, "general.t.html", shared.GeneralTemplateParams{Message: "Регистрация или логин."})
 }
 
-// ChangePasswordSubmitPageHandler processes a /changepasswordsubmit form post request
+// ChangePasswordSubmitPageHandler обрабатывает запрос post формы /changepasswordsubmit
 func ChangePasswordSubmitPageHandler(c *gin.Context) {
 	pwd := c.PostForm("password1")
 	if pwd != c.PostForm("password2") {
-		apperror.Panic500If(apperror.ErrDummy, "Passwords don't match")
+		apperror.Panic500If(apperror.ErrDummy, "Пароли не совпадают")
 	}
 	passwordErr := validatePassword(pwd)
 	if passwordErr != nil {
@@ -51,7 +51,7 @@ func ChangePasswordSubmitPageHandler(c *gin.Context) {
 		d := SDUserData{ID: sduserID}
 		selectSdUserFromDB(&d)
 		if !CheckPasswordAgainstSaltAndHash(oldPwd, d.Salt, d.Hash) {
-			c.HTML(http.StatusOK, "general.t.html", shared.GeneralTemplateParams{Message: "Invalid password."})
+			c.HTML(http.StatusOK, "general.t.html", shared.GeneralTemplateParams{Message: "Неверный пароль."})
 			return
 		}
 		if err := processChangePasswordSubmitWithDb(&changePasswordData{
@@ -78,7 +78,7 @@ func ChangePasswordSubmitPageHandler(c *gin.Context) {
 		}); err == nil {
 			c.HTML(http.StatusOK,
 				"general.t.html",
-				shared.GeneralTemplateParams{Message: "Password is changed."})
+				shared.GeneralTemplateParams{Message: "Пароль изменён."})
 
 		} else {
 			c.HTML(http.StatusOK,
@@ -87,7 +87,7 @@ func ChangePasswordSubmitPageHandler(c *gin.Context) {
 		}
 		return
 	}
-	c.HTML(http.StatusOK, "general.t.html", shared.GeneralTemplateParams{Message: "Register or login."})
+	c.HTML(http.StatusOK, "general.t.html", shared.GeneralTemplateParams{Message: "Регистрация или логин."})
 }
 
 type changePasswordData struct {
@@ -152,7 +152,7 @@ WHERE nickname = (SELECT nickname FROM sduser WHERE registrationemail = :email)
   AND registrationemail = :email
   AND confirmationkey = :confirmationkey;
 `, &d)
-	apperror.Panic500AndErrorIf(err1, "Failed confirmation link")
+	apperror.Panic500AndErrorIf(err1, "Неудачное подтверждение ссылки")
 	defer sddb.CloseRows(reply)()
 	for reply.Next() {
 		var r int64
@@ -160,7 +160,7 @@ WHERE nickname = (SELECT nickname FROM sduser WHERE registrationemail = :email)
 		if err1 == nil {
 			return r > 0
 		}
-		apperror.Panic500AndErrorIf(err1, "Failed confirmation link")
+		apperror.Panic500AndErrorIf(err1, "Неудачное подтверждение ссылки")
 	}
 	return false
 }
@@ -169,11 +169,11 @@ func selectSdUserFromDB(d *SDUserData) {
 	reply, err := sddb.NamedReadQuery(
 		`select * from sduser WHERE id = :id ;
 `, d)
-	apperror.Panic500AndErrorIf(err, "Failed select sduser")
+	apperror.Panic500AndErrorIf(err, "Не удалось выбрать sduser")
 	defer sddb.CloseRows(reply)()
 	for reply.Next() {
 		err = reply.StructScan(d)
-		apperror.Panic500AndErrorIf(err, "Failed scan to sduser")
+		apperror.Panic500AndErrorIf(err, "Сбой сканирования на sduser")
 	}
 	return
 }

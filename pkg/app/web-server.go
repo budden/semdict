@@ -26,7 +26,7 @@ import (
 )
 
 func homePageHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "general.t.html", shared.GeneralTemplateParams{Message: "Welcome to semantic dictionary"})
+	c.HTML(http.StatusOK, "general.t.html", shared.GeneralTemplateParams{Message: "Добро пожаловать в семантический словарь"})
 }
 
 const connectionLimit = 500
@@ -37,14 +37,14 @@ func handleDirStrippingPrefix(dir string, handlerFunc http.HandlerFunc) {
 			http.HandlerFunc(handlerFunc)))
 }
 
-// ThisHTTPServer is a main http server
+// ThisHTTPServer является основным http-сервером
 var ThisHTTPServer *http.Server
 
 // https://golang.hotexamples.com/examples/golang.org.x.net.netutil/-/LimitListener/golang-limitlistener-function-examples.t.html
 // https://habr.com/ru/post/197468/
 func playWithServer() {
 	port := ":" + shared.SecretConfigData.ServerPort
-	log.Printf("Starting server on %s - kill app to stop\n", port)
+	log.Printf("Запуск сервера на %s - убить приложение для остановки\n", port)
 
 	// https://stackoverflow.com/a/52830435/9469533
 	// FIXME conditionalize
@@ -53,7 +53,7 @@ func playWithServer() {
 	} else {
 		gin.SetMode(gin.ReleaseMode)
 	}
-	//This will disable hot template reloading, so we'll try to disable any messaging for a whil
+	// Это отключит горячую перезагрузку шаблона, поэтому мы постараемся отключить все сообщения на некоторое время.
 
 	engine := initRouter()
 
@@ -90,10 +90,10 @@ func playWithServer() {
 
 func actualFatalDatabaseErrorHandler(err error, c *sddb.ConnectionType, format string, args ...interface{}) {
 	sddb.SetConnectionDead(c)
-	log.Printf("Fatal error: "+format, args...)
+	log.Printf("Фатальная ошибка: "+format, args...)
 	debug.PrintStack()
 	shutdown.InitiateGracefulShutdown()
-	apperror.Panic500If(apperror.ErrDummy, "Internal error")
+	apperror.Panic500If(apperror.ErrDummy, "Внутренняя ошибка")
 }
 
 func initRouter() *gin.Engine {
@@ -130,7 +130,7 @@ func castAsHTML(s string) template.HTML {
 	return template.HTML(s)
 }
 
-// Coalesce is a bit similar to sql's coalesce, and intended to be used with the sql.NullString and sql.NullInt64
+// Coalesce немного похож на sql's coalesce и предназначен для использования с sql.NullString и sql.NullInt64.
 func Coalesce(o interface{}, defaultValue interface{}) interface{} {
 	switch e := o.(type) {
 	case sql.NullString:
@@ -147,8 +147,8 @@ func Coalesce(o interface{}, defaultValue interface{}) interface{} {
 		}
 	default:
 		{
-			apperror.GracefullyExitAppIf(apperror.ErrDummy, "unknown type for app.coalesce")
-			return "can't reach this point"
+			apperror.GracefullyExitAppIf(apperror.ErrDummy, "неизвестный тип для app.coalesce")
+			return "не может достичь этой точки"
 		}
 	}
 }
@@ -171,7 +171,7 @@ func ReverseProxy(c *gin.Context) {
 		req.URL.Scheme = "http"
 		req.URL.Host = target
 		req.Header["my-header"] = []string{r.Header.Get("my-header")}
-		// Golang camelcases headers
+		// Заголовки Golang camelcases
 		delete(req.Header, "My-Header")
 	}
 	proxy := &httputil.ReverseProxy{Director: director}

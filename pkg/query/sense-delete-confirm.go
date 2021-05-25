@@ -12,7 +12,7 @@ import (
 
 type senseDeleteConfirmParamsType = senseViewParamsType
 
-// SenseDeleteConfirmHTMLTemplateParamsType are params for sensedeleteconfirm.t.html
+// SenseDeleteConfirmHTMLTemplateParamsType являются параметрами для sensedeleteconfirm.t.html
 type SenseDeleteConfirmHTMLTemplateParamsType = SenseViewHTMLTemplateParamsType
 
 func SenseDeleteConfirmRequestHandler(c *gin.Context) {
@@ -28,6 +28,6 @@ func SenseDeleteConfirmRequestHandler(c *gin.Context) {
 			"sensedeleteconfirm.t.html",
 			SenseDeleteConfirmHTMLTemplateParamsType{Svp: svp, Sdfe: senseDataForEdit, Phrase: phraseHTML})
 	} else {
-		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Sorry, no sense (yet?) with id = «%d»", svp.Senseid)
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Извините, нет смысла (пока?) с id = «%d»", svp.Senseid)
 	}
 }

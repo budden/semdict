@@ -14,25 +14,25 @@ import (
 	"github.com/pkg/errors"
 )
 
-// AppErr is an application level error which
-// should not crash the application. It implements
-// error interface and should be used as a return value.
-// For panic, use Exception500
+// AppErr - это ошибка на уровне приложения, которая
+// не должна приводить к краху приложения. Она реализует
+// интерфейс ошибок и должна использоваться в качестве возвращаемого значения.
+// Для паники используйте Exception500
 type AppErr struct {
 	Message string
 }
 
-// Exception500 means that something relatively bad happened,
-// and we want to return 500 error code.
-// But the issue is local for current event handler, and
-// our program is still operational. Use Exception500 as an argument to
-// panic. For error return value, consider AppErr
+// Exception500 означает, что произошло что-то относительно плохое,
+// и мы хотим вернуть код ошибки 500.
+// Но проблема локальна для текущего обработчика события, и
+// наша программа продолжает работать. Используйте Exception500 в качестве аргумента для
+// panic. Для возврата значения ошибки рассмотрим AppErr
 type Exception500 struct {
-	// Message is sent to the client
+	// Сообщение отправляется клиенту
 	Message string
 }
 
-// NewAppErrf returns a new AppErr with a message
+// NewAppErrf возвращает новый AppErr с сообщением
 func NewAppErrf(format string, args ...interface{}) *AppErr {
 	message := fmt.Sprintf(format, args...)
 	result := AppErr{Message: message}
@@ -43,9 +43,9 @@ func (be *AppErr) Error() string {
 	return fmt.Sprintf("AppErr: %s", be.Message)
 }
 
-// HandlePanicInRequestHandlerMiddleware returns a middleware
-// that, for our known "good" panics recovers and
-// writes a 500, otherwise it prints the panic and exits the app.
+// HandlePanicInRequestHandlerMiddleware возвращает промежуточное ПО
+// что для нашего известного "блага" паника восстанавливается и
+// пишет 500, в противном случае печатает сообщение о панике и выходит из приложения.
 func HandlePanicInRequestHandlerMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
@@ -60,8 +60,8 @@ func HandlePanicInRequestHandlerMiddleware() gin.HandlerFunc {
 					}
 				default:
 					{
-						// this will exit app if no other too smart middleware
-						// would recover
+						// это приведет к завершению приложения, если нет другого слишком умного промежуточного ПО
+						// для восстановления
 						panic(err)
 					}
 				}
@@ -71,8 +71,8 @@ func HandlePanicInRequestHandlerMiddleware() gin.HandlerFunc {
 	}
 }
 
-// ErrorWithContents is a wrapper for any value.
-// Can be used to convert panic to error
+// ErrorWithContents это обёртка для любого значения.
+// Может использоваться для преобразования паники в ошибку
 type ErrorWithContents struct {
 	Message  string
 	Contents interface{}
@@ -84,7 +84,7 @@ func (i ErrorWithContents) Error() string {
 
 func coerceToError(x interface{}) (e error) {
 	if x == nil {
-		log.Fatal("Attempting to coerce nil to error")
+		log.Fatal("Попытка принудительного приведения nil к ошибке")
 	}
 	switch xt := x.(type) {
 	case error:
@@ -96,8 +96,8 @@ func coerceToError(x interface{}) (e error) {
 	return
 }
 
-// GracefullyExitAppIf can be used if error is considered not so horrible
-// and we can afford to shutdown the server gracefully. Error is not printed
+// GracefullyExitAppIf можно использовать, если ошибка считается не столь ужасной
+// и мы можем позволить себе изящно выключить сервер. Ошибка не печатается
 func GracefullyExitAppIf(err error, format string, args ...interface{}) {
 	if err != nil {
 		log.Printf(format, args...)
@@ -106,7 +106,7 @@ func GracefullyExitAppIf(err error, format string, args ...interface{}) {
 	}
 }
 
-// ExitAppIf closes the app abruptly
+// ExitAppIf резко закрывает приложение
 func ExitAppIf(err error, exitCode int, format string, args ...interface{}) {
 	if err != nil {
 		log.Printf(format, args...)
@@ -115,8 +115,8 @@ func ExitAppIf(err error, exitCode int, format string, args ...interface{}) {
 	}
 }
 
-// Panic500If should be called inside an http request handler, cancel handling, unwind the stack
-// and return 500 status with the formatted message
+// Panic500If следует вызывать внутри обработчика http-запросов, отменить обработку, размотать стек
+// и вернуть статус 500 с отформатированным сообщением
 func Panic500If(err error, format string, args ...interface{}) {
 	if err != nil {
 		msg := fmt.Sprintf(format, args...)
@@ -125,46 +125,46 @@ func Panic500If(err error, format string, args ...interface{}) {
 	}
 }
 
-// Panic500AndErrorIf is like Panic500, but logs error. We need to log error to know what is wrong and
-// for fail2ban
-// FIXME TODO - fail2ban and error logging are two different things, write two functions!
+// Panic500AndErrorIf похож на Panic500, но регистрирует ошибки. Мы должны регистрировать ошибки, чтобы знать, что не так и
+// для fail2ban
+// FIXME TODO - fail2ban и регистрация ошибок - это две разные вещи, напишите две функции!
 func Panic500AndErrorIf(err error, format string, args ...interface{}) {
 	if err != nil {
 		msg := fmt.Sprintf(format, args...)
 		data := Exception500{Message: msg}
-		log.Printf("Panic500AndErrorIf: error is %#v, message for the user is «%s», stack follows\n", err, msg)
+		log.Printf("Panic500AndErrorIf: ошибка - %#v, сообщение для пользователя - "%s", стёк следующий\n", err, msg)
 		debug.PrintStack()
 		panic(&data)
 	}
 }
 
-// Panic500AndLogAttackIf is used when the error can be a part of attack. We're going to put it to
-// the log (maybe a separated log) in the form understandible by fail2ban
+// Panic500AndLogAttackIf используется, когда ошибка может быть частью атаки. Мы собираемся поставить его на
+// журнал (может быть разделённый журнал) в форме, понятной fail2ban
 func Panic500AndLogAttackIf(err error, c *gin.Context, format string, args ...interface{}) {
 	if err != nil {
 		msg := fmt.Sprintf(format, args...)
-		log.Printf("Panic500AndLogAttaciIf: message is «%s»\n", msg)
+		log.Printf("Panic500AndLogAttaciIf: сообщение «%s»\n", msg)
 		LogAttack(c, err)
 		data := Exception500{Message: msg}
 		panic(&data)
 	}
 }
 
-// LogAttack is recording a request which is a suspected attack (for fail2ban)
+// LogAttack регистрирует запрос, который является подозреваемой атакой (для fail2ban)
 func LogAttack(c *gin.Context, err error) {
-	log.Printf("Error (may be an attack). IP address is %s\n, Error is «%#v»\n", c.ClientIP(), err)
-	// FIXME integrate with fail2ban
+	log.Printf("Ошибка (может быть атакой). IP-адрес %s\n, Ошибка «%#v»\n", c.ClientIP(), err)
+	// FIXME интеграция с fail2ban
 }
 
-// Panic200 should be called inside an http request handler and will cause the
-// default template to be built with the message
+// Panic200 должен быть вызван внутри обработчика http запроса и вызовет
+// шаблон по умолчанию, который будет построен вместе с сообщением
 /* func Panic200(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
 	data := Exception200{Message: msg}
 	panic(&data)
 } */
 
-// LogicalPanicIf should run in a web query handler and unwind current goroutine only
+// LogicalPanicIf должен выполняться в обработчике веб-запросов и разворачивать только текущую горутину
 func LogicalPanicIf(subject interface{}, format string, args ...interface{}) {
 	if subject != nil {
 		err := errors.WithMessagef(coerceToError(subject), format, args...)
@@ -172,6 +172,6 @@ func LogicalPanicIf(subject interface{}, format string, args ...interface{}) {
 	}
 }
 
-// ErrDummy can be used as a first argument to DoSomethingIf(err,...) if there is
-// no real error at hand
-var ErrDummy = errors.New("Dummy error")
+// ErrDummy можно использовать в качестве первого аргумента DoSomethingIf(err,...), если 
+// реальной ошибки нет
+var ErrDummy = errors.New("Фиктивная ошибка")

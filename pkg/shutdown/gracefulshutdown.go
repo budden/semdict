@@ -12,23 +12,23 @@ import (
 
 // https://android.wekeepcoding.com/article/10973673/How+to+delete+a+file+using+golang+on+program+exit%3F
 
-// Sigs holds a channel accepting os signals
+// Sigs - канал, принимающий сигналы os
 var Sigs *chan os.Signal
 
-// Timeout is used to handle "graceful shutdown". When it passes,
-// os.Exit(ExitCodeGracefulShutdownTimeout) is called
-// zero value means "no timeout"
+// Таймаут используется для обработки "льготного отключения". Когда он пройдёт,
+// os.Exit(ExitCodeGracefulShutdownTimeout) вызовет нулевое значение, означающее "тайм-аут отсутствует"
+//
 var Timeout = time.Second * 1
 
-// ArrayOfParameterlessFunctions is a type for Actions variable
+// ArrayOfParameterlessFunctions является типом для переменной Actions
 type ArrayOfParameterlessFunctions = []func()
 
 // Actions - see RunSignalListener
 var Actions = ArrayOfParameterlessFunctions{}
 
-// RunSignalListener creates a listener to catch SIGINT and SIGTERM. When
-// signal arrives, functions from Actions are run
-// sequentially. Time spent is controlled by the Timeout
+// RunSignalListener создаёт слушателя для перехвата SIGINT и SIGTERM.
+// Когда поступает сигнал, последовательно выполняются функции из Actions.
+// Затраченное время контролируется параметром Timeout
 func RunSignalListener() {
 	sigs := make(chan os.Signal, 1)
 	Sigs = &sigs
@@ -39,11 +39,12 @@ func RunSignalListener() {
 func signalListener() {
 	<-*Sigs
 	log.Println("Signal!")
-	// there are two timeout guards, and both cause the app to exit.
-	// First one is started before starting cleanup actions and causes
-	// exit with ExitCodeGracefulShutdownTimeout
-	// Second one is started after all cleanup actions. We could use waitgroup,
-	// but no need here as both guards call exit (hopefully exit is thread safe)
+	// есть два таймаута, и оба приводят к завершению работы приложения.
+	// Первый запускается до начала действий по очистке
+	// и вызывает выход с ExitCodeGracefulShutdownTimeout
+	// Второй запускается после всех действий по очистке. 
+	// Мы могли бы использовать waitgroup, но здесь в этом нет необходимости,
+	// так как оба охранника вызывают exit (надеюсь, exit безопасен для потока).
 	if Timeout != 0 {
 		go timeoutGuard(shared.ExitCodeGracefulShutdownTimeout)
 	}
@@ -71,9 +72,9 @@ type artificialSignal struct {
 func (as *artificialSignal) String() string { return "" }
 func (as *artificialSignal) Signal()        { return }
 
-// InitiateGracefulShutdown starts the shutdown process and returns without delay
-// Intended to be called by the user's code (including request handlers), in contrast with
-// signal-based shutdown initiated from the outer world
+// InitiateGracefulShutdown запускает процесс выключения и возвращается без задержки
+// Предназначены для вызова пользовательским кодом (включая обработчики запросов),
+// в отличие от выключения по сигналу, инициируемого из внешнего мира
 func InitiateGracefulShutdown() {
 	as := artificialSignal{}
 	*Sigs <- &as

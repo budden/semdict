@@ -21,14 +21,14 @@ type lwsAddParamsType struct {
 type lwsNewSubmitDataType = lwsEditSubmitDataType
 
 func sanitizeNewLwsData(pad *lwsNewSubmitDataType) {
-	// example just from the title page of https://github.com/microcosm-cc/bluemonday
+	// пример только с титульного листа https://github.com/microcosm-cc/bluemonday
 	p := bluemonday.UGCPolicy()
 	pad.Word = p.Sanitize(pad.Word)
 	pad.Commentary = p.Sanitize(pad.Commentary)
 	matched, err := regexp.Match(`^[0-9a-zA-Zа-яА-ЯёЁ\p{L} ]+$`, []byte(pad.Word))
 	if (err != nil) || !matched {
 		// https://www.linux.org.ru/forum/development/14877320
-		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Word can only contain Russian or latin letters, digits and spaces")
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Слово может содержать только русские или латинские буквы, цифры и пробелы")
 	}
 }
 
@@ -48,7 +48,7 @@ func makeNewLwsidInDb(sap *lwsNewSubmitDataType) (id int64) {
 		`insert into tlws (languageid, senseid, word, commentary, ownerid) 
 			values (:languageid, :senseid, :word, :commentary, :sduserid) 
 			returning id`, &sap)
-	apperror.Panic500AndErrorIf(err1, "Failed to insert a lws, sorry")
+	apperror.Panic500AndErrorIf(err1, "Не удалось вставить lws, извините")
 	defer sddb.CloseRows(reply)()
 	var dataFound bool
 	for reply.Next() {
@@ -56,8 +56,8 @@ func makeNewLwsidInDb(sap *lwsNewSubmitDataType) (id int64) {
 		dataFound = true
 	}
 	if !dataFound {
-		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Insert didn't return a record")
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Вставка не вернула запись")
 	}
-	sddb.FatalDatabaseErrorIf(err1, "Error obtaining id of a fresh lws: %#v", err1)
+	sddb.FatalDatabaseErrorIf(err1, "Ошибка при получении идентификатора свежего lws: %#v", err1)
 	return
 }

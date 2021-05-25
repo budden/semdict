@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// data for the DB
+// данные для БД
 type profileEditSubmitDataType struct {
 	Sduserid    int32
 	Tlanguageid *int64
@@ -27,7 +27,7 @@ func ProfileEditSubmitPageHandler(c *gin.Context) {
 		c.Redirect(http.StatusFound, "/profile")
 		return
 	}
-	c.HTML(http.StatusOK, "general.t.html", shared.GeneralTemplateParams{Message: "Register or login."})
+	c.HTML(http.StatusOK, "general.t.html", shared.GeneralTemplateParams{Message: "Зарегистрируйтесь или войдите в систему."})
 }
 
 func extractDataFromProfileEditSubmitRequest(c *gin.Context, d *profileEditSubmitDataType) {
@@ -60,6 +60,6 @@ func writeProfileInDb(d *profileEditSubmitDataType) {
 		}
 		return
 	})
-	apperror.Panic500AndErrorIf(err, "Failed to update profile, sorry")
+	apperror.Panic500AndErrorIf(err, "Не удалось обновить профиль, извините")
 	return
 }

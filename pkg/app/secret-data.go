@@ -23,19 +23,19 @@ func saveSecretDataConfigTToFile(scd *shared.SecretConfigDataT, filename *string
 	return
 }
 
-// DefaultConfigFileName is a default config file name
+// DefaultConfigFileName это имя файла конфигурации по умолчанию
 const DefaultConfigFileName = "semdict.config.json"
 
-// ConfigFileName is a secret data configuration file name
+// ConfigFileName имя файла конфигурации секретных данных
 var ConfigFileName *string
 
-// TemplateBaseDir is a directory in which template and static directory is located
-// FIXME rename. It is not "assets", because static files are not assets, only templates are.
-// but some "root directory".
+// TemplateBaseDir каталог, в котором находится каталог шаблонов и статических файлов
+// FIXME Переименование. Это не "активы", потому что статические файлы не являются активами, ими являются только шаблоны.
+// но некий "корневой каталог".
 var TemplateBaseDir *string
 
-// SaveSecretConfigDataExample is called from the test suite.
-// As a side effect, semdict.config.json.example is created
+// SaveSecretConfigDataExample вызывается из набора тестов.
+// В качестве побочного эффекта создается файл semdict.config.json.example
 func SaveSecretConfigDataExample(fileName *string) (scd *shared.SecretConfigDataT, err error) {
 	scd = &shared.SecretConfigDataT{
 		Comment:                     shared.SecretConfigDataTComment,
@@ -56,33 +56,33 @@ func SaveSecretConfigDataExample(fileName *string) (scd *shared.SecretConfigData
 	return
 }
 
-// LoadSecretConfigData reads the config file and inititalizes a SecretConfigData global
+// LoadSecretConfigData считывает файл конфигурации и инициализирует глобальный файл SecretConfigData
 func LoadSecretConfigData(configFileName *string) (err error) {
 	shared.SecretConfigData = &shared.SecretConfigDataT{}
 	scd := shared.SecretConfigData
 	fn := *configFileName
 	if _, err = os.Stat(fn); os.IsNotExist(err) {
-		fmt.Printf("No config file %s found. Create one by copying from %s.example\n",
+		fmt.Printf("Не найден файл конфигурации %s. Создайте его, скопировав из %s.example\n",
 			fn, fn)
 		os.Exit(shared.ExitCodeNoConfigFileFound)
 	}
 	var bytes []byte
 	bytes, err = ioutil.ReadFile(fn)
 	if err != nil {
-		fmt.Printf("Unable to read config %s\n", fn)
+		fmt.Printf("Невозможно прочитать конфигурацию %s\n", fn)
 		return
 	}
 	dec := json.NewDecoder(strings.NewReader(string(bytes)))
 	dec.DisallowUnknownFields()
 	err = dec.Decode(scd)
 	if err != nil {
-		fmt.Printf("Error reading config file %s: %#v\n", fn, err)
+		fmt.Printf("Ошибка чтения файла конфигурации %s: %#v\n", fn, err)
 		return
 	}
 	return
 }
 
-// ValidateConfiguration validates a "secret config data"
+// ValidateConfiguration проверяет "секретные данные конфигурации".
 func ValidateConfiguration() (err error) {
 	scd := shared.SecretConfigData
 	cert := scd.TLSCertFile
@@ -97,29 +97,29 @@ func ValidateConfiguration() (err error) {
 				var probe bool
 				probe, err = shared.IsFileExist(cert)
 				if err != nil {
-					err = errors.Wrapf(err, "Failed to stat a TLS cert file")
+					err = errors.Wrapf(err, "Не удалось установить файл сертификата TLS")
 				} else if !probe {
-					err = errors.Errorf("TLSCertFile «%s» not found", cert)
+					err = errors.Errorf("TLSCertFile «%s» не найден", cert)
 				}
 				probe, err = shared.IsFileExist(key)
 				if err != nil {
-					err = errors.Wrapf(err, "Failed to stat a TLS key file")
+					err = errors.Wrapf(err, "Не удалось установить файл ключа TLS")
 				} else if !probe {
-					err = errors.Errorf("TLSKeyFile «%s» not found", key)
+					err = errors.Errorf("TLSKeyFile «%s» не найден", key)
 				}
 			} else {
-				err = errors.New("In a standalone mode, you must supply either both TLSCertFile and TLSKeyFile, or none of them")
+				err = errors.New("В автономном режиме вы должны предоставить либо оба файла TLSCertFile и TLSKeyFile, либо ни один из них.")
 			}
 		}
 	case 1:
 		{
 			if cert != "" || key != "" {
-				err = errors.New("Under a proxy, don't supply TLSCertFile and TLSKeyFile")
+				err = errors.New("В прокси-сервере не поставляйте TLSCertFile и TLSKeyFile")
 			}
 		}
 	default:
 		{
-			err = errors.New("UnderAProxy must be 0 (standalone mode) or 1 (behind a proxy)")
+			err = errors.New("UnderAProxy должен быть равен 0 (автономный режим) или 1 (за прокси-сервером).")
 		}
 	}
 	return
