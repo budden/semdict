@@ -28,3 +28,13 @@ make initial-setup-ssl
 # start reverse proxy with configured ssl
 make run-proxy
 ```
+
+
+Просмотр логов:
+
+docker logs -f semdict-server
+
+Подключение к postgresq нужно делать через докер, но я делаю его прямо в локальной машине, 
+```
+psql -h localhost -p 5432 -U semdict sduser_db
+```

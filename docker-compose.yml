@@ -26,7 +26,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - ./semdict.config.json:/semdict.config.json:ro
+      - ./semdict.config.json.docker:/semdict.config.json:ro
     ports:
       - 127.0.0.1:$APP_PORT:$APP_PORT
     environment:
