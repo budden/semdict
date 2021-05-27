@@ -143,7 +143,7 @@ func Panic500AndErrorIf(err error, format string, args ...interface{}) {
 func Panic500AndLogAttackIf(err error, c *gin.Context, format string, args ...interface{}) {
 	if err != nil {
 		msg := fmt.Sprintf(format, args...)
-		log.Printf("Panic500AndLogAttaciIf: сообщение «%s»\n", msg)
+		log.Printf("Panic500AndLogAttackIf: сообщение «%s», ошибка %#v\n", msg, err)
 		LogAttack(c, err)
 		data := Exception500{Message: msg}
 		panic(&data)

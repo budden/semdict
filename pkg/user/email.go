@@ -24,13 +24,18 @@ func SendEmail(recieverEMail, subj, html string) (err error) {
 	}
 	scd := shared.SecretConfigData
 	m := mail.NewMessage()
-	m.SetHeader("От", scd.SenderEMail)
-	m.SetHeader("Для", recieverEMail)
-	m.SetHeader("Тема", subj)
-	m.SetBody("текст/html", html)
+	m.SetHeader("From", scd.SenderEMail)
+	m.SetHeader("To", recieverEMail)
+	m.SetHeader("Subject", subj)
+	m.SetBody("text/html", html)
 
 	d := mail.NewDialer(scd.SMTPServer, 25, scd.SMTPUser, scd.SMTPPassword)
 
 	err = d.DialAndSend(m)
+	if err != nil {
+		switch err.(type) {
+		case *mail.SendError: fmt.Printf("Причина ошибки: %#v", err.(*mail.SendError).Cause)
+		}
+	}
 	return
 }
