@@ -123,6 +123,6 @@ func noteRestorePasswordConfirmationEMailSentWithDb(d *restorePasswordData) {
 			d)
 		return
 	})
-	sddb.FatalDatabaseErrorIf(err, "Ошибка, помнящая, что электронная почта была отправлена, ошибка заключается в следующем %#v", err)
+	sddb.FatalDatabaseErrorIf(err, "Ошибка при попытке учёта отправленного E-mail, ошибка заключается в следующем %#v", err)
 	return
 }

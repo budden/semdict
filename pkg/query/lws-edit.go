@@ -27,8 +27,8 @@ type lwsEditDataType struct {
 	OWord         string
 	Theme         string
 	Phrase        template.HTML
-	OwnerId       sql.NullInt64 // обладатель чувства
-	Ownernickname string        // обладатель чувства (прямого или подразумеваемого)
+	OwnerId       sql.NullInt64 // обладатель смысла
+	Ownernickname string        // обладатель смысла (прямого или подразумеваемого)
 }
 
 // SenseViewHTMLTemplateParamsType являются параметрами для senseview.t.html

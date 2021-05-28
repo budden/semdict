@@ -72,7 +72,7 @@ func sendConfirmationEmail(c *gin.Context, rd *RegistrationData) {
 	scd := shared.SecretConfigData
 	// TODO: если нет файлов сертификатов, используйте http an7
 	confirmationLinkBase := shared.SitesProtocol() + "//" + scd.SiteRoot + shared.SitesPort() + "/registrationconfirmation"
-	parameters := url.Values{"ник": {rd.Nickname}, "ключ подтверждения": {rd.ConfirmationKey}}
+	parameters := url.Values{"nickname": {rd.Nickname}, "confirmationkey": {rd.ConfirmationKey}}
 	u, err := url.Parse(confirmationLinkBase)
 	apperror.GracefullyExitAppIf(err, "Невозможно разобрать базовый URL для ссылки подтверждения")
 	u.RawQuery = parameters.Encode()
