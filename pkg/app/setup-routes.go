@@ -41,6 +41,8 @@ func setupRoutes(engine *gin.Engine) {
 	// it is not good that we must know senseid to edit lws, but seem to be not fatal
 	engine.GET("/lwsedit/:senseid/:languageid/:lwsid", query.LwsEditGetHandler)
 	engine.POST("/lwseditsubmit", query.LwsEditSubmitPostHandler)
+	engine.GET("/lwsdeleteconfirm/:lwsid", query.LwsDeleteConfirmRequestHandler)
+	engine.POST("/lwsdelete/:lwsid", query.LwsDeleteRequestHandler)
 
 	engine.GET("/registrationform", user.RegistrationFormPageHandler)
 	engine.POST("/registrationsubmit", user.RegistrationSubmitPostHandler)
