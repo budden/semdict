@@ -39,7 +39,7 @@ type lwsNewEditHTMLTemplateParamsType struct {
 }
 
 // читать смысл, см. представление vsense и senseViewParamsType для объяснения
-func readLwsNewEditDataFromDb(lnep *lwsEditParamsType) (lned *lwsEditDataType) {
+func readLwsEditDataFromDb(lnep *lwsEditParamsType) (lned *lwsEditDataType) {
 	reply, err1 := sddb.NamedReadQuery(
 		`select 
  		coalesce(tlws.word,'') as word,
@@ -72,7 +72,7 @@ func LwsNewEditRequestHandler(c *gin.Context) {
 	lnep.Senseid = extractIdFromRequest(c, "senseid")
 	lnep.Languageid = extractIdFromRequest(c, "languageid")
 
-	lned := readLwsNewEditDataFromDb(lnep)
+	lned := readLwsEditDataFromDb(lnep)
 
 	phrase := template.HTML(lned.Phrase)
 
@@ -88,7 +88,7 @@ func LwsEditGetHandler(c *gin.Context) {
 	lnep.Languageid = extractIdFromRequest(c, "languageid")
 	lnep.Lwsid = extractIdFromRequest(c, "lwsid")
 
-	lned := readLwsNewEditDataFromDb(lnep)
+	lned := readLwsEditDataFromDb(lnep)
 
 	c.HTML(http.StatusOK,
 		"lws-edit.t.html",

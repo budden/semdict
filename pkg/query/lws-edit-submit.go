@@ -38,7 +38,9 @@ func LwsEditSubmitPostHandler(c *gin.Context) {
 			"/sensebyidview/"+strconv.FormatInt(pad.Senseid, 10))
 	} else if pad.Action == "delete" {
 		c.Redirect(http.StatusFound,
-			"/lwsdeleteconfirm/"+strconv.FormatInt(pad.Lwsid, 10))
+			"/lwsdeleteconfirm/"+strconv.FormatInt(pad.Senseid, 10)+"/"+
+				strconv.FormatInt(pad.Languageid, 10)+"/"+
+				strconv.FormatInt(pad.Lwsid, 10))
 	} else {
 		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Неизвестное действие в форме")
 	}

@@ -20,7 +20,7 @@ type senseDeleteParamsType struct {
 // SenseDeleteRequestHandler = POST sensedelete
 func SenseDeleteRequestHandler(c *gin.Context) {
 	// FIXME обрабатывать пустые черновики, например, много раз вызывать эту страницу и ни разу не вызвать пост.
-	// Например, таймаут для черновика, или статус черновика, или даже не добавлять в базу данных 
+	// Например, таймаут для черновика, или статус черновика, или даже не добавлять в базу данных
 	// до первого сохранения.
 	user.EnsureLoggedIn(c)
 	svp := &senseDeleteParamsType{
@@ -30,6 +30,12 @@ func SenseDeleteRequestHandler(c *gin.Context) {
 	}
 
 	if svp.Action == "delete" {
+		if svp.Sduserid != 1 /*tsar*/ {
+			c.HTML(http.StatusOK,
+				"general.t.html",
+				shared.GeneralTemplateParams{Message: "Попросите об этом царя, пожалуйста, передав ему url формы подтверждения удаления"})
+			return
+		}
 		deleteSenseFromDb(svp)
 		c.HTML(http.StatusOK,
 			"general.t.html",

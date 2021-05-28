@@ -1,24 +1,38 @@
 <!DOCTYPE html>
 <html>
-    <!-- See https://tehnojam.pro/category/development/razrabotka-web-prilozhenij-i-mikroservisov-na-golang-s-gin.t.html -->
+<!-- See https://semaphoreci.com/community/tutorials/test-driven-development-of-go-web-applications-with-gin -->
 
-    {{ template "header-start.t.html" .}}
-    <title>Семантический словарь : подтверждение удаления</title>
-    {{ template "header-end.t.html" .}}
-    <body>
-        <p><a href="/menu">Меню</a></p>
-        <h1>Удалить следующий смысл?</h1>
-        <p><b>{{ .Sdfe.OWord}}</b>|Тема: {{ .Sdfe.Theme}}</p>
-        <hr>
-        <p>Фраза:</p>
-        <p>{{ .Phrase}}</p>
-        <form class="form" action="/sensedelete/{{ .Sdfe.Id}}" method="POST">
-            <div class="form-group" style="display:none">
-              <input type="text" class="form-control" id="senseid" name="senseid" value="{{.Sdfe.Id}}" readonly>
-            </div>
-            <button type="submit" name="action" accesskey="n" value="delete" class="btn btn-primary">Удалить (alt-n)</button>
-            <button type="submit" name="action" accesskey="u" value="cancel" class="btn btn-primary">Отмена (alt-u)</button>
-        </form>
-          
-        <script src="/static/bootstrap-3.3.2/js/bootstrap.js"></script>
-        </body></html>
+{{ template "header-start.t.html" .}}
+<title>Семантический словарь : подтверждение удаления перевода</title>
+{{ template "header-end.t.html" .}}
+
+<body>
+<script type="text/javascript" src="/static/ckeditor_4.11.3_basic/ckeditor.js"></script>
+ <form class="form" action="/lwsdelete/{{ .Lep.Lwsid}}" method="POST">
+  <div class="form-group" style="display:none">
+    <input type="text" class="form-control" id="senseid" name="senseid" value="{{.Lep.Senseid}}" readonly>
+    <input type="text" class="form-control" id="languageid" name="languageid" value="{{.Lep.Languageid}}" readonly>
+  </div>
+  <p><b>{{ .Led.OWord}}</b>|<i>Тема:</i> {{ .Led.Theme}}</p>
+  <p><i>Фраза:</i> {{ .Phrase}}</p>
+  <small><p><i>Владелец смысла:</i> {{ .Led.Ownernickname }}</p></small>
+  <hr>
+    <p><b>Удалить ли следующий перевод на {{ .Led.Languageslug }}?</b></p>
+    <p><i>Перевод:</i> {{ .Led.Word}}</p>
+    <p><i>Комментарий:</i>{{ .Led.Commentary }}</p>
+  </div>
+  <button type="submit" name="action" value="delete" class="btn btn-primary">Удалить</button>
+  <button type="submit" name="action" value="cancel" class="btn btn-primary">Отмена</button>
+ </form>
+</body>
+<script src="/static/bootstrap-3.3.2/js/bootstrap.js"></script>
+<script type="text/javascript">
+    var ckeditor1 = CKEDITOR.replace( 'Commentary' );
+    AjexFileManager.init({
+        returnTo: 'ckeditor',
+        editor: ckeditor1
+    });
+</script>
+<link href="/static/select2-4.0.7/dist/css/select2.css" rel="stylesheet" />
+<script src="/static/select2-4.0.7/dist/js/select2.js"></script>  
+</html>
