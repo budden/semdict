@@ -37,7 +37,7 @@ func SenseNewSubmitPostHandler(c *gin.Context) {
 	newSenseId := makeNewSenseidInDb(pad)
 	// https://github.com/gin-gonic/gin/issues/444
 	c.Redirect(http.StatusFound,
-		"/sensebyidview/"+strconv.FormatInt(newSenseId, 10))
+		"/wordsearchresultform?dummyid=0&senseid="+strconv.FormatInt(newSenseId, 10))
 }
 
 func makeNewSenseidInDb(sap *senseNewSubmitDataType) (id int64) {

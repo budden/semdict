@@ -40,7 +40,7 @@ func LwsNewSubmitPostHandler(c *gin.Context) {
 	_ = makeNewLwsidInDb(pad)
 	// https://github.com/gin-gonic/gin/issues/444
 	c.Redirect(http.StatusFound,
-		"/sensebyidview/"+strconv.FormatInt(pad.Senseid, 10))
+		"/wordsearchresultform?dummyid=0&senseid="+strconv.FormatInt(pad.Senseid, 10))
 }
 
 func makeNewLwsidInDb(sap *lwsNewSubmitDataType) (id int64) {

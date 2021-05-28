@@ -115,8 +115,9 @@ func ExitAppIf(err error, exitCode int, format string, args ...interface{}) {
 	}
 }
 
-// Panic500If следует вызывать внутри обработчика http-запросов, отменить обработку, размотать стек
-// и вернуть статус 500 с отформатированным сообщением
+// Panic500If следует вызывать внутри обработчика http-запросов.
+// Она прерывает обработку, разматывает стек
+// и возвращает статус 500 с отформатированным сообщением
 func Panic500If(err error, format string, args ...interface{}) {
 	if err != nil {
 		msg := fmt.Sprintf(format, args...)

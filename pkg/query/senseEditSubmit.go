@@ -35,7 +35,7 @@ func SenseEditSubmitPostHandler(c *gin.Context) {
 		newSenseId := writeToDb(pad)
 		// https://github.com/gin-gonic/gin/issues/444
 		c.Redirect(http.StatusFound,
-			"/sensebyidview/"+strconv.FormatInt(newSenseId, 10))
+			"/wordsearchresultform?dummyid=0&senseid="+strconv.FormatInt(newSenseId, 10))
 	} else if pad.Action == "delete" {
 		c.Redirect(http.StatusFound,
 			"/sensedeleteconfirm/"+strconv.FormatInt(pad.Senseid, 10))

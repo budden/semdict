@@ -24,6 +24,7 @@ import (
 type wordSearchQueryParams struct {
 	Dummyid     int32 // не имеет значения
 	Wordpattern string
+	Senseid     int64 // если не 0, то Wordpattern не имеет значения, открываем конкретный смысл
 	Languageid  int64 // 0 значит «все»
 	// Эти поля не вводятся пользователем
 	Sduserid int32 // 0 для незарег. польз.
@@ -56,9 +57,9 @@ func wordSearchCommonPart(c *gin.Context) (wsqp *wordSearchQueryParams,
 	wsmr *wordSearchMasterRecord,
 	fd []*wordSearchQueryRecord) {
 	wsqp = getWordSearchQueryParamsFromRequest(c)
-
-	if wsqp.Wordpattern == "" {
-		apperror.Panic500AndLogAttackIf(apperror.ErrDummy, c, "Пустой шаблон поиска")
+	wsqp.Senseid = GetZeroOrOneNonNegativeIntFormValue(c, "senseid")
+	if (wsqp.Wordpattern != "") && (wsqp.Senseid != 0) {
+		apperror.Panic500If(apperror.ErrDummy, "нельзя задавать код смысла и строку для поиска одновременно")
 	}
 
 	wsqp.Offset = int32(GetZeroOrOneNonNegativeIntFormValue(c, "offset"))
@@ -112,7 +113,7 @@ func readWordSearchMasterRecordFromDb(wsqp *wordSearchQueryParams) (
 }
 
 func readWordSearchSensesFromDb(wsqp *wordSearchQueryParams) (fd []*wordSearchQueryRecord) {
-	queryText := "select * from fnwordsearch(:sduserid,:wordpattern,:offset,:limit)"
+	queryText := "select * from fnwordsearch(:sduserid,:wordpattern,:senseid,:offset,:limit)"
 	reply, err1 := sddb.NamedReadQuery(queryText, wsqp)
 	apperror.Panic500AndErrorIf(err1, "Db query failed")
 	defer sddb.CloseRows(reply)()
