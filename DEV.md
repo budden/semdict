@@ -38,3 +38,8 @@ docker logs -f semdict-server
 ```
 psql -h localhost -p 5432 -U semdict sduser_db
 ```
+
+Вход в докер:
+```
+ docker exec -it <container_name> psql -U <username>
+```
