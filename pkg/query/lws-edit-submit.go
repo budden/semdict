@@ -51,10 +51,10 @@ func sanitizeLwsEditData(pad *lwsEditSubmitDataType) {
 	// example just from the title page of https://github.com/microcosm-cc/bluemonday
 	p := bluemonday.UGCPolicy()
 	pad.Commentary = p.Sanitize(pad.Commentary)
-	matched, err := regexp.Match(`^[0-9a-zA-Zа-яА-ЯёЁ\p{L} ]+$`, []byte(pad.Word))
+	matched, err := regexp.Match(`^[0-9a-zA-Zа-яА-ЯёЁ\p{L}\- ]+$`, []byte(pad.Word))
 	if (err != nil) || !matched {
 		// https://www.linux.org.ru/forum/development/14877320
-		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Слово может содержать только русские и латинские буквы, цифры и пробелы")
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Слово может содержать только русские и латинские буквы, цифры, дефис и пробелы")
 	}
 }
 

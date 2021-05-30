@@ -27,6 +27,9 @@ make initial-setup-ssl
 
 # start reverse proxy with configured ssl
 make run-proxy
+
+# сборка мусора в докере
+docker system prune
 ```
 
 

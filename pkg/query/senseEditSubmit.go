@@ -50,10 +50,10 @@ func sanitizeData(pad *senseEditSubmitDataType) {
 	// пример только с титульного листа https://github.com/microcosm-cc/bluemonday
 	p := bluemonday.UGCPolicy()
 	pad.Phrase = p.Sanitize(pad.Phrase)
-	matched, err := regexp.Match(`^[0-9a-zA-Z\p{L} ]+$`, []byte(pad.OWord))
+	matched, err := regexp.Match(`^[0-9a-zA-Z\p{L}\- ]+$`, []byte(pad.OWord))
 	if (err != nil) || !matched {
 		// https://www.linux.org.ru/forum/development/14877320
-		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Английское слово может содержать только латинские буквы, цифры и пробелы")
+		apperror.Panic500AndErrorIf(apperror.ErrDummy, "Английское слово может содержать только латинские буквы, цифры, пробелы, дефис")
 	}
 }
 
